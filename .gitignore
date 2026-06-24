@@ -43,3 +43,8 @@ supabase/.env
 # generated native folders
 /ios
 /android
+
+# database backups — contain real user data, must never be committed
+db_backup/
+backup_db.js
+restore_db.js
