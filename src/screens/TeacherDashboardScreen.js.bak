@@ -1,0 +1,657 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  Modal, TextInput,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useApp } from '../context/AppContext';
+import { students, myProfile, mentorAssignments, mentorVisitCounts, hubClubs } from '../data';
+import { colors, spacing, radius, font, avatarColor } from '../theme';
+import { supabase } from '../lib/supabase';
+
+const ALL_COURSES = ['BCom IAF', 'BCom IBA', 'BCom F&A'];
+const EMOJI_OPTIONS = ['📚', '⚡', '🧠', '💡', '🎯', '📊', '💼', '🔬', '💻', '📝', '🌏', '🎓'];
+const REQUIRED_VISITS = 5;
+
+export default function TeacherDashboardScreen({ onSignOut }) {
+  const { teacherProfile, teacherGroups, addTeacherGroup, submitFacultyClubRequest } = useApp();
+  const av = avatarColor(teacherProfile.name);
+
+  const assignment = mentorAssignments.find(a => a.teacherId === teacherProfile.id);
+  const menteeIds = assignment?.studentIds ?? [];
+  const mentees = menteeIds.map(id =>
+    id === 0 ? { ...myProfile, id: 0 } : students.find(s => s.id === id)
+  ).filter(Boolean);
+
+  const myGroups = teacherGroups.filter(g => g.teacherId === teacherProfile.id);
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [newGroup, setNewGroup] = useState({
+    name: '', desc: '', emoji: '📚',
+    visibleTo: [...ALL_COURSES],
+  });
+
+  // Faculty coordinator state
+  const [myRequests, setMyRequests] = useState([]);
+  const [showClubRequest, setShowClubRequest] = useState(false);
+  const [selectedClub, setSelectedClub] = useState(null);
+  const [clubReason, setClubReason] = useState('');
+  const [clubRequestError, setClubRequestError] = useState('');
+  const [clubRequestLoading, setClubRequestLoading] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('faculty_club_requests')
+      .select('*')
+      .eq('teacher_id', String(teacherProfile.id))
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setMyRequests(data || []));
+  }, [teacherProfile.id]);
+
+  const handleClubRequest = async () => {
+    if (!selectedClub) { setClubRequestError('Please select a club.'); return; }
+    if (!clubReason.trim()) { setClubRequestError('Please provide a reason.'); return; }
+    const alreadyPending = myRequests.find(
+      r => r.club_id === String(selectedClub.id) && r.status === 'pending'
+    );
+    if (alreadyPending) { setClubRequestError('You already have a pending request for this club.'); return; }
+    setClubRequestLoading(true);
+    setClubRequestError('');
+    try {
+      await submitFacultyClubRequest({
+        teacherId: teacherProfile.id,
+        teacherName: teacherProfile.name,
+        clubId: selectedClub.id,
+        clubName: selectedClub.fullName,
+        reason: clubReason.trim(),
+      });
+      const { data } = await supabase
+        .from('faculty_club_requests')
+        .select('*')
+        .eq('teacher_id', String(teacherProfile.id))
+        .order('created_at', { ascending: false });
+      setMyRequests(data || []);
+      setShowClubRequest(false);
+      setSelectedClub(null);
+      setClubReason('');
+    } catch (e) {
+      setClubRequestError(e.message || 'Failed to submit request.');
+    } finally {
+      setClubRequestLoading(false);
+    }
+  };
+
+  const toggleCourse = (course) => {
+    setNewGroup(prev => {
+      const next = prev.visibleTo.includes(course)
+        ? prev.visibleTo.filter(c => c !== course)
+        : [...prev.visibleTo, course];
+      return { ...prev, visibleTo: next.length === 0 ? [course] : next };
+    });
+  };
+
+  const handleCreate = () => {
+    if (!newGroup.name.trim()) {
+      Alert.alert('Missing name', 'Please enter a group name.');
+      return;
+    }
+    addTeacherGroup({
+      id: Date.now(),
+      name: newGroup.name.trim(),
+      desc: newGroup.desc.trim() || `A study group for ${newGroup.name.trim()}.`,
+      emoji: newGroup.emoji,
+      visibleTo: newGroup.visibleTo,
+      course: newGroup.visibleTo.length === 3 ? 'All' : newGroup.visibleTo[0],
+      members: menteeIds.length + 1,
+      active: true,
+      recentMessages: [],
+      createdByTeacher: true,
+      teacherName: teacherProfile.name,
+      teacherId: teacherProfile.id,
+    });
+    setNewGroup({ name: '', desc: '', emoji: '📚', visibleTo: [...ALL_COURSES] });
+    setShowCreate(false);
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={[styles.avatar, { backgroundColor: av.bg }]}>
+            <Text style={styles.avatarText}>{teacherProfile.initials}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={styles.nameRow}>
+              <Text style={styles.teacherName} numberOfLines={1}>{teacherProfile.name}</Text>
+              {teacherProfile.isHOD && (
+                <View style={styles.hodBadge}>
+                  <Text style={styles.hodBadgeText}>HOD</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.teacherSpec} numberOfLines={1}>{teacherProfile.specialisation}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.signOutBtn} onPress={onSignOut} activeOpacity={0.8}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {/* Mentor Group */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>
+            🎓 MY MENTOR GROUP{assignment ? ` · ${assignment.course} Group ${assignment.group}` : ''}
+          </Text>
+
+          {mentees.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyIcon}>👥</Text>
+              <Text style={styles.emptyText}>No mentor group assigned</Text>
+            </View>
+          ) : (
+            mentees.map(s => <MenteeCard key={s.id} student={s} />)
+          )}
+        </View>
+
+        {/* Study Groups */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionLabel}>
+              📚 STUDY GROUPS ({myGroups.length})
+            </Text>
+            <TouchableOpacity
+              style={styles.createBtn}
+              onPress={() => setShowCreate(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.createBtnText}>+ Create</Text>
+            </TouchableOpacity>
+          </View>
+
+          {myGroups.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyIcon}>📚</Text>
+              <Text style={styles.emptyText}>No groups created yet</Text>
+              <Text style={styles.emptyHint}>
+                Create a group and choose which classes can see it
+              </Text>
+            </View>
+          ) : (
+            myGroups.map(g => <TeacherGroupCard key={g.id} group={g} />)
+          )}
+        </View>
+        {/* Faculty Coordinator */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionLabel}>🏛️ CLUB COORDINATOR ACCESS</Text>
+            <TouchableOpacity
+              style={styles.createBtn}
+              onPress={() => { setShowClubRequest(true); setClubRequestError(''); }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.createBtnText}>+ Request</Text>
+            </TouchableOpacity>
+          </View>
+
+          {myRequests.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyIcon}>🏛️</Text>
+              <Text style={styles.emptyText}>No coordinator requests yet</Text>
+              <Text style={styles.emptyHint}>Request admin access for a club or team you coordinate</Text>
+            </View>
+          ) : (
+            myRequests.map(r => (
+              <View key={r.id} style={styles.requestCard}>
+                <View style={styles.requestCardTop}>
+                  <Text style={styles.requestClubName} numberOfLines={1}>{r.club_name}</Text>
+                  <View style={[
+                    styles.statusPill,
+                    r.status === 'approved' && styles.statusApproved,
+                    r.status === 'rejected' && styles.statusRejected,
+                  ]}>
+                    <Text style={[
+                      styles.statusText,
+                      r.status === 'approved' && styles.statusTextApproved,
+                      r.status === 'rejected' && styles.statusTextRejected,
+                    ]}>
+                      {r.status.toUpperCase()}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.requestReason} numberOfLines={2}>"{r.reason}"</Text>
+              </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Club Coordinator Request Modal */}
+      <Modal visible={showClubRequest} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <ScrollView
+            style={styles.modal}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🏛️ Request Coordinator Access</Text>
+              <TouchableOpacity onPress={() => setShowClubRequest(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>SELECT CLUB / TEAM</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: spacing.md }}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              {hubClubs.map(c => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[styles.clubChip, selectedClub?.id === c.id && styles.clubChipActive]}
+                  onPress={() => { setSelectedClub(c); setClubRequestError(''); }}
+                  activeOpacity={0.75}
+                >
+                  <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
+                  <Text style={[styles.clubChipText, selectedClub?.id === c.id && styles.clubChipTextActive]}>
+                    {c.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.modalLabel}>REASON FOR REQUEST</Text>
+            <TextInput
+              value={clubReason}
+              onChangeText={t => { setClubReason(t); setClubRequestError(''); }}
+              placeholder="Explain your role and how you'll coordinate this club…"
+              placeholderTextColor={colors.textTertiary}
+              style={[styles.modalInput, { height: 90, textAlignVertical: 'top', paddingTop: spacing.sm }]}
+              multiline
+            />
+
+            {clubRequestError ? (
+              <Text style={styles.requestError}>{clubRequestError}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.modalSubmit, (clubRequestLoading || !selectedClub || !clubReason.trim()) && { opacity: 0.45 }]}
+              onPress={handleClubRequest}
+              disabled={clubRequestLoading || !selectedClub || !clubReason.trim()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalSubmitText}>
+                {clubRequestLoading ? 'Submitting…' : 'Submit Request'}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Create Group Modal */}
+      <Modal visible={showCreate} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <ScrollView
+            style={styles.modal}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>📚 Create Study Group</Text>
+              <TouchableOpacity onPress={() => setShowCreate(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>GROUP NAME</Text>
+            <TextInput
+              value={newGroup.name}
+              onChangeText={t => setNewGroup(p => ({ ...p, name: t }))}
+              placeholder="e.g. BCom IAF — AA Revision"
+              placeholderTextColor={colors.textTertiary}
+              style={styles.modalInput}
+            />
+
+            <Text style={styles.modalLabel}>EMOJI</Text>
+            <View style={styles.emojiGrid}>
+              {EMOJI_OPTIONS.map(e => (
+                <TouchableOpacity
+                  key={e}
+                  style={[styles.emojiOption, newGroup.emoji === e && styles.emojiOptionActive]}
+                  onPress={() => setNewGroup(p => ({ ...p, emoji: e }))}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.emojiOptionText}>{e}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.modalLabel}>DESCRIPTION</Text>
+            <TextInput
+              value={newGroup.desc}
+              onChangeText={t => setNewGroup(p => ({ ...p, desc: t }))}
+              placeholder="What will this group focus on?"
+              placeholderTextColor={colors.textTertiary}
+              style={[styles.modalInput, { height: 72, textAlignVertical: 'top', paddingTop: spacing.sm }]}
+              multiline
+            />
+
+            <Text style={styles.modalLabel}>VISIBLE TO</Text>
+            <Text style={styles.modalHint}>
+              Select which student classes can see this group
+            </Text>
+            <View style={styles.courseCheckRow}>
+              {ALL_COURSES.map(c => {
+                const selected = newGroup.visibleTo.includes(c);
+                return (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.courseCheck, selected && styles.courseCheckActive]}
+                    onPress={() => toggleCourse(c)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.checkbox, selected && styles.checkboxChecked]}>
+                      {selected && <Text style={styles.checkmark}>✓</Text>}
+                    </View>
+                    <Text style={[styles.courseCheckText, selected && styles.courseCheckTextActive]}>
+                      {c}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalSubmit, !newGroup.name.trim() && { opacity: 0.45 }]}
+              onPress={handleCreate}
+              disabled={!newGroup.name.trim()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalSubmitText}>Create Group</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+function MenteeCard({ student }) {
+  const av = avatarColor(student.name);
+  const visits = mentorVisitCounts[student.id] ?? 0;
+  const progress = Math.min(visits / REQUIRED_VISITS, 1);
+  const done = visits >= REQUIRED_VISITS;
+
+  return (
+    <View style={styles.menteeCard}>
+      <View style={[styles.menteeAvatar, { backgroundColor: av.bg }]}>
+        <Text style={[styles.menteeAvatarText, { color: av.text }]}>
+          {student.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+        </Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <View style={styles.menteeTop}>
+          <Text style={styles.menteeName}>{student.name}</Text>
+          <Text style={[styles.visitsLabel, done && styles.visitsLabelDone]}>
+            {visits}/{REQUIRED_VISITS} visits{done ? ' ✓' : ''}
+          </Text>
+        </View>
+        <Text style={styles.menteeSub}>{student.course} · {student.year}</Text>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }, done && styles.progressFillDone]} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function TeacherGroupCard({ group }) {
+  return (
+    <View style={styles.groupCard}>
+      <View style={styles.groupCardLeft}>
+        <View style={styles.groupEmoji}>
+          <Text style={{ fontSize: 22 }}>{group.emoji}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.groupName} numberOfLines={1}>{group.name}</Text>
+          <Text style={styles.groupDesc} numberOfLines={1}>{group.desc}</Text>
+          <View style={styles.visibleToRow}>
+            {group.visibleTo.map(c => (
+              <View key={c} style={styles.visiblePill}>
+                <Text style={styles.visiblePillText}>{c}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+      <View style={styles.groupMeta}>
+        {group.active && <View style={styles.activeDot} />}
+        <Text style={styles.groupMembers}>👥 {group.members}</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.md, paddingBottom: 40 },
+
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
+  avatar: {
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontSize: 16, ...font.bold, color: '#fff' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  teacherName: { fontSize: 15, ...font.bold, color: colors.textPrimary, flexShrink: 1 },
+  teacherSpec: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  hodBadge: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: radius.full,
+    borderWidth: 1, borderColor: colors.primary,
+  },
+  hodBadgeText: { fontSize: 9, ...font.bold, color: colors.primary, letterSpacing: 0.6 },
+  signOutBtn: {
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md, paddingVertical: 7,
+  },
+  signOutText: { fontSize: 12, color: colors.textSecondary, ...font.medium },
+
+  section: { marginBottom: spacing.lg },
+  sectionLabel: {
+    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
+    ...font.bold, marginBottom: spacing.sm,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  createBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
+  },
+  createBtnText: { color: '#fff', fontSize: 12, ...font.bold },
+
+  emptyCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+  },
+  emptyIcon: { fontSize: 28, marginBottom: spacing.sm },
+  emptyText: { fontSize: 14, color: colors.textSecondary, ...font.medium, marginBottom: 4 },
+  emptyHint: { fontSize: 12, color: colors.textTertiary, textAlign: 'center' },
+
+  menteeCard: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  menteeAvatar: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  menteeAvatarText: { fontSize: 14, ...font.bold },
+  menteeTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  menteeName: { fontSize: 14, ...font.semibold, color: colors.textPrimary, flex: 1 },
+  menteeSub: { fontSize: 11, color: colors.textTertiary, marginBottom: spacing.xs },
+  visitsLabel: { fontSize: 11, color: colors.textTertiary, ...font.medium },
+  visitsLabelDone: { color: colors.green },
+  progressTrack: {
+    height: 4, borderRadius: 2,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 4, borderRadius: 2,
+    backgroundColor: colors.primary,
+  },
+  progressFillDone: { backgroundColor: colors.green },
+
+  groupCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  groupCardLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
+  groupEmoji: {
+    width: 44, height: 44, borderRadius: radius.md,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  groupName: { fontSize: 13, ...font.semibold, color: colors.textPrimary, marginBottom: 2 },
+  groupDesc: { fontSize: 11, color: colors.textTertiary, marginBottom: spacing.xs },
+  visibleToRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  visiblePill: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.full,
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderWidth: 1, borderColor: colors.primary,
+  },
+  visiblePillText: { fontSize: 9, color: colors.primary, ...font.semibold },
+  groupMeta: { alignItems: 'flex-end', gap: 6 },
+  activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.green },
+  groupMembers: { fontSize: 11, color: colors.textSecondary },
+
+  requestCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  requestCardTop: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6,
+  },
+  requestClubName: { fontSize: 14, ...font.semibold, color: colors.textPrimary, flex: 1 },
+  statusPill: {
+    borderWidth: 1, borderColor: colors.amber,
+    borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2, marginLeft: 8,
+  },
+  statusApproved: { borderColor: colors.green },
+  statusRejected: { borderColor: colors.red },
+  statusText: { fontSize: 9, ...font.bold, color: colors.amber, letterSpacing: 0.5 },
+  statusTextApproved: { color: colors.green },
+  statusTextRejected: { color: colors.red },
+  requestReason: { fontSize: 12, color: colors.textTertiary, fontStyle: 'italic' },
+  clubChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: spacing.md, paddingVertical: 8,
+    backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.full,
+  },
+  clubChipActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  clubChipText: { fontSize: 13, color: colors.textSecondary, ...font.medium },
+  clubChipTextActive: { color: colors.primary, ...font.semibold },
+  requestError: { fontSize: 12, color: colors.red, marginBottom: spacing.sm },
+
+  // Modal
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modal: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: spacing.lg,
+    maxHeight: '92%',
+    borderWidth: 1, borderColor: colors.border,
+  },
+  modalHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalTitle: { fontSize: 18, ...font.bold, color: colors.textPrimary },
+  modalClose: { fontSize: 22, color: colors.textSecondary, padding: 4 },
+  modalLabel: {
+    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
+    ...font.bold, marginBottom: 6, marginTop: spacing.sm,
+  },
+  modalHint: { fontSize: 11, color: colors.textTertiary, marginBottom: spacing.sm, marginTop: -4 },
+  modalInput: {
+    backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.textPrimary,
+    fontSize: 14,
+  },
+  emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  emojiOption: {
+    width: 44, height: 44, borderRadius: radius.md,
+    backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  emojiOptionActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  emojiOptionText: { fontSize: 22 },
+  courseCheckRow: { gap: spacing.xs },
+  courseCheck: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: 10, paddingHorizontal: spacing.md,
+    backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.md,
+  },
+  courseCheckActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  checkbox: {
+    width: 20, height: 20, borderRadius: 4,
+    borderWidth: 1.5, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.card,
+  },
+  checkboxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkmark: { fontSize: 12, color: '#fff', ...font.bold },
+  courseCheckText: { fontSize: 13, color: colors.textSecondary, ...font.medium },
+  courseCheckTextActive: { color: colors.textPrimary, ...font.semibold },
+  modalSubmit: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    marginTop: spacing.lg,
+    alignItems: 'center',
+  },
+  modalSubmitText: { color: '#fff', fontSize: 15, ...font.bold },
+});

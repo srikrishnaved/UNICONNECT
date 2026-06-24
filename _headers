@@ -1,0 +1,16 @@
+# HTTP security headers for ChristConnect
+#
+# Format: Netlify _headers / Cloudflare Pages _headers
+# These headers are NOT read by EAS Hosting (christconnect.expo.app) — EAS Hosting
+# does not currently expose header configuration for static deployments.
+# They take effect if hosting is moved to Netlify, Cloudflare Pages, or any
+# static host that reads this file from the project root.
+#
+# CSP is also enforced via <meta http-equiv> in public/index.html for all hosts.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://qoseoqvdwiaqdkmivrxk.supabase.co wss://qoseoqvdwiaqdkmivrxk.supabase.co https://u.expo.dev; font-src 'self' data:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

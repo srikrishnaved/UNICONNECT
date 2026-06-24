@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!--
+      Content-Security-Policy:
+        script-src / style-src need 'unsafe-inline' because React Native Web injects
+        inline styles and Expo Metro may emit inline scripts in development.
+        connect-src is locked to this project's Supabase instance and Expo update CDN.
+        X-Frame-Options and X-Content-Type-Options cannot be set via meta tags — see
+        the /_headers file for those (effective on Netlify / Cloudflare Pages hosting).
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob: https:;
+      connect-src 'self'
+        https://qoseoqvdwiaqdkmivrxk.supabase.co
+        wss://qoseoqvdwiaqdkmivrxk.supabase.co
+        https://u.expo.dev;
+      font-src 'self' data:;
+      frame-src 'none';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    " />
+    <title>UNI CONNECT</title>
+    <!-- react-native-web recommended style reset -->
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"></div>
+  </body>
+</html>
