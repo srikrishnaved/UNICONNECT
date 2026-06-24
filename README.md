@@ -25,6 +25,12 @@ UniConnect is a student engagement platform built for CHRIST (Deemed to be Unive
 
 [christconnect.expo.app](https://christconnect.expo.app)
 
+## Legal
+
+UniConnect is licensed under the **Business Source License 1.1 (BUSL-1.1)**. Commercial use requires written permission from the licensor. Non-commercial, educational, and personal use is permitted. See [LICENSE](LICENSE) for full details.
+
+The platform includes a Privacy Policy and Terms of Service accessible from the sign-up flow and the My Profile screen. Data is governed under the Digital Personal Data Protection Act 2023 (India). For privacy or legal enquiries, contact: srikrishnavedkodakalla@gmail.com
+
 ## Status
 
 Active development — built for CHRIST (Deemed to be University), Bangalore Yeshwanthpur Campus.
