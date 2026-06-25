@@ -64,7 +64,7 @@ const TERMS_OF_SERVICE = [
   },
   {
     heading: 'AI Features',
-    body: 'The App includes AI-powered features including AI study plan generation (J.A.R.V.I.S.) and AI-assisted documentation generation (NFA documents, activity reports). These features are powered by Anthropic\'s API.\n\nAI-generated content is provided for assistance only. You must review all AI-generated content before official submission or use. UniConnect and its developer are not liable for any inaccuracy, omission, or error in AI-generated output, and accept no liability for any consequence arising from reliance on unreviewed AI-generated content.',
+    body: 'The App includes AI-powered features including AI study plan generation (SAGE) and AI-assisted documentation generation (NFA documents, activity reports). These features are powered by Anthropic\'s API.\n\nAI-generated content is provided for assistance only. You must review all AI-generated content before official submission or use. UniConnect and its developer are not liable for any inaccuracy, omission, or error in AI-generated output, and accept no liability for any consequence arising from reliance on unreviewed AI-generated content.',
   },
   {
     heading: 'Disclaimer',

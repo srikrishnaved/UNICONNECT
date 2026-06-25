@@ -135,7 +135,7 @@ export default function StudyPlannerScreen() {
   }
 
   async function handleRegenerate() {
-    const msg = 'Recalculating remaining schedule. Completed topics will stay fixed. Shall I proceed, sir?';
+    const msg = 'Recalculating remaining schedule. Completed topics will stay fixed. Continue?';
     const confirmed = Platform.OS === 'web'
       ? window.confirm(msg)
       : await new Promise(resolve =>
@@ -154,8 +154,8 @@ export default function StudyPlannerScreen() {
       if (data?.error) throw new Error(data.error);
       await Promise.all([loadExams(), loadTopics()]);
     } catch (e) {
-      if (Platform.OS === 'web') window.alert('I seem to have run into a problem, sir. Please try again.');
-      else Alert.alert('J.A.R.V.I.S.', 'I seem to have run into a problem, sir. Please try again.');
+      if (Platform.OS === 'web') window.alert('Something went wrong. Please try again.');
+      else Alert.alert('SAGE', 'Something went wrong. Please try again.');
     } finally {
       setRegenerating(false);
     }
@@ -274,7 +274,7 @@ export default function StudyPlannerScreen() {
       if (data?.error) throw new Error(data.error);
       await Promise.all([loadExams(), loadTopics()]);
     } catch (e) {
-      setGenerateError('I seem to have run into a problem, sir. Please try again.');
+      setGenerateError('Something went wrong. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -360,18 +360,18 @@ export default function StudyPlannerScreen() {
               >
                 {generating
                   ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={styles.generateBtnText}>⚡ Ask J.A.R.V.I.S.</Text>}
+                  : <Text style={styles.generateBtnText}>✦ Generate with SAGE</Text>}
               </TouchableOpacity>
               {generating && (
                 <Text style={styles.generateHint}>
-                  J.A.R.V.I.S. is analysing your syllabus, sir. Running probability calculations for optimal study distribution…
+                  SAGE is analysing your syllabus. Calculating your optimal study schedule…
                 </Text>
               )}
               {generateError ? (
                 <Text style={styles.generateError}>{generateError}</Text>
               ) : null}
               <Text style={styles.aiDisclaimer}>AI-generated content should be reviewed before official use. Content may be processed by Anthropic's API.</Text>
-              <Text style={styles.poweredBy}>⚡ Powered by J.A.R.V.I.S.</Text>
+              <Text style={styles.poweredBy}>✦ Powered by SAGE</Text>
             </View>
           )}
 
@@ -381,9 +381,9 @@ export default function StudyPlannerScreen() {
           ) : exams.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📚</Text>
-              <Text style={styles.emptyTitle}>No exams on record, sir.</Text>
+              <Text style={styles.emptyTitle}>No exams on record yet.</Text>
               <Text style={styles.emptySub}>
-                Tap "Add Exam" and I'll take it from there.
+                Add an exam and let SAGE build your study plan.
               </Text>
             </View>
           ) : (
@@ -435,17 +435,17 @@ export default function StudyPlannerScreen() {
         if (exams.length === 0) return (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>📅</Text>
-            <Text style={styles.emptyTitle}>No exams on record, sir.</Text>
-            <Text style={styles.emptySub}>Head to the Study Plan tab and add an exam. I'll handle the rest.</Text>
+            <Text style={styles.emptyTitle}>No exams on record yet.</Text>
+            <Text style={styles.emptySub}>Head to the Study Plan tab and add an exam. SAGE will handle the rest.</Text>
           </View>
         );
 
         if (!hasScheduled) return (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>🤖</Text>
-            <Text style={styles.emptyTitle}>Shall I build you a study plan, sir?</Text>
+            <Text style={styles.emptyTitle}>Ready to build your study plan.</Text>
             <Text style={styles.emptySub}>
-              Tap "⚡ Ask J.A.R.V.I.S." in the Study Plan tab. I've already run the numbers.
+              Go to the Study Plan tab and tap "Generate with SAGE" to get started.
             </Text>
           </View>
         );
@@ -527,7 +527,7 @@ export default function StudyPlannerScreen() {
                 >
                   {regenerating
                     ? <ActivityIndicator color="#fff" size="small" />
-                    : <Text style={styles.regenBtnText}>⚡ J.A.R.V.I.S. — Recalculate</Text>}
+                    : <Text style={styles.regenBtnText}>✦ SAGE — Recalculate</Text>}
                 </TouchableOpacity>
               </View>
             )}
