@@ -263,6 +263,20 @@ export default function StudyPlannerScreen() {
     }
   }
 
+  async function handleDeleteExam(examId) {
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Delete this exam and all its topics?')
+      : await new Promise(resolve =>
+          Alert.alert('Delete Exam', 'This will delete the exam and all its study topics. This cannot be undone.', [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        );
+    if (!confirmed) return;
+    await supabase.from('study_exams').delete().eq('id', examId);
+    await Promise.all([loadExams(), loadTopics()]);
+  }
+
   async function handleGeneratePlan() {
     setGenerating(true);
     setGenerateError('');
@@ -420,6 +434,14 @@ export default function StudyPlannerScreen() {
                         )}
                       </View>
                     </View>
+                    <TouchableOpacity
+                      style={styles.examDeleteBtn}
+                      onPress={() => handleDeleteExam(exam.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.examDeleteIcon}>🗑</Text>
+                    </TouchableOpacity>
                   </View>
                 );
               })}
@@ -1013,6 +1035,15 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   examEmoji: { fontSize: 22 },
+  examDeleteBtn: {
+    width: 34, height: 34,
+    borderRadius: 8,
+    backgroundColor: colors.cardElevated ?? colors.bg,
+    borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
+  examDeleteIcon: { fontSize: 15 },
   examSubject: { fontSize: 14, ...font.bold, color: colors.textPrimary, marginBottom: 2 },
   examDate: { fontSize: 12, color: colors.textSecondary, marginBottom: 6 },
   examPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
