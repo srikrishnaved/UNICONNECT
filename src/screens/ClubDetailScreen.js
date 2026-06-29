@@ -7,6 +7,14 @@ import { hubClubs, teachers } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import { Calendar as CalendarIcon, Users } from 'lucide-react-native';
 
@@ -594,7 +602,7 @@ export default function ClubDetailScreen({ route, navigation }) {
 
         {/* Dashboard entry — clubs only, not teams */}
         {canAccessDashboard && club.type !== 'Team' && (
-          <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
+          <View style={{ paddingHorizontal: tSpacing.base, marginTop: tSpacing.md }}>
             <TouchableOpacity
               style={styles.dashboardBtn}
               onPress={() => navigation.navigate('ClubDashboard', { clubId })}
@@ -740,7 +748,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                         </TouchableOpacity>
                         {ta?.open && (
                           ta.loading ? (
-                            <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />
+                            <ActivityIndicator color={tColors.student.primary} style={{ marginVertical: 8 }} />
                           ) : ta.members.length === 0 ? (
                             <Text style={styles.teamAssignEmpty}>No members assigned yet.</Text>
                           ) : (() => {
@@ -755,7 +763,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                               <View key={t?.id} style={styles.teamAssignGroup}>
                                 <View style={styles.teamAssignGroupHeader}>
                                   <Text style={styles.teamAssignGroupEmoji}>{t?.emoji}</Text>
-                                  <Text style={[styles.teamAssignGroupName, { color: t?.color || colors.primary }]}>
+                                  <Text style={[styles.teamAssignGroupName, { color: t?.color || tColors.student.primary }]}>
                                     {t?.name || 'Team'}
                                   </Text>
                                   <Text style={styles.teamAssignGroupCount}>{mems.length} assigned</Text>
@@ -853,7 +861,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                   style={styles.modalInput}
                 />
               </View>
-              <View style={{ width: spacing.sm }} />
+              <View style={{ width: tSpacing.sm }} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.modalLabel}>TIME *</Text>
                 <TextInput
@@ -915,7 +923,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                     activeOpacity={0.7}
                   >
                     <Text style={styles.teamPickerEmoji}>{t.emoji}</Text>
-                    <Text style={[styles.teamPickerText, selected && { color: t.color, ...font.semibold }]}>{t.name}</Text>
+                    <Text style={[styles.teamPickerText, selected && { color: t.color, fontWeight: typography.semibold }]}>{t.name}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -1044,7 +1052,7 @@ export default function ClubDetailScreen({ route, navigation }) {
               onChangeText={setAdminReason}
               placeholder="Describe your experience and what you'd bring to this club..."
               placeholderTextColor={colors.textTertiary}
-              style={[styles.modalInput, { height: 120, textAlignVertical: 'top', paddingTop: spacing.sm }]}
+              style={[styles.modalInput, { height: 120, textAlignVertical: 'top', paddingTop: tSpacing.sm }]}
               multiline
               maxLength={500}
             />
@@ -1102,7 +1110,7 @@ export default function ClubDetailScreen({ route, navigation }) {
               keyboardType="decimal-pad"
             />
             {hoursError ? (
-              <Text style={{ color: colors.red, fontSize: 12, marginTop: 6 }}>{hoursError}</Text>
+              <Text style={{ color: tColors.error, fontSize: 12, marginTop: 6 }}>{hoursError}</Text>
             ) : null}
             <TouchableOpacity
               style={[styles.submitBtn, hoursSubmitting && { opacity: 0.5 }]}
@@ -1226,7 +1234,7 @@ export default function ClubDetailScreen({ route, navigation }) {
               onChangeText={setJoinMessage}
               placeholder="e.g. I joined last semester, my role is photographer..."
               placeholderTextColor={colors.textTertiary}
-              style={[styles.modalInput, { height: 100, textAlignVertical: 'top', paddingTop: spacing.sm }]}
+              style={[styles.modalInput, { height: 100, textAlignVertical: 'top', paddingTop: tSpacing.sm }]}
               multiline
               maxLength={300}
             />
@@ -1267,8 +1275,8 @@ export default function ClubDetailScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
             {joinReviewList.length === 0 ? (
-              <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
-                <Text style={{ fontSize: 13, color: colors.textSecondary }}>No pending requests.</Text>
+              <View style={{ alignItems: 'center', paddingVertical: tSpacing.lg }}>
+                <Text style={{ fontSize: 13, color: tColors.textSecondary }}>No pending requests.</Text>
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
@@ -1410,12 +1418,12 @@ function Section({ label, children }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  body: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
-  coordinatorRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md, backgroundColor: colors.primaryLight, borderWidth: 1, borderColor: colors.primary, borderRadius: radius.md, padding: spacing.sm },
+  container: { flex: 1, backgroundColor: tColors.bg },
+  body: { fontSize: 14, color: tColors.textSecondary, lineHeight: 20 },
+  coordinatorRow: { flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm, marginTop: tSpacing.md, backgroundColor: tColors.student.primaryDim, borderWidth: 1, borderColor: tColors.student.primary, borderRadius: tRadius.md, padding: tSpacing.sm },
   coordinatorIcon: { fontSize: 20 },
-  coordinatorLabel: { fontSize: 9, ...font.bold, color: colors.primary, letterSpacing: 0.6 },
-  coordinatorName: { fontSize: 13, ...font.semibold, color: colors.textPrimary, marginTop: 2 },
+  coordinatorLabel: { fontSize: 9, fontWeight: typography.bold, color: tColors.student.primary, letterSpacing: 0.6 },
+  coordinatorName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary, marginTop: 2 },
 
   cover: { height: 130 },
   coverInner: { flex: 1, alignItems: 'center', justifyContent: 'center', position: 'relative' },
@@ -1428,41 +1436,41 @@ const styles = StyleSheet.create({
   typeBadge: {
     backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: radius.full,
+    borderRadius: tRadius.full,
   },
-  typeBadgeText: { fontSize: 10, ...font.bold, color: '#fff', letterSpacing: 0.8 },
+  typeBadgeText: { fontSize: 10, fontWeight: typography.bold, color: '#fff', letterSpacing: 0.8 },
 
-  nameBlock: { alignItems: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.lg },
-  name: { fontSize: 22, ...font.bold, color: colors.textPrimary },
-  fullName: { fontSize: 12, color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
-  members: { fontSize: 12, color: colors.textTertiary, marginTop: 8 },
+  nameBlock: { alignItems: 'center', paddingHorizontal: tSpacing.base, marginTop: tSpacing.base },
+  name: { fontSize: 22, fontWeight: typography.bold, color: tColors.textPrimary },
+  fullName: { fontSize: 12, color: tColors.textSecondary, marginTop: 4, textAlign: 'center' },
+  members: { fontSize: 12, color: tColors.textTertiary, marginTop: 8 },
 
   actions: {
-    flexDirection: 'row', gap: spacing.sm,
-    paddingHorizontal: spacing.lg, marginTop: spacing.lg,
+    flexDirection: 'row', gap: tSpacing.sm,
+    paddingHorizontal: tSpacing.base, marginTop: tSpacing.base,
   },
-  actionBtn: { flex: 1, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center' },
-  followBtn: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  followBtnActive: { backgroundColor: colors.greenLight, borderColor: colors.greenBorder },
-  followBtnText: { fontSize: 13, ...font.bold, color: colors.textPrimary },
-  followBtnTextActive: { color: colors.green },
-  applyBtn: { backgroundColor: colors.primary },
-  applyBtnText: { fontSize: 13, ...font.bold, color: '#fff' },
-  memberBtn: { backgroundColor: colors.greenLight, borderWidth: 1, borderColor: colors.greenBorder },
-  memberBtnText: { fontSize: 13, ...font.bold, color: colors.green },
-  pendingBtn: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  pendingBtnText: { fontSize: 13, ...font.bold, color: colors.textSecondary },
+  actionBtn: { flex: 1, borderRadius: tRadius.md, paddingVertical: 12, alignItems: 'center' },
+  followBtn: { backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border },
+  followBtnActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
+  followBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary },
+  followBtnTextActive: { color: tColors.success },
+  applyBtn: { backgroundColor: tColors.student.primary },
+  applyBtnText: { fontSize: 13, fontWeight: typography.bold, color: '#fff' },
+  memberBtn: { backgroundColor: tColors.successDim, borderWidth: 1, borderColor: tColors.success },
+  memberBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.success },
+  pendingBtn: { backgroundColor: tColors.warningDim, borderWidth: 1, borderColor: tColors.warning },
+  pendingBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textSecondary },
   leaveBtn: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
-  leaveBtnText: { fontSize: 13, ...font.bold, color: '#DC2626' },
-  limitBtn: { backgroundColor: colors.redLight, borderWidth: 1, borderColor: colors.red },
-  limitBtnText: { fontSize: 12, ...font.bold, color: colors.red },
-  manageBtn: { backgroundColor: colors.primary, flex: 1 },
-  manageBtnText: { fontSize: 14, ...font.bold, color: '#fff' },
+  leaveBtnText: { fontSize: 13, fontWeight: typography.bold, color: '#DC2626' },
+  limitBtn: { backgroundColor: tColors.errorDim, borderWidth: 1, borderColor: tColors.error },
+  limitBtnText: { fontSize: 12, fontWeight: typography.bold, color: tColors.error },
+  manageBtn: { backgroundColor: tColors.student.primary, flex: 1 },
+  manageBtnText: { fontSize: 14, fontWeight: typography.bold, color: '#fff' },
 
   dashboardBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    backgroundColor: colors.primary,
-    borderRadius: radius.md, paddingVertical: 14, paddingHorizontal: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.md, paddingVertical: 14, paddingHorizontal: tSpacing.md,
   },
   dashboardBtnLeft: {
     width: 38, height: 38, borderRadius: 10,
@@ -1471,112 +1479,113 @@ const styles = StyleSheet.create({
   },
   dashboardBtnIcon: { fontSize: 20 },
   dashboardBtnCenter: { flex: 1 },
-  dashboardBtnText: { fontSize: 15, ...font.bold, color: '#fff' },
+  dashboardBtnText: { fontSize: 15, fontWeight: typography.bold, color: '#fff' },
   dashboardBtnSub: { fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 1 },
   dashboardBtnArrow: { fontSize: 22, color: 'rgba(255,255,255,0.7)' },
 
-  section: { paddingHorizontal: spacing.lg, marginTop: spacing.lg },
+  section: { paddingHorizontal: tSpacing.base, marginTop: tSpacing.base },
   sectionLabel: {
-    fontSize: 11, color: colors.textSecondary,
-    ...font.bold, letterSpacing: 0.8, marginBottom: spacing.sm,
+    fontSize: typography.lg, color: tColors.textPrimary,
+    fontWeight: typography.bold, letterSpacing: 0.8, marginBottom: tSpacing.sm,
   },
 
   adminActionBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.sm,
   },
   adminActionIcon: { fontSize: 22 },
-  adminActionTitle: { fontSize: 13, ...font.bold, color: colors.textPrimary },
-  adminActionDesc: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
-  adminActionArrow: { fontSize: 22, color: colors.textTertiary },
+  adminActionTitle: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary },
+  adminActionDesc: { fontSize: 11, color: tColors.textSecondary, marginTop: 2 },
+  adminActionArrow: { fontSize: 22, color: tColors.textTertiary },
 
   eventCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg, marginBottom: spacing.sm, overflow: 'hidden',
+    ...shadows.card,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg, marginBottom: tSpacing.sm, overflow: 'hidden',
   },
   eventImage: { width: '100%', height: 140 },
   eventStripe: { height: 3 },
-  eventBody: { padding: spacing.md },
+  eventBody: { padding: tSpacing.md },
   recruitBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.amberLight,
-    borderWidth: 1, borderColor: colors.amber,
-    borderRadius: radius.full,
+    backgroundColor: tColors.warningDim,
+    borderWidth: 1, borderColor: tColors.warning,
+    borderRadius: tRadius.full,
     paddingHorizontal: 8, paddingVertical: 2,
     marginBottom: 6,
   },
-  recruitBadgeText: { fontSize: 9, ...font.bold, color: colors.amber, letterSpacing: 0.6 },
-  eventTitle: { fontSize: 14, ...font.bold, color: colors.textPrimary, marginBottom: 6 },
+  recruitBadgeText: { fontSize: 9, fontWeight: typography.bold, color: tColors.warning, letterSpacing: 0.6 },
+  eventTitle: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 6 },
   eventMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 6 },
-  eventMeta: { fontSize: 11, color: colors.textSecondary },
-  eventDesc: { fontSize: 12, color: colors.textSecondary, lineHeight: 17, marginBottom: spacing.sm },
+  eventMeta: { fontSize: 11, color: tColors.textSecondary },
+  eventDesc: { fontSize: 12, color: tColors.textSecondary, lineHeight: 17, marginBottom: tSpacing.sm },
   eventFooter: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border,
+    paddingTop: tSpacing.sm, borderTopWidth: 1, borderTopColor: tColors.border,
   },
-  eventInterested: { fontSize: 11, color: colors.textTertiary },
+  eventInterested: { fontSize: 11, color: tColors.textTertiary },
   deleteEventBtn: {
-    backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.red,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm,
+    backgroundColor: 'transparent', borderWidth: 1, borderColor: tColors.error,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: tRadius.sm,
   },
-  deleteEventBtnText: { fontSize: 11, color: colors.red, ...font.semibold },
+  deleteEventBtnText: { fontSize: 11, color: tColors.error, fontWeight: typography.semibold },
   interestBtn: {
-    backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.sm,
+    backgroundColor: tColors.student.primary, paddingHorizontal: 12, paddingVertical: 5, borderRadius: tRadius.sm,
   },
-  interestBtnActive: { backgroundColor: colors.greenLight, borderWidth: 1, borderColor: colors.greenBorder },
-  interestBtnText: { fontSize: 11, color: '#fff', ...font.semibold },
-  interestBtnTextActive: { color: colors.green },
+  interestBtnActive: { backgroundColor: tColors.successDim, borderWidth: 1, borderColor: tColors.success },
+  interestBtnText: { fontSize: 11, color: '#fff', fontWeight: typography.semibold },
+  interestBtnTextActive: { color: tColors.success },
 
   emptyBox: {
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.lg, alignItems: 'center',
+    backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.base, alignItems: 'center',
   },
-  emptyText: { fontSize: 13, color: colors.textSecondary },
+  emptyText: { fontSize: 13, color: tColors.textSecondary },
 
   // Modal shared
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modal: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: spacing.lg, maxHeight: '92%',
-    borderWidth: 1, borderColor: colors.border,
+    backgroundColor: tColors.card,
+    borderTopLeftRadius: tRadius.lg, borderTopRightRadius: tRadius.lg,
+    padding: tSpacing.base, maxHeight: '92%',
+    borderWidth: 1, borderColor: tColors.border,
   },
   modalHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: tSpacing.base,
   },
-  modalTitle: { fontSize: 18, ...font.bold, color: colors.textPrimary },
-  modalClose: { fontSize: 22, color: colors.textSecondary, padding: 4 },
+  modalTitle: { fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary },
+  modalClose: { fontSize: 22, color: tColors.textSecondary, padding: 4 },
   modalLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, marginBottom: 6, marginTop: spacing.sm,
+    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm,
   },
   modalInput: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, fontSize: 14,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md, color: tColors.textPrimary, fontSize: 14,
     marginBottom: 0,
   },
   row: { flexDirection: 'row', marginTop: 0 },
   whenRow: { flexDirection: 'row', gap: 8 },
   whenPill: {
-    flex: 1, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.full, paddingVertical: 8,
-    alignItems: 'center', backgroundColor: colors.bg,
+    flex: 1, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.full, paddingVertical: 8,
+    alignItems: 'center', backgroundColor: tColors.bg,
   },
-  whenPillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  whenPillText: { fontSize: 12, color: colors.textSecondary, ...font.medium },
-  whenPillTextActive: { color: '#fff', ...font.semibold },
+  whenPillActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
+  whenPillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
+  whenPillTextActive: { color: '#fff', fontWeight: typography.semibold },
 
   imagePicker: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, overflow: 'hidden', minHeight: 100,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, overflow: 'hidden', minHeight: 100,
   },
   imagePickerEmpty: { height: 100, alignItems: 'center', justifyContent: 'center', gap: 6 },
   imagePickerIcon: { fontSize: 28 },
-  imagePickerText: { fontSize: 13, color: colors.textTertiary },
+  imagePickerText: { fontSize: 13, color: tColors.textTertiary },
   imagePreview: { width: '100%', height: 160 },
   imageRemove: {
     position: 'absolute', top: 8, right: 8,
@@ -1587,199 +1596,199 @@ const styles = StyleSheet.create({
   imageRemoveText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   submitBtn: {
-    backgroundColor: colors.primary, borderRadius: radius.md,
-    paddingVertical: 14, marginTop: spacing.lg, alignItems: 'center',
+    backgroundColor: tColors.student.primary, borderRadius: tRadius.md,
+    paddingVertical: 14, marginTop: tSpacing.base, alignItems: 'center',
   },
-  submitBtnText: { color: '#fff', fontSize: 15, ...font.bold },
+  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: typography.bold },
 
-  adminRequestRow: { paddingHorizontal: spacing.lg, marginTop: spacing.sm },
+  adminRequestRow: { paddingHorizontal: tSpacing.base, marginTop: tSpacing.sm },
   adminRequestBtn: {
-    borderWidth: 1, borderColor: colors.amber,
-    borderRadius: radius.md, paddingVertical: 12,
-    alignItems: 'center', backgroundColor: colors.amberLight,
+    borderWidth: 1, borderColor: tColors.warning,
+    borderRadius: tRadius.md, paddingVertical: 12,
+    alignItems: 'center', backgroundColor: tColors.warningDim,
   },
-  adminRequestBtnText: { fontSize: 13, ...font.bold, color: colors.amber },
+  adminRequestBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.warning },
   adminRequestPending: {
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingVertical: 12,
-    alignItems: 'center', backgroundColor: colors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingVertical: 12,
+    alignItems: 'center', backgroundColor: tColors.card,
   },
-  adminRequestPendingText: { fontSize: 13, ...font.bold, color: colors.textSecondary },
-  adminRequestPendingHint: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  adminRequestPendingText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textSecondary },
+  adminRequestPendingHint: { fontSize: 11, color: tColors.textTertiary, marginTop: 2 },
 
   adminRequestClubRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.md,
   },
   adminRequestClubEmoji: {
-    width: 40, height: 40, borderRadius: radius.md,
+    width: 40, height: 40, borderRadius: tRadius.md,
     alignItems: 'center', justifyContent: 'center',
   },
-  adminRequestClubName: { fontSize: 14, ...font.bold, color: colors.textPrimary },
-  adminRequestClubFull: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
-  charCount: { fontSize: 10, color: colors.textTertiary, textAlign: 'right', marginTop: 4 },
+  adminRequestClubName: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary },
+  adminRequestClubFull: { fontSize: 11, color: tColors.textSecondary, marginTop: 1 },
+  charCount: { fontSize: 10, color: tColors.textTertiary, textAlign: 'right', marginTop: 4 },
 
   // Members modal
-  addMemberRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', marginBottom: spacing.sm },
+  addMemberRow: { flexDirection: 'row', gap: tSpacing.sm, alignItems: 'center', marginBottom: tSpacing.sm },
   addMemberBtn: {
-    backgroundColor: colors.primary, borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: 13,
+    backgroundColor: tColors.student.primary, borderRadius: tRadius.md,
+    paddingHorizontal: tSpacing.md, paddingVertical: 13,
   },
-  addMemberBtnText: { color: '#fff', fontSize: 13, ...font.bold },
+  addMemberBtnText: { color: '#fff', fontSize: 13, fontWeight: typography.bold },
   inviteBanner: {
-    marginHorizontal: spacing.md, marginTop: spacing.sm,
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1, borderColor: colors.primary,
-    borderRadius: radius.md, padding: spacing.md,
+    marginHorizontal: tSpacing.md, marginTop: tSpacing.sm,
+    backgroundColor: tColors.student.primaryDim,
+    borderWidth: 1, borderColor: tColors.student.primary,
+    borderRadius: tRadius.md, padding: tSpacing.md,
   },
-  inviteBannerText: { fontSize: 13, ...font.semibold, color: colors.primary, marginBottom: spacing.sm },
-  inviteBannerBtns: { flexDirection: 'row', gap: spacing.sm },
+  inviteBannerText: { fontSize: 13, fontWeight: typography.semibold, color: tColors.student.primary, marginBottom: tSpacing.sm },
+  inviteBannerBtns: { flexDirection: 'row', gap: tSpacing.sm },
   inviteAcceptBtn: {
-    flex: 1, backgroundColor: colors.green, borderRadius: radius.md,
+    flex: 1, backgroundColor: tColors.success, borderRadius: tRadius.md,
     paddingVertical: 9, alignItems: 'center',
   },
-  inviteAcceptBtnText: { fontSize: 13, ...font.bold, color: '#fff' },
+  inviteAcceptBtnText: { fontSize: 13, fontWeight: typography.bold, color: '#fff' },
   inviteDeclineBtn: {
-    flex: 1, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingVertical: 9, alignItems: 'center',
+    flex: 1, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingVertical: 9, alignItems: 'center',
   },
-  inviteDeclineBtnText: { fontSize: 13, ...font.bold, color: colors.textSecondary },
+  inviteDeclineBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textSecondary },
   inviteSection: {
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1, borderColor: colors.primary,
-    borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md,
+    backgroundColor: tColors.student.primaryDim,
+    borderWidth: 1, borderColor: tColors.student.primary,
+    borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.md,
   },
-  inviteSectionTitle: { fontSize: 13, ...font.bold, color: colors.primary, marginBottom: spacing.sm },
+  inviteSectionTitle: { fontSize: 13, fontWeight: typography.bold, color: tColors.student.primary, marginBottom: tSpacing.sm },
   searchResultsBox: {
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, marginTop: spacing.sm, overflow: 'hidden',
+    backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, marginTop: tSpacing.sm, overflow: 'hidden',
   },
   searchResultRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    padding: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    padding: tSpacing.sm, borderBottomWidth: 1, borderBottomColor: tColors.border,
   },
-  inviteBtnText: { fontSize: 12, color: colors.primary, ...font.bold },
+  inviteBtnText: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.bold },
   memberRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    paddingVertical: tSpacing.sm,
+    borderBottomWidth: 1, borderBottomColor: tColors.border,
   },
   memberAvatar: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.cardElevated,
+    backgroundColor: tColors.cardAlt,
     alignItems: 'center', justifyContent: 'center',
   },
-  memberAvatarText: { fontSize: 13, ...font.bold, color: '#fff' },
-  memberName: { fontSize: 13, ...font.semibold, color: colors.textPrimary },
-  memberWing: { fontSize: 11, color: colors.textTertiary, marginTop: 1 },
+  memberAvatarText: { fontSize: 13, fontWeight: typography.bold, color: '#fff' },
+  memberName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary },
+  memberWing: { fontSize: 11, color: tColors.textTertiary, marginTop: 1 },
   removeBtn: {
-    backgroundColor: colors.redLight, borderWidth: 1, borderColor: colors.red,
-    borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: tColors.errorDim, borderWidth: 1, borderColor: tColors.error,
+    borderRadius: tRadius.sm, paddingHorizontal: 10, paddingVertical: 4,
   },
-  removeBtnText: { fontSize: 11, color: colors.red, ...font.semibold },
+  removeBtnText: { fontSize: 11, color: tColors.error, fontWeight: typography.semibold },
   youBadge: {
-    backgroundColor: colors.primaryLight, borderWidth: 1, borderColor: colors.primary,
-    borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: tColors.student.primaryDim, borderWidth: 1, borderColor: tColors.student.primary,
+    borderRadius: tRadius.sm, paddingHorizontal: 10, paddingVertical: 4,
   },
-  youBadgeText: { fontSize: 11, color: colors.primary, ...font.semibold },
+  youBadgeText: { fontSize: 11, color: tColors.student.primary, fontWeight: typography.semibold },
 
   socialLinkRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md,
   },
   socialLinkIcon: { fontSize: 22 },
-  socialLinkPlatform: { fontSize: 13, ...font.semibold, color: colors.textPrimary },
-  socialLinkUrl: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  socialLinkPlatform: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary },
+  socialLinkUrl: { fontSize: 12, color: tColors.textSecondary, marginTop: 2 },
 
-  platformRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.sm },
+  platformRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: tSpacing.sm },
   platformPill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 7,
-    backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.full, paddingHorizontal: 12, paddingVertical: 7,
+    backgroundColor: tColors.bg,
   },
-  platformPillActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  platformPillActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
   platformPillIcon: { fontSize: 14 },
-  platformPillText: { fontSize: 12, color: colors.textSecondary, ...font.medium },
-  platformPillTextActive: { color: colors.primary, ...font.semibold },
+  platformPillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
+  platformPillTextActive: { color: tColors.student.primary, fontWeight: typography.semibold },
 
   removeLinkBtn: {
-    marginTop: spacing.sm, alignItems: 'center', paddingVertical: 10,
+    marginTop: tSpacing.sm, alignItems: 'center', paddingVertical: 10,
   },
-  removeLinkBtnText: { fontSize: 13, color: colors.red, ...font.semibold },
+  removeLinkBtnText: { fontSize: 13, color: tColors.error, fontWeight: typography.semibold },
 
   teamAssignSection: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, marginBottom: spacing.sm, overflow: 'hidden',
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, marginBottom: tSpacing.sm, overflow: 'hidden',
   },
   teamAssignToggle: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: spacing.sm,
+    padding: tSpacing.sm,
   },
-  teamAssignToggleText: { fontSize: 11, ...font.semibold, color: colors.primary },
-  teamAssignChevron: { fontSize: 9, color: colors.textTertiary },
-  teamAssignEmpty: { fontSize: 12, color: colors.textTertiary, paddingHorizontal: spacing.sm, paddingBottom: spacing.sm },
+  teamAssignToggleText: { fontSize: 11, fontWeight: typography.semibold, color: tColors.student.primary },
+  teamAssignChevron: { fontSize: 9, color: tColors.textTertiary },
+  teamAssignEmpty: { fontSize: 12, color: tColors.textTertiary, paddingHorizontal: tSpacing.sm, paddingBottom: tSpacing.sm },
   teamAssignRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingHorizontal: spacing.sm, paddingVertical: 6,
-    borderTopWidth: 1, borderTopColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    paddingHorizontal: tSpacing.sm, paddingVertical: 6,
+    borderTopWidth: 1, borderTopColor: tColors.border,
   },
   teamAssignAvatar: {
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: tColors.student.primary, alignItems: 'center', justifyContent: 'center',
   },
-  teamAssignAvatarText: { fontSize: 10, ...font.bold, color: '#fff' },
-  teamAssignGroup: { borderTopWidth: 1, borderTopColor: colors.border },
+  teamAssignAvatarText: { fontSize: 10, fontWeight: typography.bold, color: '#fff' },
+  teamAssignGroup: { borderTopWidth: 1, borderTopColor: tColors.border },
   teamAssignGroupHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: spacing.sm, paddingVertical: 6,
-    backgroundColor: colors.bg,
+    paddingHorizontal: tSpacing.sm, paddingVertical: 6,
+    backgroundColor: tColors.bg,
   },
   teamAssignGroupEmoji: { fontSize: 13 },
-  teamAssignGroupName: { fontSize: 11, ...font.bold, flex: 1 },
-  teamAssignGroupCount: { fontSize: 10, color: colors.textTertiary },
-  teamAssignName: { fontSize: 12, ...font.semibold, color: colors.textPrimary },
-  teamAssignMeta: { fontSize: 10, color: colors.textTertiary, marginTop: 1 },
-  teamAssignDot: { fontSize: 12, color: colors.green, ...font.bold },
+  teamAssignGroupName: { fontSize: 11, fontWeight: typography.bold, flex: 1 },
+  teamAssignGroupCount: { fontSize: 10, color: tColors.textTertiary },
+  teamAssignName: { fontSize: 12, fontWeight: typography.semibold, color: tColors.textPrimary },
+  teamAssignMeta: { fontSize: 10, color: tColors.textTertiary, marginTop: 1 },
+  teamAssignDot: { fontSize: 12, color: tColors.success, fontWeight: typography.bold },
 
-  teamPickerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.sm },
+  teamPickerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: tSpacing.sm },
   teamPickerChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 6,
-    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.full, paddingHorizontal: 10, paddingVertical: 6,
+    backgroundColor: tColors.card,
   },
   teamPickerEmoji: { fontSize: 13 },
-  teamPickerText: { fontSize: 11, color: colors.textSecondary, ...font.medium },
+  teamPickerText: { fontSize: 11, color: tColors.textSecondary, fontWeight: typography.medium },
 
   joinReqCard: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.sm,
   },
-  joinReqHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  joinReqHeader: { flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm, marginBottom: tSpacing.sm },
   joinReqAvatar: {
     width: 38, height: 38, borderRadius: 19,
-    backgroundColor: colors.primary,
+    backgroundColor: tColors.student.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  joinReqAvatarText: { fontSize: 13, ...font.bold, color: '#fff' },
-  joinReqName: { fontSize: 13, ...font.semibold, color: colors.textPrimary },
-  joinReqMeta: { fontSize: 11, color: colors.textTertiary, marginTop: 1 },
+  joinReqAvatarText: { fontSize: 13, fontWeight: typography.bold, color: '#fff' },
+  joinReqName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary },
+  joinReqMeta: { fontSize: 11, color: tColors.textTertiary, marginTop: 1 },
   joinReqMessage: {
-    fontSize: 12, color: colors.textSecondary, fontStyle: 'italic',
-    marginBottom: spacing.sm, lineHeight: 17,
+    fontSize: 12, color: tColors.textSecondary, fontStyle: 'italic',
+    marginBottom: tSpacing.sm, lineHeight: 17,
   },
-  joinReqActions: { flexDirection: 'row', gap: spacing.sm },
+  joinReqActions: { flexDirection: 'row', gap: tSpacing.sm },
   joinReqReject: {
-    flex: 1, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.sm, paddingVertical: 8, alignItems: 'center',
+    flex: 1, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.sm, paddingVertical: 8, alignItems: 'center',
   },
-  joinReqRejectText: { fontSize: 12, ...font.semibold, color: colors.textSecondary },
+  joinReqRejectText: { fontSize: 12, fontWeight: typography.semibold, color: tColors.textSecondary },
   joinReqApprove: {
-    flex: 1, backgroundColor: colors.primary,
-    borderRadius: radius.sm, paddingVertical: 8, alignItems: 'center',
+    flex: 1, backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.sm, paddingVertical: 8, alignItems: 'center',
   },
-  joinReqApproveText: { fontSize: 12, ...font.semibold, color: '#fff' },
+  joinReqApproveText: { fontSize: 12, fontWeight: typography.semibold, color: '#fff' },
 });
