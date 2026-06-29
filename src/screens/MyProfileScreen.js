@@ -10,7 +10,7 @@ import { useApp } from '../context/AppContext';
 import { THEMES, activeThemeKey, setTheme } from '../theme';
 import { supabase } from '../lib/supabase';
 import { computeClass } from '../lib/classUtils';
-import { colors, spacing, radius, font, courseColor, avatarColor, initials } from '../theme';
+import { courseColor, avatarColor, initials } from '../theme';
 import {
   colors as tColors,
   typography,
@@ -545,7 +545,7 @@ export default function MyProfileScreen() {
           </View>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: tSpacing.xxxl }} />
       </ScrollView>
 
       {/* ── Edit Profile modal ── */}
@@ -824,7 +824,7 @@ export default function MyProfileScreen() {
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <Text style={{ fontSize: 12, color: colors.textTertiary, marginBottom: spacing.md }}>
+            <Text style={{ fontSize: typography.xs, color: tColors.textTertiary, marginBottom: tSpacing.md }}>
               {draftInterests.length} selected
             </Text>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -859,39 +859,39 @@ export default function MyProfileScreen() {
       <Modal visible={showCRApply} animationType="slide" transparent>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-                <Text style={{ fontSize: 18, ...font.bold, color: colors.textPrimary }}>🏅 Apply as CR</Text>
+            <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.lg, borderWidth: 1, borderColor: tColors.border }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.lg }}>
+                <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>🏅 Apply as CR</Text>
                 <TouchableOpacity onPress={() => setShowCRApply(false)}>
-                  <Text style={{ fontSize: 22, color: colors.textSecondary }}>✕</Text>
+                  <Text style={{ fontSize: 22, color: tColors.textSecondary }}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={{ fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold, marginBottom: 6 }}>YOUR DETAILS</Text>
-              <View style={{ backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border }}>
-                <Text style={{ fontSize: 14, color: colors.textPrimary, ...font.semibold }}>{name}</Text>
-                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 3 }}>{userProfile?.class || computeClass(course, year) || course}</Text>
+              <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6 }}>YOUR DETAILS</Text>
+              <View style={{ backgroundColor: tColors.bg, borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.md, borderWidth: 1, borderColor: tColors.border }}>
+                <Text style={{ fontSize: typography.sm, color: tColors.textPrimary, fontWeight: typography.semibold }}>{name}</Text>
+                <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, marginTop: 3 }}>{userProfile?.class || computeClass(course, year) || course}</Text>
               </View>
-              <Text style={{ fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold, marginBottom: 6 }}>WHY DO YOU WANT TO BE CR?</Text>
+              <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6 }}>WHY DO YOU WANT TO BE CR?</Text>
               <TextInput
                 value={crReason}
                 onChangeText={t => { setCrReason(t); setCrApplyError(''); }}
                 placeholder="Tell the admin why you'd make a good Class Representative…"
                 placeholderTextColor={tColors.textTertiary}
                 multiline
-                style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, fontSize: 14, color: colors.textPrimary, minHeight: 90, textAlignVertical: 'top', marginBottom: spacing.sm }}
+                style={{ backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.md, padding: tSpacing.md, fontSize: typography.sm, color: tColors.textPrimary, minHeight: 90, textAlignVertical: 'top', marginBottom: tSpacing.sm }}
               />
-              {crApplyError ? <Text style={{ fontSize: 12, color: colors.red, marginBottom: spacing.sm }}>{crApplyError}</Text> : null}
+              {crApplyError ? <Text style={{ fontSize: typography.xs, color: tColors.error, marginBottom: tSpacing.sm }}>{crApplyError}</Text> : null}
               <TouchableOpacity
-                style={[{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginTop: spacing.sm }, (crApplying || !crReason.trim()) && { opacity: 0.45 }]}
+                style={[{ backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm }, (crApplying || !crReason.trim()) && { opacity: 0.45 }]}
                 onPress={handleCRApply}
                 disabled={crApplying || !crReason.trim()}
                 activeOpacity={0.85}
               >
                 {crApplying
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={{ fontSize: 15, ...font.bold, color: '#fff' }}>Submit Application</Text>}
+                  : <Text style={{ fontSize: typography.base, fontWeight: typography.bold, color: '#fff' }}>Submit Application</Text>}
               </TouchableOpacity>
-              <Text style={{ fontSize: 11, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm }}>
+              <Text style={{ fontSize: typography.xs, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.sm }}>
                 Your application will be reviewed by the app admin.
               </Text>
               <View style={{ height: 8 }} />
@@ -903,15 +903,15 @@ export default function MyProfileScreen() {
       {/* ── SAPS Apply Modal ───────────────────────────────────────────── */}
       <Modal visible={showSapsApply} animationType="slide" transparent onRequestClose={() => setShowSapsApply(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, maxHeight: '70%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-              <Text style={{ fontSize: 18, ...font.bold, color: colors.textPrimary }}>⭐ Apply for SAPS Core Team</Text>
+          <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.lg, borderWidth: 1, borderColor: tColors.border, maxHeight: '70%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.lg }}>
+              <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>⭐ Apply for SAPS Core Team</Text>
               <TouchableOpacity onPress={() => setShowSapsApply(false)}>
-                <Text style={{ fontSize: 22, color: colors.textSecondary }}>✕</Text>
+                <Text style={{ fontSize: 22, color: tColors.textSecondary }}>✕</Text>
               </TouchableOpacity>
             </View>
-            <Text style={{ fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold, marginBottom: spacing.sm }}>SELECT A ROLE</Text>
-            <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+            <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>SELECT A ROLE</Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: tSpacing.md }}>
               {availableSapsRoles.map(role => {
                 const sel = sapsSelectedRole === role;
                 return (
@@ -919,31 +919,31 @@ export default function MyProfileScreen() {
                     key={role}
                     style={{
                       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                      backgroundColor: sel ? colors.primaryLight : colors.bg,
-                      borderWidth: 1, borderColor: sel ? colors.primary : colors.border,
-                      borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm,
+                      backgroundColor: sel ? tColors.student.primaryDim : tColors.bg,
+                      borderWidth: 1, borderColor: sel ? tColors.student.primary : tColors.border,
+                      borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.sm,
                     }}
                     onPress={() => { setSapsSelectedRole(role); setSapsApplyError(''); }}
                     activeOpacity={0.8}
                   >
-                    <Text style={{ fontSize: 15, color: sel ? colors.primary : colors.textPrimary, ...font.semibold }}>{role}</Text>
-                    {sel && <Text style={{ color: colors.primary, fontSize: 16 }}>✓</Text>}
+                    <Text style={{ fontSize: typography.base, color: sel ? tColors.student.primary : tColors.textPrimary, fontWeight: typography.semibold }}>{role}</Text>
+                    {sel && <Text style={{ color: tColors.student.primary, fontSize: 16 }}>✓</Text>}
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
-            {sapsApplyError ? <Text style={{ fontSize: 12, color: '#EF4444', marginBottom: spacing.sm }}>{sapsApplyError}</Text> : null}
+            {sapsApplyError ? <Text style={{ fontSize: typography.xs, color: tColors.error, marginBottom: tSpacing.sm }}>{sapsApplyError}</Text> : null}
             <TouchableOpacity
-              style={[{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center' }, (sapsApplying || !sapsSelectedRole) && { opacity: 0.45 }]}
+              style={[{ backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center' }, (sapsApplying || !sapsSelectedRole) && { opacity: 0.45 }]}
               onPress={handleSapsApply}
               disabled={sapsApplying || !sapsSelectedRole}
               activeOpacity={0.85}
             >
               {sapsApplying
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={{ fontSize: 15, ...font.bold, color: '#fff' }}>Submit Application</Text>}
+                : <Text style={{ fontSize: typography.base, fontWeight: typography.bold, color: '#fff' }}>Submit Application</Text>}
             </TouchableOpacity>
-            <Text style={{ fontSize: 11, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm }}>
+            <Text style={{ fontSize: typography.xs, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.sm }}>
               Your application will be reviewed by the app admin.
             </Text>
             <View style={{ height: 8 }} />
@@ -979,54 +979,52 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 28, color: '#fff', fontWeight: typography.bold },
   nameBlock: { alignItems: 'center', marginTop: 56, paddingHorizontal: tSpacing.base },
-  name: { fontSize: 20, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 8 },
+  name: { fontSize: typography.xxl, fontWeight: typography.bold, color: '#fff', marginBottom: 8 },
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
   courseBadge: { borderRadius: tRadius.full, paddingHorizontal: 10, paddingVertical: 3 },
-  courseText: { fontSize: 12, fontWeight: typography.semibold },
-  meta: { fontSize: 13, color: tColors.textSecondary },
+  courseText: { fontSize: typography.sm, fontWeight: typography.semibold },
+  meta: { fontSize: typography.sm, color: tColors.textSecondary },
 
   statsRow: { flexDirection: 'row', gap: tSpacing.sm, paddingHorizontal: tSpacing.base, marginTop: tSpacing.base },
   stat: {
-    flex: 1, backgroundColor: tColors.card,
-    borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.md, padding: tSpacing.md, alignItems: 'center',
+    flex: 1, alignItems: 'center',
+    ...presets.card,
     ...shadows.card,
   },
-  statVal: { fontSize: 20, fontWeight: typography.bold, color: tColors.textPrimary },
-  statLabel: { fontSize: 11, color: tColors.textSecondary, marginTop: 2 },
+  statVal: { fontSize: typography.xl, fontWeight: typography.bold, color: '#fff' },
+  statLabel: { fontSize: typography.xs, color: tColors.textSecondary, marginTop: 2 },
 
   editBtn: {
     marginHorizontal: tSpacing.base, marginTop: tSpacing.md,
-    backgroundColor: tColors.student.primary, borderWidth: 1, borderColor: tColors.border,
+    backgroundColor: tColors.student.primary,
     borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center',
   },
-  editBtnText: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
+  editBtnText: { fontSize: typography.sm, fontWeight: typography.bold, color: '#fff' },
 
   section: { paddingHorizontal: tSpacing.base, marginTop: tSpacing.base },
   sectionLabel: {
     fontSize: typography.lg, color: tColors.textPrimary, letterSpacing: 0.8,
     fontWeight: typography.bold, marginBottom: tSpacing.sm,
   },
-  bodyText: { fontSize: 14, color: tColors.textSecondary, lineHeight: 20 },
+  bodyText: { fontSize: typography.sm, color: tColors.textSecondary, lineHeight: 20 },
 
-  // Social links display (profile view)
   socialRow: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
     marginBottom: tSpacing.sm,
   },
   providerBadge: {
-    width: 32, height: 32, borderRadius: 8,
+    width: 32, height: 32, borderRadius: tRadius.sm,
     alignItems: 'center', justifyContent: 'center',
   },
-  providerAbbr: { fontSize: 11, fontWeight: typography.bold },
-  socialUrl: { fontSize: 13, color: tColors.textSecondary, flex: 1 },
+  providerAbbr: { fontSize: typography.xs, fontWeight: typography.bold },
+  socialUrl: { fontSize: typography.sm, color: tColors.textSecondary, flex: 1 },
 
   editSocialBtn: {
-    marginTop: spacing.xs,
+    marginTop: tSpacing.xs,
     backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
     borderRadius: tRadius.md, paddingVertical: 12, alignItems: 'center',
   },
-  editSocialBtnText: { fontSize: 13, fontWeight: typography.semibold, color: tColors.student.primary },
+  editSocialBtnText: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.student.primary },
 
   leadershipCard: {
     backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
@@ -1038,8 +1036,8 @@ const styles = StyleSheet.create({
     backgroundColor: tColors.student.primaryDim,
     alignItems: 'center', justifyContent: 'center',
   },
-  leadRole: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary },
-  leadDetail: { fontSize: 12, color: tColors.textSecondary, marginTop: 2 },
+  leadRole: { fontSize: typography.sm, fontWeight: typography.bold, color: tColors.textPrimary },
+  leadDetail: { fontSize: typography.xs, color: tColors.textSecondary, marginTop: 2 },
 
   clubsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   clubChip: {
@@ -1047,20 +1045,20 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: tRadius.full,
     paddingHorizontal: 12, paddingVertical: 6,
   },
-  clubChipEmoji: { fontSize: 14 },
-  clubChipName: { fontSize: 12, fontWeight: typography.semibold },
+  clubChipEmoji: { fontSize: typography.sm },
+  clubChipName: { fontSize: typography.xs, fontWeight: typography.semibold },
 
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.sm },
-  sectionEditLink: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.semibold },
+  sectionEditLink: { fontSize: typography.xs, color: tColors.student.primary, fontWeight: typography.semibold },
   emptyInterestsTap: { paddingVertical: tSpacing.sm },
-  emptyInterestsText: { fontSize: 13, color: tColors.textTertiary, fontStyle: 'italic' },
+  emptyInterestsText: { fontSize: typography.sm, color: tColors.textTertiary, fontStyle: 'italic' },
 
   pillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   interestPill: {
     backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
     borderRadius: tRadius.full, paddingHorizontal: 12, paddingVertical: 5,
   },
-  interestText: { fontSize: 12, color: tColors.textSecondary },
+  interestText: { fontSize: typography.xs, color: tColors.textSecondary },
 
   interestEditGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingBottom: tSpacing.md },
   interestEditChip: {
@@ -1069,14 +1067,13 @@ const styles = StyleSheet.create({
     backgroundColor: tColors.bg,
   },
   interestEditChipActive: { backgroundColor: tColors.student.primaryDim, borderColor: tColors.student.primary },
-  interestEditChipText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.medium },
+  interestEditChipText: { fontSize: typography.sm, color: tColors.textSecondary, fontWeight: typography.medium },
   interestEditChipTextActive: { color: tColors.student.primary, fontWeight: typography.semibold },
   saveInterestsBtn: {
     backgroundColor: tColors.student.primary, borderRadius: tRadius.md,
     paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.md,
   },
-  saveInterestsBtnText: { color: '#fff', fontSize: 15, fontWeight: typography.bold },
-
+  saveInterestsBtnText: { color: '#fff', fontSize: typography.base, fontWeight: typography.bold },
 
   blockedBtn: {
     marginHorizontal: tSpacing.base, marginTop: tSpacing.base,
@@ -1084,16 +1081,16 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.md, paddingVertical: 14, paddingHorizontal: tSpacing.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  blockedBtnText: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textSecondary },
+  blockedBtnText: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.textSecondary },
   blockedCount: {
     backgroundColor: tColors.errorDim, borderWidth: 1, borderColor: tColors.error,
     borderRadius: tRadius.full, paddingHorizontal: 8, paddingVertical: 2,
   },
-  blockedCountText: { fontSize: 11, color: tColors.error, fontWeight: typography.bold },
+  blockedCountText: { fontSize: typography.xs, color: tColors.error, fontWeight: typography.bold },
 
   blockedEmpty: { alignItems: 'center', paddingVertical: tSpacing.lg, gap: tSpacing.sm },
   blockedEmptyIcon: { fontSize: 36 },
-  blockedEmptyText: { fontSize: 14, color: tColors.textSecondary },
+  blockedEmptyText: { fontSize: typography.sm, color: tColors.textSecondary },
 
   blockedRow: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
@@ -1105,42 +1102,36 @@ const styles = StyleSheet.create({
     backgroundColor: tColors.cardAlt,
     alignItems: 'center', justifyContent: 'center',
   },
-  blockedAvatarText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textSecondary },
-  blockedName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary },
-  blockedCourse: { fontSize: 11, color: tColors.textTertiary, marginTop: 1 },
+  blockedAvatarText: { fontSize: typography.sm, fontWeight: typography.bold, color: tColors.textSecondary },
+  blockedName: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.textPrimary },
+  blockedCourse: { fontSize: typography.xs, color: tColors.textTertiary, marginTop: 1 },
   unblockBtn: {
     borderWidth: 1, borderColor: tColors.student.primary,
     borderRadius: tRadius.sm, paddingHorizontal: 12, paddingVertical: 5,
   },
-  unblockBtnText: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.semibold },
+  unblockBtnText: { fontSize: typography.xs, color: tColors.student.primary, fontWeight: typography.semibold },
 
-  themeGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: tSpacing.sm,
-  },
+  themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: tSpacing.sm },
   themeCard: {
     width: '30%', flexGrow: 1,
     backgroundColor: tColors.card,
     borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.lg,
-    padding: tSpacing.sm,
-    gap: 5,
+    borderRadius: tRadius.lg, padding: tSpacing.sm, gap: 5,
   },
-  themeCardActive: {
-    borderColor: tColors.student.primary, borderWidth: 2,
-  },
+  themeCardActive: { borderColor: tColors.student.primary, borderWidth: 2 },
   themeCardDimmed: { opacity: 0.45 },
   swatchRow: { flexDirection: 'row', gap: 3, marginBottom: 2 },
   swatchDot: { width: 14, height: 14, borderRadius: 7 },
-  themeLabel: { fontSize: 11, fontWeight: typography.semibold, color: tColors.textPrimary },
+  themeLabel: { fontSize: typography.xs, fontWeight: typography.semibold, color: tColors.textPrimary },
   themeLabelActive: { color: tColors.student.primary },
-  themeDesc: { fontSize: 10, color: tColors.textTertiary },
+  themeDesc: { fontSize: typography.xs, color: tColors.textTertiary },
 
   legalRow: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     gap: tSpacing.sm, marginTop: tSpacing.base,
   },
-  legalLink: { fontSize: 12, color: tColors.textTertiary, fontWeight: typography.medium },
-  legalDot: { fontSize: 12, color: tColors.textTertiary },
+  legalLink: { fontSize: typography.xs, color: tColors.textTertiary, fontWeight: typography.medium },
+  legalDot: { fontSize: typography.xs, color: tColors.textTertiary },
 
   signOutBtn: {
     marginHorizontal: tSpacing.base, marginTop: tSpacing.base,
@@ -1148,7 +1139,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: tColors.error,
     borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center',
   },
-  signOutBtnText: { fontSize: 14, fontWeight: typography.semibold, color: tColors.error },
+  signOutBtnText: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.error },
 
   crDashBtn: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
@@ -1156,8 +1147,8 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.lg, padding: tSpacing.md, marginBottom: tSpacing.sm,
   },
   crDashBtnEmoji: { fontSize: 22 },
-  crDashBtnTitle: { fontSize: 14, fontWeight: typography.bold, color: tColors.student.primary },
-  crDashBtnSub: { fontSize: 11, color: tColors.student.primary, opacity: 0.8, marginTop: 2 },
+  crDashBtnTitle: { fontSize: typography.sm, fontWeight: typography.bold, color: tColors.student.primary },
+  crDashBtnSub: { fontSize: typography.xs, color: tColors.student.primary, opacity: 0.8, marginTop: 2 },
 
   crPendingCard: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
@@ -1165,8 +1156,8 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.lg, padding: tSpacing.md, marginBottom: tSpacing.sm,
   },
   crPendingEmoji: { fontSize: 22 },
-  crPendingTitle: { fontSize: 14, fontWeight: typography.semibold, color: tColors.warning },
-  crPendingSub: { fontSize: 11, color: tColors.warning, opacity: 0.8, marginTop: 2 },
+  crPendingTitle: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.warning },
+  crPendingSub: { fontSize: typography.xs, color: tColors.warning, opacity: 0.8, marginTop: 2 },
 
   crApplyBtn: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
@@ -1174,36 +1165,35 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.lg, padding: tSpacing.md, marginBottom: tSpacing.sm,
   },
   crApplyBtnEmoji: { fontSize: 22 },
-  crApplyBtnTitle: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
-  crApplyBtnSub: { fontSize: 11, color: tColors.textSecondary, marginTop: 2 },
+  crApplyBtnTitle: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.textPrimary },
+  crApplyBtnSub: { fontSize: typography.xs, color: tColors.textSecondary, marginTop: 2 },
 
   deleteBtn: {
     marginHorizontal: tSpacing.base, marginTop: tSpacing.sm,
     borderWidth: 1, borderColor: tColors.border,
     borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center',
   },
-  deleteBtnText: { fontSize: 14, fontWeight: typography.medium, color: tColors.textTertiary },
+  deleteBtnText: { fontSize: typography.sm, fontWeight: typography.medium, color: tColors.textTertiary },
   deleteConfirmBox: {
     marginHorizontal: tSpacing.base, marginTop: tSpacing.sm,
-    backgroundColor: 'rgba(239,68,68,0.08)',
-    borderWidth: 1, borderColor: '#EF4444',
+    backgroundColor: tColors.errorDim,
+    borderWidth: 1, borderColor: tColors.error,
     borderRadius: tRadius.md, padding: tSpacing.md,
   },
-  deleteConfirmText: { fontSize: 13, color: tColors.textSecondary, lineHeight: 18, marginBottom: tSpacing.md },
+  deleteConfirmText: { fontSize: typography.sm, color: tColors.textSecondary, lineHeight: 18, marginBottom: tSpacing.md },
   deleteConfirmRow: { flexDirection: 'row', gap: tSpacing.sm },
   deleteCancelBtn: {
     flex: 1, borderWidth: 1, borderColor: tColors.border,
     borderRadius: tRadius.md, paddingVertical: 10, alignItems: 'center',
     backgroundColor: tColors.card,
   },
-  deleteCancelText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.semibold },
+  deleteCancelText: { fontSize: typography.sm, color: tColors.textSecondary, fontWeight: typography.semibold },
   deleteConfirmBtn: {
-    flex: 1, backgroundColor: '#EF4444',
+    flex: 1, backgroundColor: tColors.error,
     borderRadius: tRadius.md, paddingVertical: 10, alignItems: 'center',
   },
-  deleteConfirmBtnText: { fontSize: 13, color: '#fff', fontWeight: typography.bold },
+  deleteConfirmBtnText: { fontSize: typography.sm, color: '#fff', fontWeight: typography.bold },
 
-  // Shared modal base
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
@@ -1219,18 +1209,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: tSpacing.base,
   },
-  modalTitle: { fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary },
+  modalTitle: { fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary },
   modalClose: { fontSize: 22, color: tColors.textSecondary, padding: 4 },
   modalLabel: {
-    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8,
     fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm,
   },
   modalInput: {
     backgroundColor: tColors.bg,
     borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.md,
-    padding: tSpacing.md,
-    color: tColors.textPrimary, fontSize: 14,
+    borderRadius: tRadius.md, padding: tSpacing.md,
+    color: tColors.textPrimary, fontSize: typography.sm,
   },
   pillGroupRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   optionPill: {
@@ -1239,18 +1228,15 @@ const styles = StyleSheet.create({
     backgroundColor: tColors.bg,
   },
   optionPillActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
-  optionPillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
+  optionPillText: { fontSize: typography.xs, color: tColors.textSecondary, fontWeight: typography.medium },
   optionPillTextActive: { color: '#fff', fontWeight: typography.semibold },
   saveBtn: {
     backgroundColor: tColors.student.primary,
-    borderRadius: tRadius.md,
-    paddingVertical: 14,
-    marginTop: tSpacing.base,
-    alignItems: 'center',
+    borderRadius: tRadius.md, paddingVertical: 14,
+    marginTop: tSpacing.base, alignItems: 'center',
   },
-  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: typography.bold },
+  saveBtnText: { color: '#fff', fontSize: typography.base, fontWeight: typography.bold },
 
-  // ── Social links modal ──
   socialModal: {
     backgroundColor: tColors.card,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
@@ -1260,122 +1246,102 @@ const styles = StyleSheet.create({
   },
   socialModalHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: tSpacing.base,
-    marginBottom: tSpacing.base,
+    paddingHorizontal: tSpacing.base, marginBottom: tSpacing.base,
   },
-  socialModalTitle: { fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary },
+  socialModalTitle: { fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary },
   closeBtn: {
     width: 30, height: 30, borderRadius: 15,
     backgroundColor: tColors.cardAlt,
     alignItems: 'center', justifyContent: 'center',
   },
-  closeBtnText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.semibold },
+  closeBtnText: { fontSize: typography.sm, color: tColors.textSecondary, fontWeight: typography.semibold },
 
   socialEditRow: {
     flexDirection: 'row', alignItems: 'center',
-    gap: tSpacing.sm,
-    paddingHorizontal: tSpacing.base,
-    marginBottom: tSpacing.sm,
+    gap: tSpacing.sm, paddingHorizontal: tSpacing.base, marginBottom: tSpacing.sm,
   },
   providerBadgeLg: {
     width: 40, height: 40, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  providerAbbrLg: { fontSize: 13, fontWeight: typography.bold },
+  providerAbbrLg: { fontSize: typography.sm, fontWeight: typography.bold },
   socialUrlBox: {
     flex: 1,
     borderWidth: 1, borderColor: tColors.border,
     borderRadius: tRadius.md, paddingHorizontal: 12, paddingVertical: 10,
     backgroundColor: tColors.bg,
   },
-  socialEditUrl: { fontSize: 13, color: tColors.textSecondary },
+  socialEditUrl: { fontSize: typography.sm, color: tColors.textSecondary },
   trashBtn: {
-    width: 36, height: 36,
-    borderRadius: 8,
+    width: 36, height: 36, borderRadius: tRadius.sm,
     backgroundColor: tColors.cardAlt,
     alignItems: 'center', justifyContent: 'center',
   },
-  trashIcon: { fontSize: 15 },
+  trashIcon: { fontSize: typography.base },
 
   addLinkRow: {
     flexDirection: 'row', alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+    gap: tSpacing.sm, paddingHorizontal: tSpacing.lg,
+    marginTop: tSpacing.xs, marginBottom: tSpacing.sm,
   },
   providerDropdown: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: 10, paddingVertical: 10,
-    backgroundColor: colors.bg,
-    minWidth: 110, maxWidth: 130,
-    gap: 4,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingHorizontal: 10, paddingVertical: 10,
+    backgroundColor: tColors.bg, minWidth: 110, maxWidth: 130, gap: 4,
   },
-  providerPlaceholder: { fontSize: 13, color: colors.textTertiary, flex: 1 },
-  providerSelected: { fontSize: 13, color: colors.textPrimary, flex: 1, ...font.medium },
-  chevron: { fontSize: 14, color: colors.textTertiary, transform: [{ rotate: '90deg' }] },
+  providerPlaceholder: { fontSize: typography.sm, color: tColors.textTertiary, flex: 1 },
+  providerSelected: { fontSize: typography.sm, color: tColors.textPrimary, flex: 1, fontWeight: typography.medium },
+  chevron: { fontSize: typography.sm, color: tColors.textTertiary, transform: [{ rotate: '90deg' }] },
   handleInput: {
     flex: 1,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: colors.bg,
-    color: colors.textPrimary, fontSize: 13,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: tColors.bg, color: tColors.textPrimary, fontSize: typography.sm,
   },
   addLinkBtn: {
-    width: 36, height: 36, borderRadius: 8,
-    backgroundColor: colors.cardElevated,
-    borderWidth: 1, borderColor: colors.border,
+    width: 36, height: 36, borderRadius: tRadius.sm,
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1, borderColor: tColors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  addLinkBtnText: { fontSize: 20, color: colors.textPrimary, lineHeight: 24 },
+  addLinkBtnText: { fontSize: typography.xl, color: tColors.textPrimary, lineHeight: 24 },
 
   privacyNote: {
-    fontSize: 12, color: colors.textTertiary, lineHeight: 17,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
+    fontSize: typography.xs, color: tColors.textTertiary, lineHeight: 17,
+    paddingHorizontal: tSpacing.lg, marginTop: tSpacing.xs, marginBottom: tSpacing.md,
   },
 
-  socialModalDivider: { height: 1, backgroundColor: colors.border },
+  socialModalDivider: { height: 1, backgroundColor: tColors.border },
   socialModalFooter: {
     flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    gap: tSpacing.md, paddingHorizontal: tSpacing.lg, paddingVertical: tSpacing.md,
   },
-  discardText: { fontSize: 14, color: colors.textSecondary, ...font.medium },
+  discardText: { fontSize: typography.sm, color: tColors.textSecondary, fontWeight: typography.medium },
   socialSaveBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    paddingHorizontal: 28, paddingVertical: 10,
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.full, paddingHorizontal: 28, paddingVertical: 10,
   },
-  socialSaveBtnText: { fontSize: 14, color: '#fff', ...font.bold },
+  socialSaveBtnText: { fontSize: typography.sm, color: '#fff', fontWeight: typography.bold },
 
-  // ── Provider picker ──
   pickerOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center', alignItems: 'center',
-    padding: spacing.xl,
+    justifyContent: 'center', alignItems: 'center', padding: tSpacing.xl,
   },
   pickerCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    width: '100%',
-    maxWidth: 320,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg, padding: tSpacing.lg,
+    width: '100%', maxWidth: 320,
   },
   pickerTitle: {
-    fontSize: 15, ...font.bold, color: colors.textPrimary,
-    marginBottom: spacing.md,
+    fontSize: typography.base, fontWeight: typography.bold, color: tColors.textPrimary,
+    marginBottom: tSpacing.md,
   },
   pickerRow: {
     flexDirection: 'row', alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+    gap: tSpacing.md, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: tColors.border,
   },
-  pickerProviderName: { fontSize: 14, color: colors.textPrimary, ...font.medium },
+  pickerProviderName: { fontSize: typography.sm, color: tColors.textPrimary, fontWeight: typography.medium },
 });
