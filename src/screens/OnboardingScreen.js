@@ -814,19 +814,6 @@ export default function OnboardingScreen() {
               }
             </TouchableOpacity>
 
-            {/* OR divider */}
-            <View style={siStyles.dividerRow}>
-              <View style={siStyles.dividerLine} />
-              <Text style={siStyles.dividerText}>OR CONTINUE WITH</Text>
-              <View style={siStyles.dividerLine} />
-            </View>
-
-            {/* Google button — visual only */}
-            <TouchableOpacity style={siStyles.googleBtn} activeOpacity={0.85}>
-              <Text style={siStyles.googleBtnIcon}>G</Text>
-              <Text style={siStyles.googleBtnText}>Continue with Google</Text>
-            </TouchableOpacity>
-
             {/* Footer links */}
             <View style={siStyles.footerRow}>
               <Text style={siStyles.footerLink}>Privacy Policy</Text>
@@ -1573,45 +1560,6 @@ const siStyles = StyleSheet.create({
     color: '#fff',
     fontSize: typography.md,
     fontWeight: typography.bold,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: tSpacing.xl,
-    marginBottom: tSpacing.base,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: tColors.border,
-  },
-  dividerText: {
-    fontSize: typography.xs,
-    color: tColors.textTertiary,
-    marginHorizontal: tSpacing.md,
-    fontWeight: typography.medium,
-    letterSpacing: 0.5,
-  },
-  googleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: tColors.border,
-    borderRadius: tRadius.md,
-    paddingVertical: 14,
-    gap: tSpacing.sm,
-    marginBottom: tSpacing.xl,
-  },
-  googleBtnIcon: {
-    fontSize: 16,
-    fontWeight: typography.bold,
-    color: tColors.textPrimary,
-  },
-  googleBtnText: {
-    fontSize: typography.base,
-    color: tColors.textPrimary,
-    fontWeight: typography.medium,
   },
   footerRow: {
     flexDirection: 'row',
