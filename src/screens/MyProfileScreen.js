@@ -11,6 +11,14 @@ import { THEMES, activeThemeKey, setTheme } from '../theme';
 import { supabase } from '../lib/supabase';
 import { computeClass } from '../lib/classUtils';
 import { colors, spacing, radius, font, courseColor, avatarColor, initials } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 import CRDashboardScreen from './CRDashboardScreen';
 
 const COURSES = ['BCom IAF', 'BCom IBA', 'BCom F&A'];
@@ -307,7 +315,7 @@ export default function MyProfileScreen() {
 
         {/* About */}
         <Section label="ABOUT">
-          <Text style={[styles.bodyText, !bio && { color: colors.textTertiary, fontStyle: 'italic' }]}>
+          <Text style={[styles.bodyText, !bio && { color: tColors.textTertiary, fontStyle: 'italic' }]}>
             {bio || 'No bio yet — tap Edit Profile to add one'}
           </Text>
         </Section>
@@ -428,7 +436,7 @@ export default function MyProfileScreen() {
               <Text style={styles.crDashBtnTitle}>CR Dashboard</Text>
               <Text style={styles.crDashBtnSub}>Open your Class Representative tools</Text>
             </View>
-            <Text style={{ fontSize: 18, color: colors.textTertiary }}>›</Text>
+            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
           </TouchableOpacity>
         ) : crStatus === 'pending' ? (
           <View style={styles.crPendingCard}>
@@ -449,7 +457,7 @@ export default function MyProfileScreen() {
               <Text style={styles.crApplyBtnTitle}>Apply as Class Representative</Text>
               <Text style={styles.crApplyBtnSub}>Submit an application for admin approval</Text>
             </View>
-            <Text style={{ fontSize: 18, color: colors.textTertiary }}>›</Text>
+            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
           </TouchableOpacity>
         )}
 
@@ -489,7 +497,7 @@ export default function MyProfileScreen() {
               <Text style={styles.crApplyBtnTitle}>Apply for SAPS Core Team</Text>
               <Text style={styles.crApplyBtnSub}>Choose a role and submit for admin approval</Text>
             </View>
-            <Text style={{ fontSize: 18, color: colors.textTertiary }}>›</Text>
+            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
           </TouchableOpacity>
         )}
 
@@ -559,7 +567,7 @@ export default function MyProfileScreen() {
               value={draftName}
               onChangeText={setDraftName}
               placeholder="Your name"
-              placeholderTextColor={colors.textTertiary}
+              placeholderTextColor={tColors.textTertiary}
               style={styles.modalInput}
               autoCapitalize="words"
             />
@@ -628,7 +636,7 @@ export default function MyProfileScreen() {
               value={draftBio}
               onChangeText={setDraftBio}
               placeholder="Tell people a bit about yourself..."
-              placeholderTextColor={colors.textTertiary}
+              placeholderTextColor={tColors.textTertiary}
               style={[styles.modalInput, { height: 90, textAlignVertical: 'top' }]}
               multiline
             />
@@ -699,7 +707,7 @@ export default function MyProfileScreen() {
                   value={draftHandle}
                   onChangeText={setDraftHandle}
                   placeholder="Handle"
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={tColors.textTertiary}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -868,7 +876,7 @@ export default function MyProfileScreen() {
                 value={crReason}
                 onChangeText={t => { setCrReason(t); setCrApplyError(''); }}
                 placeholder="Tell the admin why you'd make a good Class Representative…"
-                placeholderTextColor={colors.textTertiary}
+                placeholderTextColor={tColors.textTertiary}
                 multiline
                 style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, fontSize: 14, color: colors.textPrimary, minHeight: 90, textAlignVertical: 'top', marginBottom: spacing.sm }}
               />

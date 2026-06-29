@@ -6,6 +6,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { metaFromClass, ALL_CLASSES } from '../lib/subjectUtils';
 import { teachers as SEED_TEACHERS, hubClubs } from '../data/index';
@@ -508,7 +516,7 @@ export default function SuperAdminScreen({ navigation }) {
   };
 
   const renderSubjectsTab = () => {
-    if (subjectsLoading) return <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />;
+    if (subjectsLoading) return <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 40 }} />;
     const filtered = subjectFilter === 'All' ? subjects : subjects.filter(s => s.class === subjectFilter);
     return (
       <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false}>
@@ -556,7 +564,7 @@ export default function SuperAdminScreen({ navigation }) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Active Subjects ({filtered.length})</Text>
             <TouchableOpacity
-              style={[styles.approveBtn, { paddingHorizontal: spacing.md, paddingVertical: 8 }]}
+              style={[styles.approveBtn, { paddingHorizontal: tSpacing.md, paddingVertical: 8 }]}
               onPress={openAddSubject}
               activeOpacity={0.8}
             >
@@ -565,7 +573,7 @@ export default function SuperAdminScreen({ navigation }) {
           </View>
 
           {/* Class filter pills */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.md }}>
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {['All', ...ALL_CLASSES].map(cls => {
                 const active = subjectFilter === cls;
@@ -588,22 +596,22 @@ export default function SuperAdminScreen({ navigation }) {
               <Text style={styles.emptyText}>No subjects for this class</Text>
             </View>
           ) : filtered.map(s => (
-            <View key={s.id} style={[styles.teacherCard, { paddingVertical: spacing.sm }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <View key={s.id} style={[styles.teacherCard, { paddingVertical: tSpacing.sm }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.teacherName}>{s.name}</Text>
                   <Text style={styles.teacherEmail}>{s.code} · {s.class} · Sem {s.semester}</Text>
                 </View>
                 <TouchableOpacity
-                  style={[styles.rejectBtn, { paddingHorizontal: spacing.sm, paddingVertical: 6 }]}
+                  style={[styles.rejectBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }]}
                   onPress={() => deleteSubject(s.id)}
                   disabled={deletingSubject === s.id}
                   activeOpacity={0.8}
                 >
-                  {deletingSubject === s.id ? <ActivityIndicator size="small" color={colors.red} /> : <Text style={styles.rejectBtnText}>🗑</Text>}
+                  {deletingSubject === s.id ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>🗑</Text>}
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.approveBtn, { paddingHorizontal: spacing.sm, paddingVertical: 6 }]}
+                  style={[styles.approveBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }]}
                   onPress={() => openEditSubject(s)}
                   activeOpacity={0.8}
                 >
@@ -659,7 +667,7 @@ export default function SuperAdminScreen({ navigation }) {
               disabled={isResolving}
               activeOpacity={0.8}
             >
-              {isResolving ? <ActivityIndicator size="small" color={colors.red} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
+              {isResolving ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.approveBtn, isResolving && { opacity: 0.5 }]}
@@ -677,7 +685,7 @@ export default function SuperAdminScreen({ navigation }) {
 
   const renderTeachersTab = () => {
     if (loading) {
-      return <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />;
+      return <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 40 }} />;
     }
 
     return (
@@ -715,7 +723,7 @@ export default function SuperAdminScreen({ navigation }) {
   };
 
   const renderCRTab = () => {
-    if (crLoading) return <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />;
+    if (crLoading) return <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 40 }} />;
     return (
       <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
@@ -759,7 +767,7 @@ export default function SuperAdminScreen({ navigation }) {
                   disabled={resolvingCR === req.id}
                   activeOpacity={0.8}
                 >
-                  {resolvingCR === req.id ? <ActivityIndicator size="small" color={colors.red} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
+                  {resolvingCR === req.id ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.approveBtn, resolvingCR === req.id && { opacity: 0.5 }]}
@@ -778,7 +786,7 @@ export default function SuperAdminScreen({ navigation }) {
   };
 
   const renderSapsTab = () => {
-    if (sapsLoading) return <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />;
+    if (sapsLoading) return <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 40 }} />;
     return (
       <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false}>
         {/* Pending Applications */}
@@ -810,7 +818,7 @@ export default function SuperAdminScreen({ navigation }) {
                   disabled={resolvingSaps === app.id}
                   activeOpacity={0.8}
                 >
-                  {resolvingSaps === app.id ? <ActivityIndicator size="small" color={colors.red} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
+                  {resolvingSaps === app.id ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>Reject</Text>}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.approveBtn, resolvingSaps === app.id && { opacity: 0.5 }]}
@@ -828,32 +836,32 @@ export default function SuperAdminScreen({ navigation }) {
         {/* Current SAPS Team */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Current SAPS Team</Text>
-          <View style={{ height: spacing.sm }} />
+          <View style={{ height: tSpacing.sm }} />
           {SAPS_ROLES.map(role => {
             const member = sapsTeam.find(m => m.role === role);
             return (
-              <View key={role} style={[styles.teacherCard, { paddingVertical: spacing.sm }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <View key={role} style={[styles.teacherCard, { paddingVertical: tSpacing.sm }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm }}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.teacherName}>{role}</Text>
                     {member ? (
                       <Text style={styles.teacherEmail}>{member.memberName}</Text>
                     ) : (
-                      <Text style={[styles.teacherEmail, { color: colors.textTertiary, fontStyle: 'italic' }]}>Vacant</Text>
+                      <Text style={[styles.teacherEmail, { color: tColors.textTertiary, fontStyle: 'italic' }]}>Vacant</Text>
                     )}
                   </View>
                   {member ? (
                     <TouchableOpacity
-                      style={[styles.rejectBtn, { paddingHorizontal: spacing.sm, paddingVertical: 6 }, removingSapsMember === member.id && { opacity: 0.5 }]}
+                      style={[styles.rejectBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }, removingSapsMember === member.id && { opacity: 0.5 }]}
                       onPress={() => handleRemoveSapsMember(member)}
                       disabled={removingSapsMember === member.id}
                       activeOpacity={0.8}
                     >
-                      {removingSapsMember === member.id ? <ActivityIndicator size="small" color={colors.red} /> : <Text style={styles.rejectBtnText}>Remove</Text>}
+                      {removingSapsMember === member.id ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>Remove</Text>}
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
-                      style={[styles.approveBtn, { paddingHorizontal: spacing.sm, paddingVertical: 6 }]}
+                      style={[styles.approveBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }]}
                       onPress={() => openAssignModal(role)}
                       activeOpacity={0.8}
                     >
@@ -893,15 +901,15 @@ export default function SuperAdminScreen({ navigation }) {
     if (statsLoading) {
       return (
         <View style={styles.centerBox}>
-          <ActivityIndicator color={colors.primary} size="large" />
+          <ActivityIndicator color={tColors.student.primary} size="large" />
           <Text style={[styles.emptyText, { marginTop: 12 }]}>Loading stats…</Text>
         </View>
       );
     }
     if (!stats) return null;
     return (
-      <ScrollView contentContainerStyle={{ padding: spacing.md, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        <Text style={{ fontSize: 12, ...font.bold, color: colors.textTertiary, letterSpacing: 1, marginBottom: spacing.md }}>
+      <ScrollView contentContainerStyle={{ padding: tSpacing.md, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <Text style={{ fontSize: 12, fontWeight: typography.bold, color: tColors.textTertiary, letterSpacing: 1, marginBottom: tSpacing.md }}>
           APP STATISTICS
         </Text>
         <View style={styles.statsGrid}>
@@ -914,11 +922,11 @@ export default function SuperAdminScreen({ navigation }) {
           ))}
         </View>
         <TouchableOpacity
-          style={{ marginTop: spacing.lg, alignItems: 'center', paddingVertical: 10 }}
+          style={{ marginTop: tSpacing.base, alignItems: 'center', paddingVertical: 10 }}
           onPress={loadStats}
           activeOpacity={0.7}
         >
-          <Text style={{ fontSize: 12, color: colors.primary, ...font.medium }}>↺ Refresh</Text>
+          <Text style={{ fontSize: 12, color: tColors.student.primary, fontWeight: typography.medium }}>↺ Refresh</Text>
         </TouchableOpacity>
       </ScrollView>
     );
@@ -929,7 +937,7 @@ export default function SuperAdminScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} style={{ padding: 4 }}>
-          <Text style={{ fontSize: 18, color: colors.textSecondary }}>←</Text>
+          <Text style={{ fontSize: 18, color: tColors.textSecondary }}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={styles.headerTitle}>Super Admin</Text>
@@ -955,11 +963,11 @@ export default function SuperAdminScreen({ navigation }) {
 
       {/* Teacher Dashboard shortcut */}
       <TouchableOpacity
-        style={{ marginHorizontal: spacing.md, marginBottom: spacing.sm, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}
+        style={{ marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.student.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}
         onPress={() => navigation.navigate('TeacherDashboard')}
         activeOpacity={0.8}
       >
-        <Text style={{ color: '#fff', fontSize: 14, ...font.bold }}>📋 Open Teacher Dashboard</Text>
+        <Text style={{ color: '#fff', fontSize: 14, fontWeight: typography.bold }}>📋 Open Teacher Dashboard</Text>
       </TouchableOpacity>
 
       {/* Tab content */}
@@ -974,24 +982,24 @@ export default function SuperAdminScreen({ navigation }) {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={() => !approvalLoading && setApprovalTarget(null)} activeOpacity={1} />
-            <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, maxHeight: '85%', borderWidth: 1, borderColor: colors.border }}>
+            <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.base, maxHeight: '85%', borderWidth: 1, borderColor: tColors.border }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>
+                <Text style={{ fontSize: 16, fontWeight: typography.bold, color: tColors.textPrimary }}>
                   Approve {approvalTarget?.name}
                 </Text>
                 <TouchableOpacity onPress={() => !approvalLoading && setApprovalTarget(null)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: colors.textSecondary, padding: 4 }}>✕</Text>
+                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: spacing.md }}>
+              <Text style={{ fontSize: 12, color: tColors.textSecondary, marginBottom: tSpacing.md }}>
                 Link to a seed faculty member so their timetable, subjects, and position load automatically on first login.
               </Text>
               <TextInput
                 value={approvalSearch}
                 onChangeText={setApprovalSearch}
                 placeholder="Search faculty name…"
-                placeholderTextColor={colors.textTertiary}
-                style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, fontSize: 14, color: colors.textPrimary, marginBottom: spacing.sm }}
+                placeholderTextColor={tColors.textTertiary}
+                style={{ backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.md, padding: tSpacing.md, fontSize: 14, color: tColors.textPrimary, marginBottom: tSpacing.sm }}
               />
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ flexGrow: 0 }}>
                 {approvalFacultyList.filter(t =>
@@ -1007,25 +1015,25 @@ export default function SuperAdminScreen({ navigation }) {
                       activeOpacity={0.8}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.seedRowName, sel && { color: colors.primary }]}>{t.name}</Text>
+                        <Text style={[styles.seedRowName, sel && { color: tColors.student.primary }]}>{t.name}</Text>
                         <Text style={styles.seedRowMeta}>Faculty</Text>
                       </View>
-                      {sel && <Text style={{ color: colors.primary, fontSize: 16, ...font.bold }}>✓</Text>}
+                      {sel && <Text style={{ color: tColors.student.primary, fontSize: 16, fontWeight: typography.bold }}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
                 <TouchableOpacity
-                  style={[styles.seedRow, !approvalSeedPick && styles.seedRowActive, { marginBottom: spacing.sm }]}
+                  style={[styles.seedRow, !approvalSeedPick && styles.seedRowActive, { marginBottom: tSpacing.sm }]}
                   onPress={() => setApprovalSeedPick(null)}
                   activeOpacity={0.8}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.seedRowName, !approvalSeedPick && { color: colors.primary }]}>
+                    <Text style={[styles.seedRowName, !approvalSeedPick && { color: tColors.student.primary }]}>
                       Not on this list
                     </Text>
                     <Text style={styles.seedRowMeta}>Approve without linking — teacher selects subjects manually</Text>
                   </View>
-                  {!approvalSeedPick && <Text style={{ color: colors.primary, fontSize: 16, ...font.bold }}>✓</Text>}
+                  {!approvalSeedPick && <Text style={{ color: tColors.student.primary, fontSize: 16, fontWeight: typography.bold }}>✓</Text>}
                 </TouchableOpacity>
               </ScrollView>
               <View style={styles.actionRow}>
@@ -1061,33 +1069,33 @@ export default function SuperAdminScreen({ navigation }) {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={() => setShowAssignModal(false)} activeOpacity={1} />
-            <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, maxHeight: '80%', borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-                <Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>Assign {assignRole}</Text>
+            <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.base, maxHeight: '80%', borderWidth: 1, borderColor: tColors.border }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.md }}>
+                <Text style={{ fontSize: 16, fontWeight: typography.bold, color: tColors.textPrimary }}>Assign {assignRole}</Text>
                 <TouchableOpacity onPress={() => setShowAssignModal(false)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: colors.textSecondary, padding: 4 }}>✕</Text>
+                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
                 </TouchableOpacity>
               </View>
               <TextInput
                 value={assignSearch}
                 onChangeText={searchAssignStudents}
                 placeholder="Search students by name…"
-                placeholderTextColor={colors.textTertiary}
-                style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, fontSize: 14, color: colors.textPrimary, marginBottom: spacing.md }}
+                placeholderTextColor={tColors.textTertiary}
+                style={{ backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.md, padding: tSpacing.md, fontSize: 14, color: tColors.textPrimary, marginBottom: tSpacing.md }}
                 autoFocus
               />
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 {assignSearch.trim().length > 0 && assignResults.length === 0 && (
-                  <Text style={{ fontSize: 13, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.lg }}>No students found</Text>
+                  <Text style={{ fontSize: 13, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.base }}>No students found</Text>
                 )}
                 {assignResults.map(s => (
                   <TouchableOpacity
                     key={s.id}
-                    style={[styles.teacherCard, { paddingVertical: spacing.sm }, assigning && { opacity: 0.5 }]}
+                    style={[styles.teacherCard, { paddingVertical: tSpacing.sm }, assigning && { opacity: 0.5 }]}
                     onPress={() => !assigning && handleAssignDirect(s)}
                     activeOpacity={0.8}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm }}>
                       <View style={[styles.avatarCircle, { width: 34, height: 34, borderRadius: 17 }]}>
                         <Text style={[styles.avatarText, { fontSize: 13 }]}>{s.name[0].toUpperCase()}</Text>
                       </View>
@@ -1095,7 +1103,7 @@ export default function SuperAdminScreen({ navigation }) {
                         <Text style={styles.teacherName}>{s.name}</Text>
                         <Text style={styles.teacherEmail}>{s.course} · {s.year}</Text>
                       </View>
-                      {assigning ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={{ color: colors.primary, fontSize: 18 }}>→</Text>}
+                      {assigning ? <ActivityIndicator size="small" color={tColors.student.primary} /> : <Text style={{ color: tColors.student.primary, fontSize: 18 }}>→</Text>}
                     </View>
                   </TouchableOpacity>
                 ))}
@@ -1111,13 +1119,13 @@ export default function SuperAdminScreen({ navigation }) {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={() => setShowSubjectModal(false)} activeOpacity={1} />
-            <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, maxHeight: '90%', borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-                <Text style={{ fontSize: 18, ...font.bold, color: colors.textPrimary }}>
+            <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.base, maxHeight: '90%', borderWidth: 1, borderColor: tColors.border }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.base }}>
+                <Text style={{ fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary }}>
                   {editingSubject ? '✏️ Edit Subject' : '📖 Add Subject'}
                 </Text>
                 <TouchableOpacity onPress={() => setShowSubjectModal(false)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: colors.textSecondary, padding: 4 }}>✕</Text>
+                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -1126,7 +1134,7 @@ export default function SuperAdminScreen({ navigation }) {
                   value={subjectName}
                   onChangeText={t => { setSubjectName(t); setSubjectFormError(''); }}
                   placeholder="e.g. Financial Accounting"
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={tColors.textTertiary}
                   style={styles.subFormInput}
                   maxLength={100}
                 />
@@ -1135,13 +1143,13 @@ export default function SuperAdminScreen({ navigation }) {
                   value={subjectCode}
                   onChangeText={t => { setSubjectCode(t); setSubjectFormError(''); }}
                   placeholder="e.g. BIAF101-1"
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={tColors.textTertiary}
                   style={styles.subFormInput}
                   autoCapitalize="characters"
                   maxLength={20}
                 />
                 <Text style={styles.subFormLabel}>CLASS *</Text>
-                <View style={{ gap: 6, marginBottom: spacing.md }}>
+                <View style={{ gap: 6, marginBottom: tSpacing.md }}>
                   {ALL_CLASSES.map(cls => {
                     const active = subjectClass === cls;
                     return (
@@ -1152,19 +1160,19 @@ export default function SuperAdminScreen({ navigation }) {
                         activeOpacity={0.75}
                       >
                         <Text style={[styles.subClassOptionText, active && styles.subClassOptionTextActive]}>{cls}</Text>
-                        {active && <Text style={{ color: colors.primary, fontSize: 14 }}>✓</Text>}
+                        {active && <Text style={{ color: tColors.student.primary, fontSize: 14 }}>✓</Text>}
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-                {subjectFormError ? <Text style={{ fontSize: 12, color: colors.red, marginBottom: spacing.sm, textAlign: 'center' }}>{subjectFormError}</Text> : null}
+                {subjectFormError ? <Text style={{ fontSize: 12, color: tColors.error, marginBottom: tSpacing.sm, textAlign: 'center' }}>{subjectFormError}</Text> : null}
                 <TouchableOpacity
-                  style={[{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginTop: spacing.sm }, subjectSaving && { opacity: 0.6 }]}
+                  style={[{ backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm }, subjectSaving && { opacity: 0.6 }]}
                   onPress={saveSubject}
                   disabled={subjectSaving}
                   activeOpacity={0.85}
                 >
-                  {subjectSaving ? <ActivityIndicator color="#fff" /> : <Text style={{ fontSize: 15, ...font.bold, color: '#fff' }}>{editingSubject ? 'Save Changes' : 'Add Subject'}</Text>}
+                  {subjectSaving ? <ActivityIndicator color="#fff" /> : <Text style={{ fontSize: 15, fontWeight: typography.bold, color: '#fff' }}>{editingSubject ? 'Save Changes' : 'Add Subject'}</Text>}
                 </TouchableOpacity>
                 <View style={{ height: 20 }} />
               </ScrollView>
@@ -1177,152 +1185,154 @@ export default function SuperAdminScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
+  safeArea: { flex: 1, backgroundColor: tColors.bg },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-    backgroundColor: colors.card,
+    paddingHorizontal: tSpacing.base, paddingVertical: tSpacing.md,
+    borderBottomWidth: 1, borderBottomColor: tColors.border,
+    backgroundColor: tColors.card,
   },
-  headerTitle: { fontSize: 16, ...font.bold, color: colors.textPrimary },
+  headerTitle: { fontSize: 16, fontWeight: typography.bold, color: tColors.textPrimary },
 
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+    backgroundColor: tColors.card,
+    borderBottomWidth: 1, borderBottomColor: tColors.border,
   },
   tabBtn: {
-    flex: 1, paddingVertical: spacing.md,
+    flex: 1, paddingVertical: tSpacing.md,
     alignItems: 'center',
     borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
-  tabBtnActive: { borderBottomColor: colors.primary },
-  tabBtnText: { fontSize: 14, color: colors.textSecondary, ...font.medium },
-  tabBtnTextActive: { color: colors.primary, ...font.bold },
+  tabBtnActive: { borderBottomColor: tColors.student.primary },
+  tabBtnText: { fontSize: 14, color: tColors.textSecondary, fontWeight: typography.medium },
+  tabBtnTextActive: { color: tColors.student.primary, fontWeight: typography.bold },
 
-  tabContent: { padding: spacing.lg, paddingBottom: 40 },
+  tabContent: { padding: tSpacing.base, paddingBottom: 40 },
 
-  section: { marginBottom: spacing.xxl },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
-  sectionTitle: { fontSize: 13, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold },
+  section: { marginBottom: tSpacing.xl },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm, marginBottom: tSpacing.md },
+  sectionTitle: { fontSize: typography.lg, fontWeight: typography.bold, color: tColors.textPrimary, letterSpacing: 0.8 },
   countBadge: {
-    backgroundColor: colors.amber,
-    borderRadius: radius.full,
+    backgroundColor: tColors.warning,
+    borderRadius: tRadius.full,
     width: 20, height: 20,
     alignItems: 'center', justifyContent: 'center',
   },
-  countBadgeText: { fontSize: 11, color: '#fff', ...font.bold },
+  countBadgeText: { fontSize: 11, color: '#fff', fontWeight: typography.bold },
 
   teacherCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.base,
+    marginBottom: tSpacing.md,
+    ...shadows.card,
   },
   teacherCardHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    marginBottom: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
+    marginBottom: tSpacing.md,
   },
   avatarCircle: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: tColors.student.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { fontSize: 16, ...font.bold, color: '#fff' },
-  teacherName: { fontSize: 15, ...font.bold, color: colors.textPrimary },
-  teacherEmail: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+  avatarText: { fontSize: 16, fontWeight: typography.bold, color: '#fff' },
+  teacherName: { fontSize: 15, fontWeight: typography.bold, color: tColors.textPrimary },
+  teacherEmail: { fontSize: 12, color: tColors.textSecondary, marginTop: 1 },
 
   facultyBadge: {
-    backgroundColor: colors.amberLight,
-    borderRadius: radius.full,
+    backgroundColor: tColors.warningDim,
+    borderRadius: tRadius.full,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  badgeGreen: { backgroundColor: colors.greenLight },
-  facultyBadgeText: { fontSize: 10, color: colors.amber, ...font.bold },
+  badgeGreen: { backgroundColor: tColors.successDim },
+  facultyBadgeText: { fontSize: 10, color: tColors.warning, fontWeight: typography.bold },
 
-  teacherMeta: { marginBottom: spacing.sm },
-  metaLabel: { fontSize: 9, color: colors.textTertiary, letterSpacing: 0.6, ...font.bold, marginBottom: 2 },
-  metaValue: { fontSize: 13, color: colors.textSecondary },
+  teacherMeta: { marginBottom: tSpacing.sm },
+  metaLabel: { fontSize: 9, color: tColors.textTertiary, letterSpacing: 0.6, fontWeight: typography.bold, marginBottom: 2 },
+  metaValue: { fontSize: 13, color: tColors.textSecondary },
 
   actionRow: {
-    flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md,
-    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md,
+    flexDirection: 'row', gap: tSpacing.sm, marginTop: tSpacing.md,
+    borderTopWidth: 1, borderTopColor: tColors.border, paddingTop: tSpacing.md,
   },
   rejectBtn: {
-    flex: 1, paddingVertical: 10, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.red,
+    flex: 1, paddingVertical: 10, borderRadius: tRadius.md,
+    borderWidth: 1, borderColor: tColors.error,
     alignItems: 'center',
   },
-  rejectBtnText: { fontSize: 14, color: colors.red, ...font.semibold },
+  rejectBtnText: { fontSize: 14, color: tColors.error, fontWeight: typography.semibold },
   approveBtn: {
-    flex: 1, paddingVertical: 10, borderRadius: radius.md,
-    backgroundColor: colors.green,
+    flex: 1, paddingVertical: 10, borderRadius: tRadius.md,
+    backgroundColor: tColors.success,
     alignItems: 'center',
   },
-  approveBtnText: { fontSize: 14, color: '#fff', ...font.semibold },
+  approveBtnText: { fontSize: 14, color: '#fff', fontWeight: typography.semibold },
 
   emptyCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.lg,
     alignItems: 'center',
   },
-  emptyText: { fontSize: 14, color: colors.textTertiary },
+  emptyText: { fontSize: 14, color: tColors.textTertiary },
 
   centerBox: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl,
+    flex: 1, alignItems: 'center', justifyContent: 'center', padding: tSpacing.lg,
   },
 
   filterPill: {
-    paddingHorizontal: spacing.md, paddingVertical: 7,
-    borderRadius: radius.full, backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
+    paddingHorizontal: tSpacing.md, paddingVertical: 7,
+    borderRadius: tRadius.full, backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
   },
-  filterPillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  filterPillText: { fontSize: 12, color: colors.textSecondary, ...font.medium },
-  filterPillTextActive: { color: '#fff', ...font.bold },
+  filterPillActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
+  filterPillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
+  filterPillTextActive: { color: '#fff', fontWeight: typography.bold },
 
-  subFormLabel: { fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold, marginBottom: 6, marginTop: spacing.sm },
+  subFormLabel: { fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm },
   subFormInput: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, fontSize: 14,
-    marginBottom: spacing.sm,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md, color: tColors.textPrimary, fontSize: 14,
+    marginBottom: tSpacing.sm,
   },
   subClassOption: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingHorizontal: tSpacing.md, paddingVertical: 12,
   },
-  subClassOptionActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  subClassOptionText: { fontSize: 14, color: colors.textSecondary, ...font.medium },
-  subClassOptionTextActive: { color: colors.primary, ...font.bold },
+  subClassOptionActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
+  subClassOptionText: { fontSize: 14, color: tColors.textSecondary, fontWeight: typography.medium },
+  subClassOptionTextActive: { color: tColors.student.primary, fontWeight: typography.bold },
 
   seedRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, paddingHorizontal: tSpacing.md, paddingVertical: 12,
     marginBottom: 6,
   },
-  seedRowActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  seedRowName: { fontSize: 14, ...font.semibold, color: colors.textPrimary },
-  seedRowMeta: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  seedRowActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
+  seedRowName: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
+  seedRowMeta: { fontSize: 11, color: tColors.textTertiary, marginTop: 2 },
 
   // ── Stats tab ──────────────────────────────────────────────────────────────
   statsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm,
+    flexDirection: 'row', flexWrap: 'wrap', gap: tSpacing.sm,
   },
   statsCard: {
-    width: '48%', backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    width: '48%', backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
     alignItems: 'center',
     marginBottom: 2,
+    ...shadows.card,
   },
   statsCardIcon: { fontSize: 22, marginBottom: 6 },
-  statsCardValue: { fontSize: 28, ...font.bold, color: colors.textPrimary },
-  statsCardLabel: { fontSize: 11, color: colors.textTertiary, ...font.medium, textAlign: 'center', marginTop: 4 },
+  statsCardValue: { fontSize: 28, fontWeight: typography.bold, color: tColors.textPrimary },
+  statsCardLabel: { fontSize: 11, color: tColors.textTertiary, fontWeight: typography.medium, textAlign: 'center', marginTop: 4 },
 });

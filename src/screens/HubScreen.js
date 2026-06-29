@@ -4,6 +4,14 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import { Star } from 'lucide-react-native';
 
@@ -142,7 +150,7 @@ export default function HubScreen() {
               <>
             {/* Emoji picker */}
             <Text style={styles.modalLabel}>PICK AN EMOJI</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.md }}>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {EMOJIS.map(e => (
                   <TouchableOpacity key={e} style={[styles.emojiBtn, cEmoji === e && styles.emojiBtnActive]} onPress={() => setCEmoji(e)} activeOpacity={0.7}>
@@ -154,7 +162,7 @@ export default function HubScreen() {
 
             {/* Color picker */}
             <Text style={styles.modalLabel}>COLOUR</Text>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: spacing.md }}>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: tSpacing.md }}>
               {COLORS.map(col => (
                 <TouchableOpacity key={col} style={[styles.colorSwatch, { backgroundColor: col }, cColor === col && styles.colorSwatchActive]} onPress={() => setCColor(col)} activeOpacity={0.8} />
               ))}
@@ -162,7 +170,7 @@ export default function HubScreen() {
 
             {/* Type */}
             <Text style={styles.modalLabel}>TYPE</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: spacing.md }}>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: tSpacing.md }}>
               {['Club', 'Team'].map(t => (
                 <TouchableOpacity key={t} style={[styles.typePill, cType === t && styles.typePillActive]} onPress={() => setCType(t)} activeOpacity={0.8}>
                   <Text style={[styles.typePillText, cType === t && styles.typePillTextActive]}>{t}</Text>
@@ -219,7 +227,7 @@ export default function HubScreen() {
             {/* Today */}
             {today.length > 0 && (
               <>
-                <Text style={[styles.sectionLabel, { color: colors.green }]}>🟢 TODAY</Text>
+                <Text style={[styles.sectionLabel, { color: tColors.success }]}>🟢 TODAY</Text>
                 {today.map(e => (
                   <EventCard
                     key={e.id}
@@ -260,7 +268,7 @@ export default function HubScreen() {
             ))}
 
             {/* Clubs/Teams Directory */}
-            <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>🏛️ CLUBS · TEAMS</Text>
+            <Text style={[styles.sectionLabel, { marginTop: tSpacing.base }]}>🏛️ CLUBS · TEAMS</Text>
 
             <View style={styles.filterRow}>
               {TYPES.map(t => {
@@ -447,227 +455,228 @@ function ClubCard({ club, isFollowing, isMember, isClubAdmin, onToggle, onPress,
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: spacing.md, paddingTop: spacing.sm },
+  container: { flex: 1, backgroundColor: tColors.bg, paddingHorizontal: tSpacing.md, paddingTop: tSpacing.sm },
 
   topActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
     gap: 8,
-    marginBottom: spacing.sm,
+    marginBottom: tSpacing.sm,
   },
   createBtn: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1, borderColor: colors.primary,
+    backgroundColor: tColors.student.primaryDim,
+    borderWidth: 1, borderColor: tColors.student.primary,
     paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: radius.full,
+    borderRadius: tRadius.full,
   },
-  createBtnText: { fontSize: 12, color: colors.primary, ...font.bold },
+  createBtnText: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.bold },
   adminBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.amberLight,
-    borderWidth: 1, borderColor: colors.amber,
+    backgroundColor: tColors.warningDim,
+    borderWidth: 1, borderColor: tColors.warning,
     paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: radius.full,
+    borderRadius: tRadius.full,
     position: 'relative',
   },
   adminBtnIcon: { fontSize: 12 },
-  adminBtnText: { fontSize: 11, color: colors.amber, ...font.bold },
+  adminBtnText: { fontSize: 11, color: tColors.warning, fontWeight: typography.bold },
   adminBadge: {
     position: 'absolute', top: -4, right: -4,
     width: 16, height: 16, borderRadius: 8,
-    backgroundColor: colors.red,
+    backgroundColor: tColors.error,
     alignItems: 'center', justifyContent: 'center',
   },
-  adminBadgeText: { fontSize: 9, color: '#fff', ...font.bold },
+  adminBadgeText: { fontSize: 9, color: '#fff', fontWeight: typography.bold },
 
   featured: {
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.base,
+    marginBottom: tSpacing.md,
   },
-  featuredLabel: { fontSize: 10, ...font.bold, letterSpacing: 1, color: 'rgba(255,255,255,0.9)', marginBottom: 6 },
-  featuredTitle: { fontSize: 17, ...font.bold, color: '#fff', marginBottom: 6 },
+  featuredLabel: { fontSize: 10, fontWeight: typography.bold, letterSpacing: 1, color: 'rgba(255,255,255,0.9)', marginBottom: 6 },
+  featuredTitle: { fontSize: 17, fontWeight: typography.bold, color: '#fff', marginBottom: 6 },
   featuredMeta: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
   featuredPill: {
-    alignSelf: 'flex-start', marginTop: spacing.sm,
+    alignSelf: 'flex-start', marginTop: tSpacing.sm,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.full,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: tRadius.full,
   },
-  featuredPillText: { fontSize: 10, ...font.semibold, color: '#fff' },
+  featuredPillText: { fontSize: 10, fontWeight: typography.semibold, color: '#fff' },
 
   sectionLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, marginBottom: spacing.sm, marginTop: spacing.md,
+    fontSize: typography.lg, color: tColors.textPrimary, letterSpacing: 0.8,
+    fontWeight: typography.bold, marginBottom: tSpacing.sm, marginTop: tSpacing.md,
   },
 
   eventCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    marginBottom: spacing.sm,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    marginBottom: tSpacing.sm,
     overflow: 'hidden',
+    ...shadows.card,
   },
   eventStripe: { height: 3, width: '100%' },
-  eventBody: { padding: spacing.md },
-  eventTop: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  eventBody: { padding: tSpacing.md },
+  eventTop: { flexDirection: 'row', gap: tSpacing.sm, marginBottom: tSpacing.sm },
   eventEmoji: {
-    width: 44, height: 44, borderRadius: radius.md,
+    width: 44, height: 44, borderRadius: tRadius.md,
     alignItems: 'center', justifyContent: 'center',
   },
   eventEmojiText: { fontSize: 22 },
   eventClubRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
-  eventClubName: { fontSize: 10, ...font.bold, letterSpacing: 0.8 },
+  eventClubName: { fontSize: 10, fontWeight: typography.bold, letterSpacing: 0.8 },
   mineBadge: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: tColors.student.primaryDim,
     paddingHorizontal: 6, paddingVertical: 1,
-    borderRadius: radius.full,
+    borderRadius: tRadius.full,
   },
-  mineBadgeText: { fontSize: 9, ...font.bold, color: colors.primary },
-  eventTitle: { fontSize: 14, ...font.bold, color: colors.textPrimary, marginBottom: 4 },
+  mineBadgeText: { fontSize: 9, fontWeight: typography.bold, color: tColors.student.primary },
+  eventTitle: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 4 },
   eventMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  eventMeta: { fontSize: 10, color: colors.textSecondary },
+  eventMeta: { fontSize: 10, color: tColors.textSecondary },
   eventFooter: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border,
+    paddingTop: tSpacing.sm, borderTopWidth: 1, borderTopColor: tColors.border,
   },
-  interestedCount: { fontSize: 10, color: colors.textTertiary },
+  interestedCount: { fontSize: 10, color: tColors.textTertiary },
   interestBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: tColors.student.primary,
     paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: radius.sm,
+    borderRadius: tRadius.sm,
   },
   interestBtnActive: {
-    backgroundColor: colors.greenLight,
-    borderWidth: 1, borderColor: colors.greenBorder,
+    backgroundColor: tColors.successDim,
+    borderWidth: 1, borderColor: tColors.success,
   },
-  interestBtnText: { fontSize: 11, color: '#fff', ...font.semibold },
-  interestBtnTextActive: { color: colors.green },
+  interestBtnText: { fontSize: 11, color: '#fff', fontWeight: typography.semibold },
+  interestBtnTextActive: { color: tColors.success },
 
   filterRow: {
     flexDirection: 'row', gap: 6,
-    marginBottom: spacing.sm,
+    marginBottom: tSpacing.sm,
   },
   pill: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.full,
+    borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.full,
     paddingHorizontal: 14, height: 32,
     justifyContent: 'center', alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: tColors.card,
   },
-  pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pillText: { fontSize: 12, color: colors.textSecondary, ...font.medium },
-  pillTextActive: { color: '#fff', ...font.semibold },
+  pillActive: { backgroundColor: tColors.student.primaryDim, borderColor: tColors.student.primary },
+  pillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
+  pillTextActive: { color: '#fff', fontWeight: typography.semibold },
 
   subSectionLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, marginBottom: spacing.sm, marginTop: spacing.sm,
+    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontWeight: typography.bold, marginBottom: tSpacing.sm, marginTop: tSpacing.sm,
   },
   clubCard: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    marginBottom: tSpacing.sm,
   },
   clubCardHighlight: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    borderColor: tColors.student.primary,
+    backgroundColor: tColors.student.primaryDim,
   },
   clubEmoji: {
-    width: 44, height: 44, borderRadius: radius.md,
+    width: 44, height: 44, borderRadius: tRadius.md,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   clubEmojiText: { fontSize: 20 },
-  clubLogoImg: { width: 44, height: 44, borderRadius: radius.md },
-  eventLogoImg: { width: 38, height: 38, borderRadius: radius.sm },
-  clubName: { fontSize: 13, ...font.bold, color: colors.textPrimary, marginBottom: 4 },
+  clubLogoImg: { width: 44, height: 44, borderRadius: tRadius.md },
+  eventLogoImg: { width: 38, height: 38, borderRadius: tRadius.sm },
+  clubName: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 4 },
   clubMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.full },
-  typeBadgeText: { fontSize: 9, ...font.bold, letterSpacing: 0.4 },
-  clubMembers: { fontSize: 10, color: colors.textSecondary },
+  typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full },
+  typeBadgeText: { fontSize: 9, fontWeight: typography.bold, letterSpacing: 0.4 },
+  clubMembers: { fontSize: 10, color: tColors.textSecondary },
   adminPill: {
-    backgroundColor: colors.amberLight,
-    paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.full,
+    backgroundColor: tColors.warningDim,
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full,
   },
-  adminPillText: { fontSize: 9, ...font.bold, color: colors.amber, letterSpacing: 0.4 },
+  adminPillText: { fontSize: 9, fontWeight: typography.bold, color: tColors.warning, letterSpacing: 0.4 },
   memberPill: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.full,
+    backgroundColor: tColors.student.primaryDim,
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full,
   },
-  memberPillText: { fontSize: 9, ...font.bold, color: colors.primary, letterSpacing: 0.4 },
+  memberPillText: { fontSize: 9, fontWeight: typography.bold, color: tColors.student.primary, letterSpacing: 0.4 },
 
   followBtn: {
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
     paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: radius.sm,
+    borderRadius: tRadius.sm,
   },
   followBtnActive: {
-    backgroundColor: colors.greenLight,
-    borderColor: colors.greenBorder,
+    backgroundColor: tColors.successDim,
+    borderColor: tColors.success,
   },
   manageBtn: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
+    backgroundColor: tColors.student.primaryDim,
+    borderColor: tColors.student.primary,
   },
-  followBtnText: { fontSize: 11, color: colors.textSecondary, ...font.semibold },
-  followBtnTextActive: { color: colors.green },
-  manageBtnText: { color: colors.primary },
+  followBtnText: { fontSize: 11, color: tColors.textSecondary, fontWeight: typography.semibold },
+  followBtnTextActive: { color: tColors.success },
+  manageBtnText: { color: tColors.student.primary },
 
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
   modalSheet: {
-    backgroundColor: colors.card,
+    backgroundColor: tColors.card,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: colors.border,
-    padding: spacing.lg, paddingBottom: 40,
+    borderWidth: 1, borderColor: tColors.border,
+    padding: tSpacing.base, paddingBottom: 40,
     maxHeight: '90%',
   },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  modalTitle: { fontSize: 17, ...font.bold, color: colors.textPrimary },
-  modalClose: { fontSize: 20, color: colors.textSecondary, padding: 4 },
-  modalLabel: { fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8, ...font.bold, marginBottom: 6, marginTop: spacing.sm },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.md },
+  modalTitle: { fontSize: 17, fontWeight: typography.bold, color: tColors.textPrimary },
+  modalClose: { fontSize: 20, color: tColors.textSecondary, padding: 4 },
+  modalLabel: { fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm },
   modalInput: {
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, padding: spacing.md,
-    color: colors.textPrimary, fontSize: 14, marginBottom: spacing.sm,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md,
+    color: tColors.textPrimary, fontSize: 14, marginBottom: tSpacing.sm,
   },
   emojiBtn: {
-    width: 44, height: 44, borderRadius: radius.md,
-    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
+    width: 44, height: 44, borderRadius: tRadius.md,
+    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  emojiBtnActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  emojiBtnActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
   colorSwatch: { width: 28, height: 28, borderRadius: 14 },
   colorSwatchActive: { borderWidth: 3, borderColor: '#fff', opacity: 1, transform: [{ scale: 1.2 }] },
   typePill: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.full,
-    paddingHorizontal: 18, paddingVertical: 7, backgroundColor: colors.bg,
+    borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.full,
+    paddingHorizontal: 18, paddingVertical: 7, backgroundColor: tColors.bg,
   },
-  typePillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  typePillText: { fontSize: 13, color: colors.textSecondary, ...font.medium },
-  typePillTextActive: { color: '#fff', ...font.semibold },
-  submittedBox: { alignItems: 'center', paddingVertical: spacing.xl },
-  submittedIcon: { fontSize: 48, marginBottom: spacing.md },
-  submittedTitle: { fontSize: 18, ...font.bold, color: colors.textPrimary, marginBottom: 8 },
-  submittedSub: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: spacing.lg, paddingHorizontal: spacing.md },
-  submittedBtn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingHorizontal: 32, paddingVertical: 12 },
-  submittedBtnText: { fontSize: 14, ...font.bold, color: '#fff' },
+  typePillActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
+  typePillText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.medium },
+  typePillTextActive: { color: '#fff', fontWeight: typography.semibold },
+  submittedBox: { alignItems: 'center', paddingVertical: tSpacing.lg },
+  submittedIcon: { fontSize: 48, marginBottom: tSpacing.md },
+  submittedTitle: { fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 8 },
+  submittedSub: { fontSize: 13, color: tColors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: tSpacing.base, paddingHorizontal: tSpacing.md },
+  submittedBtn: { backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingHorizontal: 32, paddingVertical: 12 },
+  submittedBtnText: { fontSize: 14, fontWeight: typography.bold, color: '#fff' },
 
   pendingReqCard: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: colors.amberLight,
-    borderWidth: 1, borderColor: colors.amber,
-    borderRadius: radius.md, padding: spacing.md,
-    marginBottom: spacing.sm,
+    backgroundColor: tColors.warningDim,
+    borderWidth: 1, borderColor: tColors.warning,
+    borderRadius: tRadius.md, padding: tSpacing.md,
+    marginBottom: tSpacing.sm,
   },
   pendingReqEmoji: { fontSize: 24 },
-  pendingReqName: { fontSize: 13, ...font.bold, color: colors.textPrimary },
-  pendingReqSub: { fontSize: 11, color: colors.amber, marginTop: 2 },
+  pendingReqName: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary },
+  pendingReqSub: { fontSize: 11, color: tColors.warning, marginTop: 2 },
 
-  createErrText: { fontSize: 12, color: colors.red, marginBottom: spacing.sm },
-  createConfirmBtn: { borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginTop: spacing.sm },
-  createConfirmBtnText: { fontSize: 15, color: '#fff', ...font.bold },
+  createErrText: { fontSize: 12, color: tColors.error, marginBottom: tSpacing.sm },
+  createConfirmBtn: { borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm },
+  createConfirmBtnText: { fontSize: 15, color: '#fff', fontWeight: typography.bold },
 });

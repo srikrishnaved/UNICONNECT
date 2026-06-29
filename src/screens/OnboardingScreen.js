@@ -6,6 +6,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { teachers as SEED_TEACHERS } from '../data/index';
@@ -100,6 +108,9 @@ export default function OnboardingScreen() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedAge, setAgreedAge] = useState(false);
   const [legalModal, setLegalModal] = useState(null); // null | 'privacy' | 'terms'
+
+  // Role selector (visual only — affects button accent colour on signin step)
+  const [selectedRole, setSelectedRole] = useState('student');
 
   // Forgot password
   const [showForgot, setShowForgot] = useState(false);
@@ -663,103 +674,167 @@ export default function OnboardingScreen() {
 
   // ── Step: Sign In ──────────────────────────────────────────────────────────
   if (step === 'signin') {
+    const accentColor = selectedRole === 'faculty'
+      ? tColors.faculty.primary
+      : tColors.student.primary;
+
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: tColors.bg }}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <View style={styles.logoRow}>
-              <View style={styles.logoBox}><Text style={styles.logoIcon}>✦</Text></View>
-              <Text style={styles.logoText}>Christ<Text style={{ color: colors.primary }}>Connect</Text></Text>
+          <ScrollView
+            contentContainerStyle={siStyles.container}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Title */}
+            <Text style={siStyles.title}>UniConnect</Text>
+            <Text style={siStyles.subtitle}>Your campus, connected.</Text>
+
+            {/* Role selector */}
+            <View style={siStyles.roleRow}>
+              <TouchableOpacity
+                style={[siStyles.roleCard, { borderColor: selectedRole === 'student' ? tColors.student.primary : tColors.border }]}
+                onPress={() => setSelectedRole('student')}
+                activeOpacity={0.85}
+              >
+                <Text style={siStyles.roleIcon}>🎓</Text>
+                <Text style={siStyles.roleAccessLabel}>ACCESS</Text>
+                <Text style={siStyles.roleName}>Student</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[siStyles.roleCard, { borderColor: selectedRole === 'faculty' ? tColors.faculty.primary : tColors.border }]}
+                onPress={() => setSelectedRole('faculty')}
+                activeOpacity={0.85}
+              >
+                <Text style={siStyles.roleIcon}>🏫</Text>
+                <Text style={siStyles.roleAccessLabel}>PORTAL</Text>
+                <Text style={siStyles.roleName}>Faculty</Text>
+              </TouchableOpacity>
             </View>
 
-            <Text style={styles.heading}>Welcome back</Text>
-            <Text style={styles.subheading}>Sign in to your ChristConnect account.</Text>
+            {/* Form container */}
+            <View style={siStyles.formCard}>
+              {/* Email input */}
+              <View style={siStyles.inputRow}>
+                <Text style={siStyles.inputIcon}>✉</Text>
+                <TextInput
+                  value={signInEmail}
+                  onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
+                  placeholder="yourname@christuniversity.in"
+                  placeholderTextColor={tColors.textSecondary}
+                  style={siStyles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
 
-            <Text style={styles.label}>UNIVERSITY EMAIL</Text>
-            <TextInput
-              value={signInEmail}
-              onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
-              placeholder="yourname@christuniversity.in"
-              placeholderTextColor={colors.textTertiary}
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+              {/* Password input */}
+              <View style={[siStyles.inputRow, { marginBottom: 0 }]}>
+                <Text style={siStyles.inputIcon}>🔒</Text>
+                <TextInput
+                  key={showSignInPassword ? 'si-visible' : 'si-hidden'}
+                  value={signInPassword}
+                  onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
+                  placeholder="Your password"
+                  placeholderTextColor={tColors.textSecondary}
+                  style={[siStyles.input, { flex: 1 }]}
+                  secureTextEntry={!showSignInPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowSignInPassword(v => !v)}
+                  activeOpacity={0.7}
+                  style={{ paddingHorizontal: tSpacing.xs }}
+                >
+                  <Text style={{ fontSize: 15, color: tColors.textSecondary }}>
+                    {showSignInPassword ? '🙈' : '👁'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-            <Text style={styles.label}>PASSWORD</Text>
-            <TextInput
-              key={showSignInPassword ? 'si-visible' : 'si-hidden'}
-              value={signInPassword}
-              onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
-              placeholder="Your password"
-              placeholderTextColor={colors.textTertiary}
-              style={[styles.input, { marginBottom: 6 }]}
-              secureTextEntry={!showSignInPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity onPress={() => setShowSignInPassword(v => !v)} style={styles.showPasswordRow} activeOpacity={0.7}>
-              <Text style={styles.showPasswordTick}>{showSignInPassword ? '☑' : '☐'}</Text>
-              <Text style={styles.showPasswordText}>{showSignInPassword ? 'Hide password' : 'Show password'}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => { setShowForgot(v => !v); setForgotSent(false); setForgotError(''); setForgotEmail(''); }}
+                activeOpacity={0.7}
+                style={{ alignSelf: 'flex-end', marginTop: tSpacing.sm }}
+              >
+                <Text style={siStyles.forgotLink}>Forgot password?</Text>
+              </TouchableOpacity>
 
-            {signInError ? <Text style={styles.errorText}>{signInError}</Text> : null}
+              {showForgot && (
+                <View style={siStyles.forgotBox}>
+                  {forgotSent ? (
+                    <Text style={siStyles.forgotSuccess}>
+                      ✓ Reset link sent — check your inbox and click the link to set a new password.
+                    </Text>
+                  ) : (
+                    <>
+                      <Text style={siStyles.forgotLabel}>Enter your university email and we'll send a reset link.</Text>
+                      <TextInput
+                        value={forgotEmail}
+                        onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
+                        placeholder="yourname@christuniversity.in"
+                        placeholderTextColor={tColors.textSecondary}
+                        style={siStyles.standaloneInput}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                      {forgotError ? <Text style={siStyles.errorText}>{forgotError}</Text> : null}
+                      <TouchableOpacity
+                        style={[siStyles.primaryBtn, { backgroundColor: accentColor }, forgotLoading && { opacity: 0.6 }]}
+                        onPress={handleForgotPassword}
+                        disabled={forgotLoading}
+                        activeOpacity={0.85}
+                      >
+                        {forgotLoading
+                          ? <ActivityIndicator color="#fff" />
+                          : <Text style={siStyles.primaryBtnText}>Send Reset Link</Text>
+                        }
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
 
+            {signInError ? <Text style={siStyles.errorText}>{signInError}</Text> : null}
+
+            {/* Primary CTA */}
             <TouchableOpacity
-              style={[styles.primaryBtn, loading && { opacity: 0.6 }]}
+              style={[siStyles.primaryBtn, { backgroundColor: accentColor }, loading && { opacity: 0.6 }]}
               onPress={handleSignIn}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.primaryBtnText}>Sign In →</Text>
+                : <Text style={siStyles.primaryBtnText}>Verify & Sign In →</Text>
               }
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => { setShowForgot(v => !v); setForgotSent(false); setForgotError(''); setForgotEmail(''); }}
-              activeOpacity={0.7}
-              style={{ alignItems: 'center', marginTop: spacing.sm }}
-            >
-              <Text style={styles.forgotLink}>Forgot password?</Text>
+            {/* OR divider */}
+            <View style={siStyles.dividerRow}>
+              <View style={siStyles.dividerLine} />
+              <Text style={siStyles.dividerText}>OR CONTINUE WITH</Text>
+              <View style={siStyles.dividerLine} />
+            </View>
+
+            {/* Google button — visual only */}
+            <TouchableOpacity style={siStyles.googleBtn} activeOpacity={0.85}>
+              <Text style={siStyles.googleBtnIcon}>G</Text>
+              <Text style={siStyles.googleBtnText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            {showForgot && (
-              <View style={styles.forgotBox}>
-                {forgotSent ? (
-                  <Text style={styles.forgotSuccess}>
-                    ✓ Reset link sent — check your inbox and click the link to set a new password.
-                  </Text>
-                ) : (
-                  <>
-                    <Text style={styles.forgotLabel}>Enter your university email and we'll send a reset link.</Text>
-                    <TextInput
-                      value={forgotEmail}
-                      onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
-                      placeholder="yourname@christuniversity.in"
-                      placeholderTextColor={colors.textTertiary}
-                      style={styles.input}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                    {forgotError ? <Text style={styles.errorText}>{forgotError}</Text> : null}
-                    <TouchableOpacity
-                      style={[styles.primaryBtn, { marginTop: 0 }, forgotLoading && { opacity: 0.6 }]}
-                      onPress={handleForgotPassword}
-                      disabled={forgotLoading}
-                      activeOpacity={0.85}
-                    >
-                      {forgotLoading
-                        ? <ActivityIndicator color="#fff" />
-                        : <Text style={styles.primaryBtnText}>Send Reset Link</Text>
-                      }
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            )}
+            {/* Footer links */}
+            <View style={siStyles.footerRow}>
+              <Text style={siStyles.footerLink}>Privacy Policy</Text>
+              <Text style={siStyles.footerSep}>·</Text>
+              <Text style={siStyles.footerLink}>Security</Text>
+              <Text style={siStyles.footerSep}>·</Text>
+              <Text style={siStyles.footerLink}>Support</Text>
+            </View>
 
             <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>
               <Text style={styles.switchLink}>Create an account</Text>
@@ -1370,5 +1445,187 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
     borderRadius: radius.md, padding: spacing.lg,
     marginBottom: spacing.md,
+  },
+});
+
+// ── Sign-in step styles (uses tokens from src/theme/tokens.js) ────────────────
+const siStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: tSpacing.base,
+    paddingTop: tSpacing.xxxl,
+    paddingBottom: tSpacing.xxxl,
+    flexGrow: 1,
+  },
+  title: {
+    fontSize: typography.xxxl,
+    fontWeight: typography.bold,
+    color: tColors.student.primary,
+    marginBottom: tSpacing.xs,
+  },
+  subtitle: {
+    fontSize: typography.base,
+    color: tColors.textSecondary,
+    marginBottom: tSpacing.xl,
+  },
+  roleRow: {
+    flexDirection: 'row',
+    gap: tSpacing.md,
+    marginBottom: tSpacing.xl,
+  },
+  roleCard: {
+    flex: 1,
+    backgroundColor: tColors.card,
+    borderWidth: 1.5,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.base,
+    alignItems: 'center',
+    ...shadows.card,
+  },
+  roleIcon: { fontSize: 28, marginBottom: tSpacing.xs },
+  roleAccessLabel: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    fontWeight: typography.semibold,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  roleName: {
+    fontSize: typography.base,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+  },
+  formCard: {
+    ...presets.card,
+    padding: tSpacing.base,
+    marginBottom: tSpacing.md,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    paddingHorizontal: tSpacing.md,
+    marginBottom: tSpacing.md,
+  },
+  inputIcon: {
+    fontSize: 15,
+    color: tColors.textSecondary,
+    marginRight: tSpacing.sm,
+  },
+  input: {
+    flex: 1,
+    color: tColors.textPrimary,
+    fontSize: typography.base,
+    paddingVertical: tSpacing.md,
+  },
+  standaloneInput: {
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    paddingHorizontal: tSpacing.md,
+    paddingVertical: tSpacing.md,
+    color: tColors.textPrimary,
+    fontSize: typography.base,
+    marginBottom: tSpacing.md,
+  },
+  forgotLink: {
+    fontSize: typography.sm,
+    color: tColors.textSecondary,
+    fontWeight: typography.medium,
+  },
+  forgotBox: {
+    marginTop: tSpacing.md,
+    padding: tSpacing.md,
+    backgroundColor: tColors.bg,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+  },
+  forgotLabel: {
+    fontSize: typography.sm,
+    color: tColors.textSecondary,
+    marginBottom: tSpacing.md,
+    lineHeight: 18,
+  },
+  forgotSuccess: {
+    fontSize: typography.sm,
+    color: tColors.success,
+    lineHeight: 18,
+  },
+  errorText: {
+    fontSize: typography.sm,
+    color: tColors.error,
+    marginBottom: tSpacing.sm,
+    marginTop: tSpacing.xs,
+  },
+  primaryBtn: {
+    borderRadius: tRadius.md,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: tSpacing.base,
+    width: '100%',
+  },
+  primaryBtnText: {
+    color: '#fff',
+    fontSize: typography.md,
+    fontWeight: typography.bold,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: tSpacing.xl,
+    marginBottom: tSpacing.base,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: tColors.border,
+  },
+  dividerText: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
+    marginHorizontal: tSpacing.md,
+    fontWeight: typography.medium,
+    letterSpacing: 0.5,
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    paddingVertical: 14,
+    gap: tSpacing.sm,
+    marginBottom: tSpacing.xl,
+  },
+  googleBtnIcon: {
+    fontSize: 16,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+  },
+  googleBtnText: {
+    fontSize: typography.base,
+    color: tColors.textPrimary,
+    fontWeight: typography.medium,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: tSpacing.sm,
+    marginBottom: tSpacing.base,
+  },
+  footerLink: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
+  },
+  footerSep: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
   },
 });

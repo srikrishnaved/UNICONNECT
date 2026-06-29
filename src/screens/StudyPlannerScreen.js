@@ -8,6 +8,14 @@ import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
+import {
+  colors as tColors,
+  typography,
+  spacing as tSpacing,
+  radius as tRadius,
+  shadows,
+  presets,
+} from '../theme/tokens';
 
 const DAYS_OF_WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -391,7 +399,7 @@ export default function StudyPlannerScreen() {
 
           {/* Exams list */}
           {examsLoading ? (
-            <ActivityIndicator color={colors.primary} style={{ marginVertical: 40 }} />
+            <ActivityIndicator color={tColors.student.primary} style={{ marginVertical: 40 }} />
           ) : exams.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📚</Text>
@@ -449,7 +457,7 @@ export default function StudyPlannerScreen() {
           )}
         </ScrollView>
       ) : topicsLoading ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 60 }} />
+        <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 60 }} />
       ) : (() => {
         const todayStr = new Date().toISOString().split('T')[0];
         const hasScheduled = topics.some(t => t.scheduled_date);
@@ -729,7 +737,7 @@ export default function StudyPlannerScreen() {
               value={subjectName}
               onChangeText={setSubjectName}
               placeholder="e.g. Corporate Taxation, Financial Accounting"
-              placeholderTextColor={colors.textTertiary}
+              placeholderTextColor={tColors.textTertiary}
               style={styles.input}
               autoCapitalize="words"
             />
@@ -768,7 +776,7 @@ export default function StudyPlannerScreen() {
                   value={syllabusText}
                   onChangeText={setSyllabusText}
                   placeholder={'One topic per line:\nChapter 1 — Income Tax Basics\nChapter 2 — Deductions\nGST Overview'}
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={tColors.textTertiary}
                   style={[styles.input, styles.syllabusTextArea]}
                   multiline
                   textAlignVertical="top"
@@ -966,13 +974,13 @@ export default function StudyPlannerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: tColors.bg },
 
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
+    backgroundColor: tColors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: tColors.border,
   },
   tab: {
     flex: 1,
@@ -981,56 +989,57 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: { borderBottomColor: colors.primary },
-  tabText: { fontSize: 14, ...font.semibold, color: colors.textTertiary },
-  tabTextActive: { color: colors.primary },
+  tabActive: { borderBottomColor: tColors.student.primary },
+  tabText: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textTertiary },
+  tabTextActive: { color: tColors.student.primary },
 
   actionRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: tSpacing.sm,
+    padding: tSpacing.md,
   },
   primaryBtn: {
     flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.md,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  primaryBtnText: { fontSize: 14, color: '#fff', ...font.bold },
+  primaryBtnText: { fontSize: 14, color: '#fff', fontWeight: typography.bold },
   secondaryBtn: {
-    backgroundColor: colors.card,
+    backgroundColor: tColors.card,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
     paddingVertical: 14,
     paddingHorizontal: 18,
     alignItems: 'center',
   },
-  secondaryBtnText: { fontSize: 14, color: colors.textPrimary, ...font.semibold },
+  secondaryBtnText: { fontSize: 14, color: tColors.textPrimary, fontWeight: typography.semibold },
 
   sectionLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, marginBottom: spacing.sm,
-    paddingHorizontal: spacing.md,
+    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontWeight: typography.bold, marginBottom: tSpacing.sm,
+    paddingHorizontal: tSpacing.md,
   },
 
   examCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.card,
+    gap: tSpacing.md,
+    marginHorizontal: tSpacing.md,
+    marginBottom: tSpacing.sm,
+    backgroundColor: tColors.card,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    ...shadows.card,
   },
   examIconBox: {
     width: 48, height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.primaryLight,
+    borderRadius: tRadius.md,
+    backgroundColor: tColors.student.primaryDim,
     alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },
@@ -1038,35 +1047,35 @@ const styles = StyleSheet.create({
   examDeleteBtn: {
     width: 34, height: 34,
     borderRadius: 8,
-    backgroundColor: colors.cardElevated ?? colors.bg,
-    borderWidth: 1, borderColor: colors.border,
+    backgroundColor: tColors.cardAlt ?? tColors.bg,
+    borderWidth: 1, borderColor: tColors.border,
     alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },
   examDeleteIcon: { fontSize: 15 },
-  examSubject: { fontSize: 14, ...font.bold, color: colors.textPrimary, marginBottom: 2 },
-  examDate: { fontSize: 12, color: colors.textSecondary, marginBottom: 6 },
+  examSubject: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 2 },
+  examDate: { fontSize: 12, color: tColors.textSecondary, marginBottom: 6 },
   examPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
-    borderRadius: radius.full,
+    borderRadius: tRadius.full,
     paddingHorizontal: 9, paddingVertical: 3,
-    backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border,
+    backgroundColor: tColors.card,
+    borderWidth: 1, borderColor: tColors.border,
   },
-  pillText: { fontSize: 10, color: colors.textSecondary, ...font.semibold },
-  pillUrgent: { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: colors.red },
-  pillTextUrgent: { color: colors.red },
-  pillPast: { backgroundColor: colors.cardElevated, borderColor: colors.border },
-  pillTextPast: { color: colors.textTertiary },
+  pillText: { fontSize: 10, color: tColors.textSecondary, fontWeight: typography.semibold },
+  pillUrgent: { backgroundColor: tColors.student.urgencyDim, borderColor: tColors.student.urgency },
+  pillTextUrgent: { color: tColors.student.urgency },
+  pillPast: { backgroundColor: tColors.cardAlt, borderColor: tColors.border },
+  pillTextPast: { color: tColors.textTertiary },
 
   emptyCard: {
     alignItems: 'center',
     paddingVertical: 56,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: tSpacing.lg,
   },
-  emptyIcon: { fontSize: 44, marginBottom: spacing.md },
-  emptyTitle: { fontSize: 15, ...font.bold, color: colors.textPrimary, marginBottom: 6 },
-  emptySub: { fontSize: 13, color: colors.textTertiary, textAlign: 'center', lineHeight: 19 },
+  emptyIcon: { fontSize: 44, marginBottom: tSpacing.md },
+  emptyTitle: { fontSize: 15, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 6 },
+  emptySub: { fontSize: 13, color: tColors.textTertiary, textAlign: 'center', lineHeight: 19 },
 
   // Shared modal base
   modalOverlay: {
@@ -1075,59 +1084,59 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: colors.border,
-    padding: spacing.lg,
+    backgroundColor: tColors.card,
+    borderTopLeftRadius: tRadius.lg, borderTopRightRadius: tRadius.lg,
+    borderWidth: 1, borderColor: tColors.border,
+    padding: tSpacing.base,
     maxHeight: '92%',
   },
   modalHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: tSpacing.base,
   },
-  modalTitle: { fontSize: 17, ...font.bold, color: colors.textPrimary },
-  modalClose: { fontSize: 20, color: colors.textSecondary, padding: 4 },
+  modalTitle: { fontSize: 17, fontWeight: typography.bold, color: tColors.textPrimary },
+  modalClose: { fontSize: 20, color: tColors.textSecondary, padding: 4 },
 
   fieldLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, marginBottom: 6, marginTop: spacing.sm,
+    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm,
   },
   input: {
-    backgroundColor: colors.bg,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    color: colors.textPrimary, fontSize: 14,
+    backgroundColor: tColors.bg,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    padding: tSpacing.md,
+    color: tColors.textPrimary, fontSize: 14,
   },
   syllabusTextArea: {
     minHeight: 120,
   },
   inputHint: {
-    fontSize: 11, color: colors.textTertiary, marginTop: 4, marginBottom: spacing.sm,
+    fontSize: 11, color: tColors.textTertiary, marginTop: 4, marginBottom: tSpacing.sm,
   },
 
   syllabusToggleRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
+    gap: tSpacing.sm,
+    marginBottom: tSpacing.sm,
   },
   syllabusToggleBtn: {
     flex: 1,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md,
     paddingVertical: 10, alignItems: 'center',
-    backgroundColor: colors.bg,
+    backgroundColor: tColors.bg,
   },
   syllabusToggleBtnActive: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
+    backgroundColor: tColors.student.primaryDim,
+    borderColor: tColors.student.primary,
   },
-  syllabusToggleBtnText: { fontSize: 13, color: colors.textSecondary, ...font.semibold },
-  syllabusToggleBtnTextActive: { color: colors.primary },
+  syllabusToggleBtnText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.semibold },
+  syllabusToggleBtnTextActive: { color: tColors.student.primary },
 
   filePickerArea: {
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md,
     borderStyle: 'dashed',
     overflow: 'hidden',
   },
@@ -1135,42 +1144,42 @@ const styles = StyleSheet.create({
     alignItems: 'center', paddingVertical: 24,
   },
   filePickerBtnIcon: { fontSize: 32, marginBottom: 6 },
-  filePickerBtnLabel: { fontSize: 14, ...font.semibold, color: colors.textPrimary, marginBottom: 2 },
-  filePickerBtnHint: { fontSize: 11, color: colors.textTertiary },
+  filePickerBtnLabel: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary, marginBottom: 2 },
+  filePickerBtnHint: { fontSize: 11, color: tColors.textTertiary },
   fileSelected: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    padding: spacing.md,
-    backgroundColor: colors.primaryLight,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    padding: tSpacing.md,
+    backgroundColor: tColors.student.primaryDim,
   },
   fileSelectedIcon: { fontSize: 24 },
-  fileSelectedName: { fontSize: 13, ...font.semibold, color: colors.textPrimary },
-  fileSelectedSize: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
-  fileRemove: { fontSize: 16, color: colors.textTertiary, padding: 4 },
+  fileSelectedName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary },
+  fileSelectedSize: { fontSize: 11, color: tColors.textSecondary, marginTop: 1 },
+  fileRemove: { fontSize: 16, color: tColors.textTertiary, padding: 4 },
 
   dateTrigger: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.bg,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    backgroundColor: tColors.bg,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    padding: tSpacing.md,
   },
-  dateTriggerText: { fontSize: 14, color: colors.textPrimary },
-  dateTriggerPlaceholder: { color: colors.textTertiary },
+  dateTriggerText: { fontSize: 14, color: tColors.textPrimary },
+  dateTriggerPlaceholder: { color: tColors.textTertiary },
   dateTriggerArrow: {
-    fontSize: 18, color: colors.textTertiary,
+    fontSize: 18, color: tColors.textTertiary,
     transform: [{ rotate: '90deg' }],
   },
 
-  errorText: { fontSize: 12, color: colors.red, marginTop: spacing.sm },
+  errorText: { fontSize: 12, color: tColors.error, marginTop: tSpacing.sm },
 
   submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.md,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: spacing.lg,
+    marginTop: tSpacing.base,
   },
-  submitBtnText: { fontSize: 15, color: '#fff', ...font.bold },
+  submitBtnText: { fontSize: 15, color: '#fff', fontWeight: typography.bold },
 
   // Date picker
   datePickerOverlay: {
@@ -1179,203 +1188,203 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   datePickerSheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: colors.border,
-    padding: spacing.lg,
+    backgroundColor: tColors.card,
+    borderTopLeftRadius: tRadius.lg, borderTopRightRadius: tRadius.lg,
+    borderWidth: 1, borderColor: tColors.border,
+    padding: tSpacing.base,
     paddingBottom: 40,
   },
   datePickerCols: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: tSpacing.sm,
+    marginBottom: tSpacing.base,
   },
   datePickerCol: { flex: 1 },
   datePickerColLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.bold, textAlign: 'center', marginBottom: spacing.sm,
+    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
+    fontWeight: typography.bold, textAlign: 'center', marginBottom: tSpacing.sm,
   },
   datePickerScroll: { maxHeight: 180 },
   datePickerItem: {
     paddingVertical: 9, paddingHorizontal: 8,
-    borderRadius: radius.sm, marginBottom: 3,
+    borderRadius: tRadius.sm, marginBottom: 3,
     alignItems: 'center',
   },
   datePickerItemActive: {
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1, borderColor: colors.primary,
+    backgroundColor: tColors.student.primaryDim,
+    borderWidth: 1, borderColor: tColors.student.primary,
   },
-  datePickerItemText: { fontSize: 13, color: colors.textSecondary, ...font.medium },
-  datePickerItemTextActive: { color: colors.primary, ...font.bold },
+  datePickerItemText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.medium },
+  datePickerItemTextActive: { color: tColors.student.primary, fontWeight: typography.bold },
 
   // Availability
   availHint: {
-    fontSize: 12, color: colors.textSecondary, lineHeight: 18,
-    marginBottom: spacing.md,
+    fontSize: 12, color: tColors.textSecondary, lineHeight: 18,
+    marginBottom: tSpacing.md,
   },
   availRow: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-    gap: spacing.md,
+    paddingVertical: tSpacing.sm,
+    borderBottomWidth: 1, borderBottomColor: tColors.border,
+    gap: tSpacing.md,
   },
   dayToggle: {
     width: 52, paddingVertical: 8,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg,
-    borderWidth: 1, borderColor: colors.border,
+    borderRadius: tRadius.md,
+    backgroundColor: tColors.bg,
+    borderWidth: 1, borderColor: tColors.border,
     alignItems: 'center',
   },
   dayToggleActive: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
+    backgroundColor: tColors.student.primaryDim,
+    borderColor: tColors.student.primary,
   },
-  dayToggleText: { fontSize: 12, ...font.bold, color: colors.textTertiary },
-  dayToggleTextActive: { color: colors.primary },
-  dayOffText: { fontSize: 12, color: colors.textTertiary, flex: 1 },
+  dayToggleText: { fontSize: 12, fontWeight: typography.bold, color: tColors.textTertiary },
+  dayToggleTextActive: { color: tColors.student.primary },
+  dayOffText: { fontSize: 12, color: tColors.textTertiary, flex: 1 },
   hoursRow: {
     flex: 1,
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
   },
   hoursInput: {
-    backgroundColor: colors.bg,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.sm,
+    backgroundColor: tColors.bg,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.sm,
     paddingHorizontal: 10, paddingVertical: 6,
-    fontSize: 14, color: colors.textPrimary,
+    fontSize: 14, color: tColors.textPrimary,
     width: 56, textAlign: 'center',
   },
-  hoursLabel: { fontSize: 12, color: colors.textSecondary },
+  hoursLabel: { fontSize: 12, color: tColors.textSecondary },
 
   generateWrap: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
+    paddingHorizontal: tSpacing.md,
+    paddingBottom: tSpacing.md,
   },
   generateBtn: {
     backgroundColor: '#7C3AED',
-    borderRadius: radius.md,
+    borderRadius: tRadius.full,
     paddingVertical: 14,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
   },
-  generateBtnText: { fontSize: 14, color: '#fff', ...font.bold },
+  generateBtnText: { fontSize: 14, color: '#fff', fontWeight: typography.bold },
   generateHint: {
-    fontSize: 11, color: colors.textTertiary,
+    fontSize: 11, color: tColors.textTertiary,
     textAlign: 'center', marginTop: 8,
   },
   generateError: {
-    fontSize: 12, color: colors.red,
+    fontSize: 12, color: tColors.error,
     textAlign: 'center', marginTop: 8,
   },
   aiDisclaimer: {
-    fontSize: 11, color: colors.textTertiary,
+    fontSize: 11, color: tColors.textTertiary,
     textAlign: 'center', marginTop: 8, lineHeight: 16,
   },
   poweredBy: {
-    fontSize: 10, color: colors.textTertiary,
+    fontSize: 10, color: tColors.textTertiary,
     textAlign: 'center', marginTop: 4, opacity: 0.7,
   },
 
   // ── Progress summary
   progressScroll: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
+    paddingHorizontal: tSpacing.md,
+    paddingVertical: tSpacing.sm,
+    gap: tSpacing.sm,
   },
   progressCard: {
     width: 150,
-    borderRadius: radius.lg,
+    borderRadius: tRadius.lg,
     borderWidth: 1,
-    padding: spacing.md,
+    padding: tSpacing.md,
   },
-  progressSubject: { fontSize: 13, ...font.bold, marginBottom: 2 },
-  progressLeft: { fontSize: 10, color: colors.textTertiary, marginBottom: spacing.sm },
+  progressSubject: { fontSize: 13, fontWeight: typography.bold, marginBottom: 2 },
+  progressLeft: { fontSize: 10, color: tColors.textTertiary, marginBottom: tSpacing.sm },
   progressBarBg: {
     height: 4, borderRadius: 2,
     backgroundColor: 'rgba(255,255,255,0.12)',
     marginBottom: 6, overflow: 'hidden',
   },
   progressBarFill: { height: 4, borderRadius: 2 },
-  progressFraction: { fontSize: 11, ...font.semibold },
+  progressFraction: { fontSize: 11, fontWeight: typography.semibold },
 
   // ── Regen button
-  regenWrap: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  regenWrap: { paddingHorizontal: tSpacing.md, paddingBottom: tSpacing.sm },
   regenBtn: {
-    backgroundColor: colors.cardElevated,
-    borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md,
     paddingVertical: 11,
     alignItems: 'center',
     flexDirection: 'row', justifyContent: 'center', gap: 6,
   },
-  regenBtnText: { fontSize: 13, color: colors.textSecondary, ...font.semibold },
+  regenBtnText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.semibold },
 
   // ── Move-mode banner
   moveBanner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: colors.primaryLight,
-    borderWidth: 1, borderColor: colors.primary,
-    marginHorizontal: spacing.md, marginBottom: spacing.sm,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: 10,
+    backgroundColor: tColors.student.primaryDim,
+    borderWidth: 1, borderColor: tColors.student.primary,
+    marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm,
+    borderRadius: tRadius.md,
+    paddingHorizontal: tSpacing.md, paddingVertical: 10,
   },
-  moveBannerText: { fontSize: 12, color: colors.primary, ...font.semibold, flex: 1 },
-  moveBannerCancel: { fontSize: 12, color: colors.primary, ...font.bold, marginLeft: spacing.sm },
+  moveBannerText: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.semibold, flex: 1 },
+  moveBannerCancel: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.bold, marginLeft: tSpacing.sm },
 
   // ── Calendar
   calDayWrap: { marginBottom: 2 },
   calDayHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.md, paddingVertical: 10,
-    backgroundColor: colors.bg,
+    paddingHorizontal: tSpacing.md, paddingVertical: 10,
+    backgroundColor: tColors.bg,
   },
-  calDayHeaderToday: { backgroundColor: colors.primaryLight },
-  calDayLabel: { fontSize: 12, ...font.bold, color: colors.textSecondary, letterSpacing: 0.4 },
-  calDayLabelToday: { color: colors.primary },
+  calDayHeaderToday: { backgroundColor: tColors.student.primaryDim },
+  calDayLabel: { fontSize: 12, fontWeight: typography.bold, color: tColors.textPrimary, letterSpacing: 0.4 },
+  calDayLabelToday: { color: tColors.student.primary },
   calDropBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.full,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  calDropBadgeText: { fontSize: 10, color: '#fff', ...font.bold },
+  calDropBadgeText: { fontSize: 10, color: '#fff', fontWeight: typography.bold },
 
-  examDayArea: { paddingHorizontal: spacing.md, paddingBottom: 8, gap: 6 },
+  examDayArea: { paddingHorizontal: tSpacing.md, paddingBottom: 8, gap: 6 },
   examDayPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    borderWidth: 1, borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: 10,
+    borderWidth: 1, borderRadius: tRadius.md,
+    paddingHorizontal: tSpacing.md, paddingVertical: 10,
   },
-  examDayPillText: { fontSize: 13, ...font.bold },
+  examDayPillText: { fontSize: 13, fontWeight: typography.bold },
 
   notAvailRow: {
-    paddingHorizontal: spacing.md, paddingVertical: 8,
+    paddingHorizontal: tSpacing.md, paddingVertical: 8,
   },
-  notAvailText: { fontSize: 11, color: colors.textTertiary, fontStyle: 'italic' },
+  notAvailText: { fontSize: 11, color: tColors.textTertiary, fontStyle: 'italic' },
 
   restDayRow: {
-    marginHorizontal: spacing.md, marginBottom: 4,
+    marginHorizontal: tSpacing.md, marginBottom: 4,
     paddingVertical: 8,
-    borderRadius: radius.md,
+    borderRadius: tRadius.md,
     alignItems: 'center',
   },
   restDayRowTarget: {
-    marginHorizontal: spacing.md, marginBottom: 4,
+    marginHorizontal: tSpacing.md, marginBottom: 4,
     paddingVertical: 8,
-    borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.primary, borderStyle: 'dashed',
+    borderRadius: tRadius.md,
+    borderWidth: 1, borderColor: tColors.student.primary, borderStyle: 'dashed',
     alignItems: 'center',
   },
-  restDayText: { fontSize: 11, color: colors.textTertiary },
-  restDayTextTarget: { fontSize: 11, color: colors.primary, ...font.semibold },
+  restDayText: { fontSize: 11, color: tColors.textTertiary },
+  restDayTextTarget: { fontSize: 11, color: tColors.student.primary, fontWeight: typography.semibold },
 
-  calTopicsWrap: { paddingHorizontal: spacing.md, paddingBottom: 4, gap: 6 },
+  calTopicsWrap: { paddingHorizontal: tSpacing.md, paddingBottom: 4, gap: 6 },
   calTopicCard: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    borderWidth: 1.5, borderRadius: radius.md,
-    padding: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+    borderWidth: 1.5, borderRadius: tRadius.md,
+    padding: tSpacing.md,
   },
   calTopicCardDone: { opacity: 0.45 },
   calTopicCardSelected: { borderWidth: 2 },
@@ -1386,10 +1395,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   calCheckboxDone: { backgroundColor: '#10B981', borderColor: '#10B981' },
-  calCheckmark: { fontSize: 11, color: '#fff', ...font.bold },
-  calTopicName: { fontSize: 13, ...font.semibold, color: colors.textPrimary, marginBottom: 1 },
-  calTopicNameDone: { textDecorationLine: 'line-through', color: colors.textTertiary },
-  calTopicSubject: { fontSize: 10, color: colors.textSecondary },
+  calCheckmark: { fontSize: 11, color: '#fff', fontWeight: typography.bold },
+  calTopicName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary, marginBottom: 1 },
+  calTopicNameDone: { textDecorationLine: 'line-through', color: tColors.textTertiary },
+  calTopicSubject: { fontSize: 10, color: tColors.textSecondary },
   calSelIcon: { fontSize: 14, flexShrink: 0 },
-  calGrabIcon: { fontSize: 12, color: colors.textTertiary, flexShrink: 0, letterSpacing: -2 },
+  calGrabIcon: { fontSize: 12, color: tColors.textTertiary, flexShrink: 0, letterSpacing: -2 },
 });
