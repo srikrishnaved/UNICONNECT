@@ -218,12 +218,16 @@ export default function StudyPlannerScreen() {
       if (syllabusMode === 'file' && selectedFile) {
         const ext = selectedFile.name.split('.').pop();
         const path = `${userProfile.id}/${Date.now()}.${ext}`;
-        const response = await fetch(selectedFile.uri);
-        const blob = await response.blob();
+
+        // On web, expo-document-picker exposes the native File object directly.
+        // On native, fetch the cached URI to get a Blob.
+        const uploadBody = selectedFile.file
+          ? selectedFile.file
+          : await fetch(selectedFile.uri).then(r => r.blob());
 
         const { error: uploadError } = await supabase.storage
           .from('study-syllabus')
-          .upload(path, blob, { contentType: selectedFile.mimeType });
+          .upload(path, uploadBody, { contentType: selectedFile.mimeType });
 
         if (uploadError) throw uploadError;
 

@@ -453,7 +453,7 @@ export default function ClubDashboardScreen({
           year: p.year,
           role: roleMap[p.id] || null,
           wing: wingMap[p.id] || null,
-          abbr: p.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase(),
+          abbr: (p.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase(),
           av: avatarColor(p.name),
         })));
       } else {
@@ -871,7 +871,7 @@ export default function ClubDashboardScreen({
         year: userProfile.year,
         role: null,
         wing: newWing,
-        abbr: userProfile.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase(),
+        abbr: (userProfile.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase(),
         av: avatarColor(userProfile.name),
       }];
     });
@@ -1548,7 +1548,7 @@ export default function ClubDashboardScreen({
                 <View key={r.id} style={styles.rpCard}>
                   <View style={[styles.rpAvatar, { backgroundColor: club.color + '33' }]}>
                     <Text style={[styles.rpAvatarText, { color: club.color }]}>
-                      {r.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                      {(r.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                     </Text>
                   </View>
                   <View style={{ flex: 1 }}>

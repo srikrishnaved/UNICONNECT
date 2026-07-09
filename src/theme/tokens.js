@@ -1,41 +1,55 @@
 export const colors = {
   // Backgrounds
-  bg: '#0D0D0D',
-  card: '#1A1A1A',
-  cardAlt: '#222222',
-  border: '#2A2A2A',
+  bg: '#14120f',
+  background: '#14120f',
+  card: '#1c1a17',
+  cardAlt: '#242220',
+  surface: '#1c1a17',
+  surfaceRaised: '#242220',
 
-  // Student accent (indigo/purple)
+  // Borders
+  borderSubtle: '#2a2825',
+  border: '#3a3733',
+  borderStrong: '#4a4642',
+
+  // Single accent (terracotta — replaces both indigo and teal)
+  accent: '#c9622e',
+  accentHover: '#d97840',
+  accentActive: '#b0551f',
+  accentDim: '#c9622e22',
+
+  // Kept for backward-compat: student and faculty both point to terracotta
+  primary: '#c9622e',
   student: {
-    primary: '#7C5CFC',
-    primaryLight: '#9D84FD',
-    primaryDim: '#7C5CFC22',
-    urgency: '#E8702A',
-    urgencyDim: '#E8702A22',
+    primary: '#c9622e',
+    primaryLight: '#d97840',
+    primaryDim: '#c9622e22',
+    urgency: '#c9622e',
+    urgencyDim: '#c9622e22',
   },
-
-  // Faculty accent (teal)
   faculty: {
-    primary: '#0D9488',
-    primaryLight: '#14B8AA',
-    primaryDim: '#0D948822',
-    live: '#0D9488',
+    primary: '#c9622e',
+    primaryLight: '#d97840',
+    primaryDim: '#c9622e22',
+    live: '#c9622e',
   },
 
-  // Shared semantic colors
-  success: '#22C55E',
-  successDim: '#22C55E22',
-  warning: '#F59E0B',
-  warningDim: '#F59E0B22',
-  error: '#EF4444',
-  errorDim: '#EF444422',
+  // Status — muted, not neon
+  success: '#7a9471',
+  successDim: '#7a947122',
+  warning: '#c9a227',
+  warningDim: '#c9a22722',
+  error: '#b0453a',
+  errorDim: '#b0453a22',
+  info: '#5c7a99',
+  infoDim: '#5c7a9922',
 
   // Typography
-  textPrimary: '#FFFFFF',
-  textSecondary: '#888888',
-  textTertiary: '#555555',
-  textAccentStudent: '#7C5CFC',
-  textAccentFaculty: '#0D9488',
+  textPrimary: '#fffdf9',
+  textSecondary: '#a39d94',
+  textTertiary: '#6b6560',
+  textAccentStudent: '#c9622e',
+  textAccentFaculty: '#c9622e',
 };
 
 export const typography = {
@@ -55,6 +69,14 @@ export const typography = {
   semibold: '600',
   bold: '700',
   extrabold: '800',
+
+  // Font families
+  // Body: system default (Inter/SF Pro/Roboto)
+  // Headings/display: Fraunces (serif) — load via expo-font
+  // Numeric/code data: IBM Plex Mono — load via expo-font
+  fontBody: undefined,            // system default
+  fontHeading: 'Fraunces',
+  fontMono: 'IBMPlexMono',
 };
 
 export const spacing = {
@@ -68,37 +90,39 @@ export const spacing = {
   xxxl: 48,
 };
 
+// Sharp radius system — 2-4px for UI chrome, full only for pills/chips
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  full: 999,
+  xs: 2,
+  sm: 3,
+  md: 4,
+  lg: 4,
+  xl: 4,
+  full: 999,    // pills, tags, badges only
 };
 
 export const shadows = {
   card: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 2,
   },
   strong: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.28,
+    shadowRadius: 6,
+    elevation: 4,
   },
 };
 
 export const presets = {
   card: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
+    backgroundColor: '#1c1a17',
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
+    borderColor: '#3a3733',
     padding: 16,
   },
   screenPadding: {
@@ -108,6 +132,7 @@ export const presets = {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  // Pill/chip shape kept fully rounded
   chip: {
     paddingHorizontal: 10,
     paddingVertical: 4,

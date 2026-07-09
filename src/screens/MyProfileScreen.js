@@ -20,6 +20,7 @@ import {
   presets,
 } from '../theme/tokens';
 import CRDashboardScreen from './CRDashboardScreen';
+import AttendanceReportScreen from '../components/AttendanceReportScreen';
 
 const COURSES = ['BCom IAF', 'BCom IBA', 'BCom F&A'];
 const YEARS   = ['1st Year', '2nd Year', '3rd Year'];
@@ -28,8 +29,8 @@ const PROVIDERS = [
   { name: 'Instagram', abbr: 'ig', color: '#E1306C', bg: 'rgba(225,48,108,0.18)' },
   { name: 'LinkedIn',  abbr: 'in', color: '#0A66C2', bg: 'rgba(10,102,194,0.18)'  },
   { name: 'Twitter',   abbr: '𝕏',  color: '#6B7280', bg: 'rgba(107,114,128,0.22)' },
-  { name: 'GitHub',    abbr: 'gh', color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)'  },
-  { name: 'YouTube',   abbr: 'yt', color: '#EF4444', bg: 'rgba(239,68,68,0.18)'   },
+  { name: 'GitHub',    abbr: 'gh', color: tColors.accent, bg: tColors.accentDim  },
+  { name: 'YouTube',   abbr: 'yt', color: tColors.error, bg: tColors.errorDim   },
 ];
 
 function providerUrl(providerName, handle) {
@@ -57,6 +58,8 @@ export default function MyProfileScreen() {
   const av   = avatarColor(name);
   const abbr = initials(name);
 
+
+  const [showReport, setShowReport] = useState(false);
 
   // Edit profile modal
   const [showEdit, setShowEdit]         = useState(false);
@@ -423,6 +426,20 @@ export default function MyProfileScreen() {
             <Text style={styles.legalLink}>Terms of Service</Text>
           </TouchableOpacity>
         </View>
+
+        {/* ── My Attendance ────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.crDashBtn}
+          onPress={() => setShowReport(true)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.crDashBtnEmoji}>📋</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.crDashBtnTitle}>My Attendance</Text>
+            <Text style={styles.crDashBtnSub}>View your attendance records</Text>
+          </View>
+          <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
+        </TouchableOpacity>
 
         {/* ── Class Representative ─────────────────────────────────────── */}
         {crStatus === 'approved' ? (
@@ -955,6 +972,14 @@ export default function MyProfileScreen() {
       <Modal visible={showCRDashboard} animationType="slide" onRequestClose={() => setShowCRDashboard(false)}>
         <CRDashboardScreen onClose={() => setShowCRDashboard(false)} />
       </Modal>
+
+      {/* ── Attendance Report Modal ─────────────────────────────────── */}
+      <AttendanceReportScreen
+        visible={showReport}
+        onClose={() => setShowReport(false)}
+        mode="student"
+        userProfile={userProfile}
+      />
     </>
   );
 }

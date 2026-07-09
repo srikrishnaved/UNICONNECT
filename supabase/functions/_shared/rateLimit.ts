@@ -20,7 +20,7 @@ export function getClientIp(req: Request): string {
   );
 }
 
-export function checkRateLimit(ip: string): { allowed: boolean } {
+export function checkRateLimit(ip: string, limit: number = LIMIT): { allowed: boolean } {
   const now = Date.now();
   const entry = store.get(ip);
 
@@ -29,7 +29,7 @@ export function checkRateLimit(ip: string): { allowed: boolean } {
     return { allowed: true };
   }
 
-  if (entry.count >= LIMIT) {
+  if (entry.count >= limit) {
     return { allowed: false };
   }
 

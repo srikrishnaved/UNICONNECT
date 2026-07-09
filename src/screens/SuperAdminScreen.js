@@ -15,14 +15,22 @@ import {
   presets,
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
-import { metaFromClass, ALL_CLASSES } from '../lib/subjectUtils';
 import { teachers as SEED_TEACHERS, hubClubs } from '../data/index';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as XLSX from 'xlsx';
+import RosterUploadModal from '../components/RosterUploadModal';
+import AttendanceReportScreen from '../components/AttendanceReportScreen';
+import UniversitySetupWizard from '../components/UniversitySetupWizard';
+import NAACScreen from '../components/NAACScreen';
+import { useUniversityConfig } from '../hooks/useUniversityConfig';
 
 const TABS = ['Teachers', 'CR', 'Subjects', 'SAPS', 'Stats'];
 const SAPS_ROLES = ['President', 'Vice President', 'Member Secretary', 'Secretary', 'Vice Secretary'];
 
 export default function SuperAdminScreen({ navigation }) {
   const { isAppAdmin, approveTeacher, rejectTeacher, userProfile } = useApp();
+  const { classes: uniClasses } = useUniversityConfig();
   const [activeTab, setActiveTab] = useState('Teachers');
   const [pendingTeachers, setPendingTeachers] = useState([]);
   const [activeTeachers, setActiveTeachers] = useState([]);
@@ -57,32 +65,63 @@ export default function SuperAdminScreen({ navigation }) {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Roster upload
+  const [showRosterModal, setShowRosterModal] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showNAAC, setShowNAAC] = useState(false);
+
+  // University setup wizard
+  const [showWizard, setShowWizard] = useState(false);
+  const [setupComplete, setSetupComplete] = useState(true);
+  const [resumeStep, setResumeStep] = useState(1);
+  const [universityId, setUniversityId] = useState(null);
+
   // Timetable-derived subjects map for teachers whose teacher_profiles.subjects is empty.
   // Key: lowercased teacher name; value: sorted course_name array.
   const [timetableSubjectsMap, setTimetableSubjectsMap] = useState({});
 
-  // Subjects state
-  const [subjects, setSubjects] = useState([]);
-  const [subjectsPending, setSubjectsPending] = useState([]);
+  // University Subjects tab state
+  const [uniSubjects, setUniSubjects] = useState([]);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
-  const [subjectFilter, setSubjectFilter] = useState('All');
-  const [showSubjectModal, setShowSubjectModal] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
+  const [subjectFilter, setSubjectFilter] = useState('');       // selected class name
+  const [showAddForm, setShowAddForm] = useState(false);
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
-  const [subjectClass, setSubjectClass] = useState(null);
+  const [subjectTeacher, setSubjectTeacher] = useState('');
+  const [subjectIsElective, setSubjectIsElective] = useState(false);
   const [subjectFormError, setSubjectFormError] = useState('');
   const [subjectSaving, setSubjectSaving] = useState(false);
   const [deletingSubject, setDeletingSubject] = useState(null);
-  const [resolvingSubject, setResolvingSubject] = useState(null);
+  const [importingSubjects, setImportingSubjects] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'Teachers') loadTeachers();
     if (activeTab === 'CR') loadCrRequests();
-    if (activeTab === 'Subjects') loadSubjects();
+    if (activeTab === 'Subjects') loadUniSubjects();
     if (activeTab === 'SAPS') loadSapsData();
     if (activeTab === 'Stats') loadStats();
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!userProfile?.id || !userProfile?.is_super_admin) return;
+    const uid = userProfile.id;
+    setUniversityId(uid);
+    (async () => {
+      const { data } = await supabase
+        .from('university_setup_progress')
+        .select('is_setup_complete, step_details_done, step_classes_done')
+        .eq('university_id', uid)
+        .maybeSingle();
+      if (!data || !data.is_setup_complete) {
+        let step = 1;
+        if (data?.step_details_done && !data?.step_classes_done) step = 2;
+        else if (data?.step_details_done && data?.step_classes_done) step = 3;
+        setResumeStep(step);
+        setSetupComplete(false);
+        setShowWizard(true);
+      }
+    })();
+  }, [userProfile?.id]);
 
   const loadTeachers = async () => {
     setLoading(true);
@@ -411,58 +450,43 @@ export default function SuperAdminScreen({ navigation }) {
     );
   }
 
-  const loadSubjects = async () => {
+  const loadUniSubjects = async () => {
+    if (!universityId) return;
     setSubjectsLoading(true);
-    const [{ data: active }, { data: pending }] = await Promise.all([
-      supabase.from('subjects').select('*').eq('status', 'active').order('class').order('name'),
-      supabase.from('subject_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false }),
-    ]);
-    setSubjects(active || []);
-    setSubjectsPending(pending || []);
+    const { data } = await supabase
+      .from('university_subjects')
+      .select('id, class_name, subject_name, subject_code, teacher_name, is_elective')
+      .eq('university_id', universityId)
+      .order('class_name').order('subject_name');
+    setUniSubjects(data || []);
     setSubjectsLoading(false);
   };
 
-  const openAddSubject = () => {
-    setEditingSubject(null);
+  const openAddSubjectForm = () => {
     setSubjectName('');
     setSubjectCode('');
-    setSubjectClass(null);
+    setSubjectTeacher('');
+    setSubjectIsElective(false);
     setSubjectFormError('');
-    setShowSubjectModal(true);
+    setShowAddForm(true);
   };
 
-  const openEditSubject = (s) => {
-    setEditingSubject(s);
-    setSubjectName(s.name);
-    setSubjectCode(s.code);
-    setSubjectClass(s.class);
-    setSubjectFormError('');
-    setShowSubjectModal(true);
-  };
-
-  const saveSubject = async () => {
-    if (!subjectName.trim() || !subjectCode.trim() || !subjectClass) {
-      setSubjectFormError('All fields are required.');
-      return;
-    }
-    setSubjectSaving(true);
-    setSubjectFormError('');
+  const saveUniSubject = async () => {
+    if (!subjectName.trim()) { setSubjectFormError('Subject name is required.'); return; }
+    if (!subjectFilter) { setSubjectFormError('Select a class first.'); return; }
+    setSubjectSaving(true); setSubjectFormError('');
     try {
-      const meta = metaFromClass(subjectClass);
-      if (editingSubject) {
-        await supabase.from('subjects').update({
-          name: subjectName.trim(), code: subjectCode.trim(),
-          class: subjectClass, programme: meta.programme, semester: meta.semester,
-        }).eq('id', editingSubject.id);
-      } else {
-        await supabase.from('subjects').insert({
-          name: subjectName.trim(), code: subjectCode.trim(),
-          class: subjectClass, programme: meta.programme, semester: meta.semester,
-          status: 'active', created_by: null,
-        });
-      }
-      setShowSubjectModal(false);
-      loadSubjects();
+      const { data, error } = await supabase.from('university_subjects').insert({
+        university_id: universityId,
+        class_name: subjectFilter,
+        subject_name: subjectName.trim(),
+        subject_code: subjectCode.trim() || null,
+        teacher_name: subjectTeacher.trim() || null,
+        is_elective: subjectIsElective,
+      }).select().single();
+      if (error) throw error;
+      setUniSubjects(prev => [...prev, data].sort((a, b) => a.subject_name.localeCompare(b.subject_name)));
+      setShowAddForm(false);
     } catch (e) {
       setSubjectFormError(e.message || 'Could not save subject.');
     } finally {
@@ -470,118 +494,102 @@ export default function SuperAdminScreen({ navigation }) {
     }
   };
 
-  const deleteSubject = async (id) => {
+  const deleteUniSubject = async (id) => {
     if (!window.confirm('Delete this subject? This cannot be undone.')) return;
     setDeletingSubject(id);
-    await supabase.from('subjects').delete().eq('id', id);
-    setSubjects(prev => prev.filter(s => s.id !== id));
+    await supabase.from('university_subjects').delete().eq('id', id);
+    setUniSubjects(prev => prev.filter(s => s.id !== id));
     setDeletingSubject(null);
   };
 
-  const resolveSubjectRequest = async (req, action) => {
-    if (!window.confirm(`${action === 'approved' ? 'Approve' : 'Reject'} subject request for "${req.subject_name}"?`)) return;
-    setResolvingSubject(req.id);
+  const importSubjectsFromFile = async () => {
+    if (!subjectFilter) { window.alert('Select a class before importing.'); return; }
+    setImportingSubjects(true);
     try {
-      if (action === 'approved') {
-        const meta = metaFromClass(req.class);
-        await supabase.from('subjects').insert({
-          name: req.subject_name, code: req.subject_code,
-          class: req.class, programme: meta.programme, semester: meta.semester,
-          status: 'active', created_by: null,
-        });
-        if (req.requested_by) {
-          await supabase.from('notifications').insert({
-            user_id: req.requested_by, type: 'info',
-            title: 'Subject Request Approved',
-            body: `"${req.subject_name}" has been approved and added to the subjects list.`,
-            read: false,
-          });
-        }
-      } else if (req.requested_by) {
-        await supabase.from('notifications').insert({
-          user_id: req.requested_by, type: 'info',
-          title: 'Subject Request Rejected',
-          body: `Your request for "${req.subject_name}" was not approved.`,
-          read: false,
-        });
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel',
+          'text/csv', 'text/plain',
+        ],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+
+      let workbook;
+      if (asset.file) {
+        workbook = XLSX.read(await asset.file.arrayBuffer(), { type: 'array' });
+      } else {
+        workbook = XLSX.read(
+          await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 }),
+          { type: 'base64' },
+        );
       }
-      await supabase.from('subject_requests').update({ status: action === 'approved' ? 'approved' : 'rejected' }).eq('id', req.id);
-      setSubjectsPending(prev => prev.filter(r => r.id !== req.id));
-      if (action === 'approved') loadSubjects();
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      // Detect header row: first row is headers if it contains text like "subject", "name", "code"
+      const HEADER_RE = /subject|name|code|teacher/i;
+      const firstRow = rows[0]?.map(c => String(c).trim()) ?? [];
+      const dataRows = firstRow.some(c => HEADER_RE.test(c)) ? rows.slice(1) : rows;
+
+      const toInsert = dataRows
+        .filter(row => String(row[0] ?? '').trim())
+        .map(row => ({
+          university_id: universityId,
+          class_name: subjectFilter,
+          subject_name: String(row[0] ?? '').trim(),
+          subject_code: String(row[1] ?? '').trim() || null,
+          teacher_name: String(row[2] ?? '').trim() || null,
+          is_elective: false,
+        }));
+
+      if (toInsert.length === 0) { window.alert('No rows found in the file.'); return; }
+
+      const { data, error } = await supabase
+        .from('university_subjects')
+        .insert(toInsert)
+        .select();
+      if (error) throw error;
+      setUniSubjects(prev =>
+        [...prev, ...(data || [])].sort((a, b) =>
+          a.class_name.localeCompare(b.class_name) || a.subject_name.localeCompare(b.subject_name),
+        ),
+      );
+      window.alert(`Imported ${(data || []).length} subjects.`);
     } catch (e) {
-      window.alert('Error: ' + (e.message || 'Could not process request.'));
+      window.alert('Import failed: ' + (e.message || 'Unknown error'));
     } finally {
-      setResolvingSubject(null);
+      setImportingSubjects(false);
     }
   };
 
   const renderSubjectsTab = () => {
     if (subjectsLoading) return <ActivityIndicator color={tColors.student.primary} style={{ marginTop: 40 }} />;
-    const filtered = subjectFilter === 'All' ? subjects : subjects.filter(s => s.class === subjectFilter);
+    const filtered = subjectFilter
+      ? uniSubjects.filter(s => s.class_name === subjectFilter)
+      : [];
+
     return (
-      <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false}>
-        {/* Pending requests */}
-        {subjectsPending.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Pending Requests</Text>
-              <View style={styles.countBadge}><Text style={styles.countBadgeText}>{subjectsPending.length}</Text></View>
-            </View>
-            {subjectsPending.map(req => (
-              <View key={req.id} style={styles.teacherCard}>
-                <View style={styles.teacherCardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.teacherName}>{req.subject_name}</Text>
-                    <Text style={styles.teacherEmail}>{req.subject_code} · {req.class} · by {req.requester_name}</Text>
-                  </View>
-                  <View style={[styles.facultyBadge]}><Text style={styles.facultyBadgeText}>PENDING</Text></View>
-                </View>
-                <View style={styles.actionRow}>
-                  <TouchableOpacity
-                    style={[styles.rejectBtn, resolvingSubject === req.id && { opacity: 0.5 }]}
-                    onPress={() => resolveSubjectRequest(req, 'rejected')}
-                    disabled={resolvingSubject === req.id}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.rejectBtnText}>Reject</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.approveBtn, resolvingSubject === req.id && { opacity: 0.5 }]}
-                    onPress={() => resolveSubjectRequest(req, 'approved')}
-                    disabled={resolvingSubject === req.id}
-                    activeOpacity={0.8}
-                  >
-                    {resolvingSubject === req.id ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.approveBtnText}>Approve</Text>}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+      <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-        {/* Filter + Add */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Active Subjects ({filtered.length})</Text>
-            <TouchableOpacity
-              style={[styles.approveBtn, { paddingHorizontal: tSpacing.md, paddingVertical: 8 }]}
-              onPress={openAddSubject}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.approveBtnText}>+ Add</Text>
-            </TouchableOpacity>
+        {/* Class chip picker */}
+        {uniClasses.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No classes configured — complete University Setup first.</Text>
           </View>
-
-          {/* Class filter pills */}
+        ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.md }}>
             <View style={{ flexDirection: 'row', gap: 6 }}>
-              {['All', ...ALL_CLASSES].map(cls => {
+              {uniClasses.map(cls => {
                 const active = subjectFilter === cls;
                 return (
                   <TouchableOpacity
                     key={cls}
                     style={[styles.filterPill, active && styles.filterPillActive]}
-                    onPress={() => setSubjectFilter(cls)}
+                    onPress={() => { setSubjectFilter(cls); setShowAddForm(false); }}
                     activeOpacity={0.75}
                   >
                     <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>{cls}</Text>
@@ -590,37 +598,127 @@ export default function SuperAdminScreen({ navigation }) {
               })}
             </View>
           </ScrollView>
+        )}
 
-          {filtered.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyText}>No subjects for this class</Text>
+        {subjectFilter ? (
+          <>
+            {/* Action row */}
+            <View style={{ flexDirection: 'row', gap: tSpacing.sm, marginBottom: tSpacing.md }}>
+              <TouchableOpacity
+                style={[styles.approveBtn, { flex: 1 }]}
+                onPress={showAddForm ? () => setShowAddForm(false) : openAddSubjectForm}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.approveBtnText}>{showAddForm ? '✕ Cancel' : '+ Add Subject'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rejectBtn, { flex: 1 }, importingSubjects && { opacity: 0.5 }]}
+                onPress={importSubjectsFromFile}
+                disabled={importingSubjects}
+                activeOpacity={0.8}
+              >
+                {importingSubjects
+                  ? <ActivityIndicator size="small" color={tColors.error} />
+                  : <Text style={styles.rejectBtnText}>📄 Import Excel</Text>}
+              </TouchableOpacity>
             </View>
-          ) : filtered.map(s => (
-            <View key={s.id} style={[styles.teacherCard, { paddingVertical: tSpacing.sm }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.teacherName}>{s.name}</Text>
-                  <Text style={styles.teacherEmail}>{s.code} · {s.class} · Sem {s.semester}</Text>
-                </View>
+
+            {/* Inline add form */}
+            {showAddForm && (
+              <View style={[styles.teacherCard, { marginBottom: tSpacing.md }]}>
+                <Text style={styles.subFormLabel}>SUBJECT NAME *</Text>
+                <TextInput
+                  value={subjectName}
+                  onChangeText={t => { setSubjectName(t); setSubjectFormError(''); }}
+                  placeholder="e.g. Financial Accounting"
+                  placeholderTextColor={tColors.textTertiary}
+                  style={styles.subFormInput}
+                  maxLength={120}
+                />
+                <Text style={styles.subFormLabel}>SUBJECT CODE</Text>
+                <TextInput
+                  value={subjectCode}
+                  onChangeText={setSubjectCode}
+                  placeholder="e.g. BIAF101-1"
+                  placeholderTextColor={tColors.textTertiary}
+                  style={styles.subFormInput}
+                  autoCapitalize="characters"
+                  maxLength={30}
+                />
+                <Text style={styles.subFormLabel}>TEACHER NAME</Text>
+                <TextInput
+                  value={subjectTeacher}
+                  onChangeText={setSubjectTeacher}
+                  placeholder="e.g. Dr. Anita Sharma"
+                  placeholderTextColor={tColors.textTertiary}
+                  style={styles.subFormInput}
+                  maxLength={80}
+                />
                 <TouchableOpacity
-                  style={[styles.rejectBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }]}
-                  onPress={() => deleteSubject(s.id)}
-                  disabled={deletingSubject === s.id}
-                  activeOpacity={0.8}
+                  style={[styles.filterPill, subjectIsElective && styles.filterPillActive, { alignSelf: 'flex-start', marginBottom: tSpacing.md }]}
+                  onPress={() => setSubjectIsElective(v => !v)}
+                  activeOpacity={0.75}
                 >
-                  {deletingSubject === s.id ? <ActivityIndicator size="small" color={tColors.error} /> : <Text style={styles.rejectBtnText}>🗑</Text>}
+                  <Text style={[styles.filterPillText, subjectIsElective && styles.filterPillTextActive]}>
+                    {subjectIsElective ? '✓ Elective' : 'Elective?'}
+                  </Text>
                 </TouchableOpacity>
+                {!!subjectFormError && (
+                  <Text style={{ fontSize: 12, color: tColors.error, marginBottom: tSpacing.sm }}>{subjectFormError}</Text>
+                )}
                 <TouchableOpacity
-                  style={[styles.approveBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }]}
-                  onPress={() => openEditSubject(s)}
-                  activeOpacity={0.8}
+                  style={[styles.approveBtn, subjectSaving && { opacity: 0.6 }]}
+                  onPress={saveUniSubject}
+                  disabled={subjectSaving}
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.approveBtnText}>✏️</Text>
+                  {subjectSaving
+                    ? <ActivityIndicator color="#fff" />
+                    : <Text style={styles.approveBtnText}>Save Subject</Text>}
                 </TouchableOpacity>
               </View>
-            </View>
-          ))}
-        </View>
+            )}
+
+            {/* Subject list */}
+            {filtered.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyText}>No subjects for {subjectFilter}</Text>
+              </View>
+            ) : filtered.map(s => (
+              <View key={s.id} style={[styles.teacherCard, { paddingVertical: tSpacing.sm }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm }}>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={styles.teacherName}>{s.subject_name}</Text>
+                      {s.is_elective && (
+                        <View style={[styles.facultyBadge, { backgroundColor: tColors.student.primaryDim }]}>
+                          <Text style={[styles.facultyBadgeText, { color: tColors.student.primary }]}>ELEC</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.teacherEmail}>
+                      {[s.subject_code, s.teacher_name].filter(Boolean).join(' · ') || '—'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.rejectBtn, { paddingHorizontal: tSpacing.sm, paddingVertical: 6 }, deletingSubject === s.id && { opacity: 0.5 }]}
+                    onPress={() => deleteUniSubject(s.id)}
+                    disabled={deletingSubject === s.id}
+                    activeOpacity={0.8}
+                  >
+                    {deletingSubject === s.id
+                      ? <ActivityIndicator size="small" color={tColors.error} />
+                      : <Text style={styles.rejectBtnText}>🗑</Text>}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </>
+        ) : (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyText}>Select a class above to manage its subjects</Text>
+          </View>
+        )}
       </ScrollView>
     );
   };
@@ -947,6 +1045,22 @@ export default function SuperAdminScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Setup incomplete banner */}
+      {userProfile?.is_super_admin && !setupComplete && (
+        <View style={styles.setupBanner}>
+          <Text style={styles.setupBannerText}>
+            ⚙️ University setup incomplete — some features won't work until you finish setup.
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowWizard(true)}
+            activeOpacity={0.8}
+            style={styles.setupBannerBtn}
+          >
+            <Text style={styles.setupBannerBtnText}>Complete Setup →</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Tabs */}
       <View style={styles.tabBar}>
         {TABS.map(tab => (
@@ -968,6 +1082,33 @@ export default function SuperAdminScreen({ navigation }) {
         activeOpacity={0.8}
       >
         <Text style={{ color: '#fff', fontSize: 14, fontWeight: typography.bold }}>📋 Open Teacher Dashboard</Text>
+      </TouchableOpacity>
+
+      {/* Upload Roster shortcut */}
+      <TouchableOpacity
+        style={{ marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.cardAlt, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: tColors.border }}
+        onPress={() => setShowRosterModal(true)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>📊 Upload Class Roster</Text>
+      </TouchableOpacity>
+
+      {/* Attendance Reports shortcut */}
+      <TouchableOpacity
+        style={{ marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.cardAlt, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: tColors.border }}
+        onPress={() => setShowReport(true)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>📋 Attendance Reports</Text>
+      </TouchableOpacity>
+
+      {/* NAAC shortcut */}
+      <TouchableOpacity
+        style={{ marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.cardAlt, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: tColors.border }}
+        onPress={() => setShowNAAC(true)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>🏛️ NAAC Documentation</Text>
       </TouchableOpacity>
 
       {/* Tab content */}
@@ -1114,72 +1255,35 @@ export default function SuperAdminScreen({ navigation }) {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Subject add/edit modal */}
-      <Modal visible={showSubjectModal} animationType="slide" transparent>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}>
-            <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={() => setShowSubjectModal(false)} activeOpacity={1} />
-            <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.base, maxHeight: '90%', borderWidth: 1, borderColor: tColors.border }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.base }}>
-                <Text style={{ fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary }}>
-                  {editingSubject ? '✏️ Edit Subject' : '📖 Add Subject'}
-                </Text>
-                <TouchableOpacity onPress={() => setShowSubjectModal(false)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <Text style={styles.subFormLabel}>SUBJECT NAME *</Text>
-                <TextInput
-                  value={subjectName}
-                  onChangeText={t => { setSubjectName(t); setSubjectFormError(''); }}
-                  placeholder="e.g. Financial Accounting"
-                  placeholderTextColor={tColors.textTertiary}
-                  style={styles.subFormInput}
-                  maxLength={100}
-                />
-                <Text style={styles.subFormLabel}>SUBJECT CODE *</Text>
-                <TextInput
-                  value={subjectCode}
-                  onChangeText={t => { setSubjectCode(t); setSubjectFormError(''); }}
-                  placeholder="e.g. BIAF101-1"
-                  placeholderTextColor={tColors.textTertiary}
-                  style={styles.subFormInput}
-                  autoCapitalize="characters"
-                  maxLength={20}
-                />
-                <Text style={styles.subFormLabel}>CLASS *</Text>
-                <View style={{ gap: 6, marginBottom: tSpacing.md }}>
-                  {ALL_CLASSES.map(cls => {
-                    const active = subjectClass === cls;
-                    return (
-                      <TouchableOpacity
-                        key={cls}
-                        style={[styles.subClassOption, active && styles.subClassOptionActive]}
-                        onPress={() => { setSubjectClass(cls); setSubjectFormError(''); }}
-                        activeOpacity={0.75}
-                      >
-                        <Text style={[styles.subClassOptionText, active && styles.subClassOptionTextActive]}>{cls}</Text>
-                        {active && <Text style={{ color: tColors.student.primary, fontSize: 14 }}>✓</Text>}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-                {subjectFormError ? <Text style={{ fontSize: 12, color: tColors.error, marginBottom: tSpacing.sm, textAlign: 'center' }}>{subjectFormError}</Text> : null}
-                <TouchableOpacity
-                  style={[{ backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm }, subjectSaving && { opacity: 0.6 }]}
-                  onPress={saveSubject}
-                  disabled={subjectSaving}
-                  activeOpacity={0.85}
-                >
-                  {subjectSaving ? <ActivityIndicator color="#fff" /> : <Text style={{ fontSize: 15, fontWeight: typography.bold, color: '#fff' }}>{editingSubject ? 'Save Changes' : 'Add Subject'}</Text>}
-                </TouchableOpacity>
-                <View style={{ height: 20 }} />
-              </ScrollView>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      {/* ── Roster Upload Modal ──────────────────────────────────────────── */}
+      <RosterUploadModal
+        visible={showRosterModal}
+        onClose={() => setShowRosterModal(false)}
+      />
+
+      {/* ── Attendance Report Modal ──────────────────────────────────────── */}
+      <AttendanceReportScreen
+        visible={showReport}
+        onClose={() => setShowReport(false)}
+        mode="admin"
+        userProfile={userProfile}
+      />
+
+      {/* ── University Setup Wizard ──────────────────────────────────────── */}
+      <UniversitySetupWizard
+        visible={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => { setShowWizard(false); setSetupComplete(true); }}
+        universityId={universityId}
+        initialStep={resumeStep}
+      />
+
+      {/* ── NAAC Documentation Modal ─────────────────────────────────────── */}
+      <NAACScreen
+        visible={showNAAC}
+        onClose={() => setShowNAAC(false)}
+        userProfile={userProfile}
+      />
     </SafeAreaView>
   );
 }
@@ -1300,14 +1404,6 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.md, padding: tSpacing.md, color: tColors.textPrimary, fontSize: 14,
     marginBottom: tSpacing.sm,
   },
-  subClassOption: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.md, paddingHorizontal: tSpacing.md, paddingVertical: 12,
-  },
-  subClassOptionActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
-  subClassOptionText: { fontSize: 14, color: tColors.textSecondary, fontWeight: typography.medium },
-  subClassOptionTextActive: { color: tColors.student.primary, fontWeight: typography.bold },
 
   seedRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -1318,6 +1414,36 @@ const styles = StyleSheet.create({
   seedRowActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
   seedRowName: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
   seedRowMeta: { fontSize: 11, color: tColors.textTertiary, marginTop: 2 },
+
+  // ── Setup banner ──────────────────────────────────────────────────────────
+  setupBanner: {
+    backgroundColor: tColors.warningDim,
+    borderBottomWidth: 1,
+    borderBottomColor: tColors.warning,
+    paddingHorizontal: tSpacing.base,
+    paddingVertical: tSpacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tSpacing.sm,
+  },
+  setupBannerText: {
+    flex: 1,
+    fontSize: 12,
+    color: tColors.warning,
+    fontWeight: typography.medium,
+    lineHeight: 17,
+  },
+  setupBannerBtn: {
+    backgroundColor: tColors.warning,
+    borderRadius: tRadius.sm,
+    paddingHorizontal: tSpacing.md,
+    paddingVertical: 6,
+  },
+  setupBannerBtnText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: typography.bold,
+  },
 
   // ── Stats tab ──────────────────────────────────────────────────────────────
   statsGrid: {

@@ -14,8 +14,13 @@ import DocumentationScreen from './DocumentationScreen';
 import { colors, spacing, radius, font, avatarColor, THEMES, activeThemeKey, setTheme } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
 import { supabase } from '../lib/supabase';
-import { metaFromClass, ALL_CLASSES } from '../lib/subjectUtils';
+import { metaFromClass } from '../lib/subjectUtils';
+import { useUniversityConfig } from '../hooks/useUniversityConfig';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
+import RosterUploadModal from '../components/RosterUploadModal';
+import TakeAttendanceScreen from '../components/TakeAttendanceScreen';
+import AttendanceReportScreen from '../components/AttendanceReportScreen';
+import NAACScreen from '../components/NAACScreen';
 
 const ALL_COURSES = ['1BcomIAF', '3BcomIAF', '5BcomIAF', '1BcomIBA', '3BcomIBA', '1BcomF&A', '3BcomF&A(A)', '3BcomF&A(B)', '5BcomF&A(A)', '5BcomF&A(B)', '7BcomF&A'];
 // Classes that have HED reserved at TUE P2 (5th-year classes have real subjects there).
@@ -30,6 +35,7 @@ const REQUIRED_VISITS = 5;
 
 export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   const { teacherProfile, setTeacherProfile, teacherGroups, addTeacherGroup, submitFacultyClubRequest, createNotification, deleteClub, isAppAdmin, userProfile, isSapsCore, adminTestTeacher } = useApp();
+  const { classes: uniClasses } = useUniversityConfig();
 
   const TIMETABLE_TEAM_NAMES = ['Shruthi', 'Bhoomika', 'Thirupat'];
   const isStudentTimetableTeam = !isAppAdmin && !teacherProfile && userProfile &&
@@ -487,7 +493,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       title: `New message from ${effectiveProfile.name}`,
       body: mediaUrl ? '📷 Sent a photo' : (text.length > 60 ? text.slice(0, 57) + '…' : text),
       read: false,
-      meta: { person_key: teacherId, sender_name: effectiveProfile.name, is_teacher: true },
+      meta: { person_key: teacherId, sender_name: effectiveProfile.name, role: 'teacher' },
     });
   };
 
@@ -739,6 +745,30 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('mentoring');
+  const [showRosterModal, setShowRosterModal] = useState(false);
+  const [showNAAC, setShowNAAC] = useState(false);
+  const [rosterClass, setRosterClass] = useState('');
+  const [attendanceSlot, setAttendanceSlot] = useState(null);
+  const [showAttendanceReport, setShowAttendanceReport] = useState(false);
+  const [reportDefaultClass, setReportDefaultClass] = useState('');
+
+  // ── Teacher's assigned classes (for roster upload / attendance) ──────────
+  const [teacherClasses, setTeacherClasses] = useState([]);
+  useEffect(() => {
+    // Prefer the name from the Supabase profiles row (userProfile.name) so it
+    // matches timetable_slots.faculty_name exactly. Fall back to effectiveProfile.name
+    // for PIN-based teachers whose name is seeded from the hardcoded faculty list.
+    const nameToMatch = userProfile?.name || effectiveProfile?.name;
+    if (!nameToMatch) return;
+    supabase
+      .from('timetable_slots')
+      .select('class_name')
+      .ilike('faculty_name', `%${nameToMatch}%`)
+      .then(({ data }) => {
+        const unique = [...new Set((data || []).map(r => r.class_name).filter(Boolean))].sort();
+        setTeacherClasses(unique);
+      });
+  }, [userProfile?.name, effectiveProfile?.name]);
 
   // ── Tasks (Planner tab) ───────────────────────────────────────────────────────
   const [tasks, setTasks] = useState([]);
@@ -1423,11 +1453,12 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       {/* ── Tab Bar ─────────────────────────────────────────────────────────── */}
       <View style={styles.tabBar}>
         {[
-          { key: 'mentoring', label: '🎓 Mentoring' },
-          { key: 'clubs',     label: '🏛️ Clubs' },
-          { key: 'timetable', label: '📅 Timetable' },
-          { key: 'planner',   label: '📋 Planner' },
-          { key: 'docs',      label: '📄 Docs' },
+          { key: 'mentoring',  label: '🎓 Mentoring' },
+          { key: 'clubs',      label: '🏛️ Clubs' },
+          { key: 'attendance', label: '✅ Attendance' },
+          { key: 'timetable',  label: '📅 Timetable' },
+          { key: 'planner',    label: '📋 Planner' },
+          { key: 'docs',       label: '📄 Docs' },
         ].map(tab => (
           <TouchableOpacity
             key={tab.key}
@@ -1445,13 +1476,30 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       {/* ── Timetable tab — takes full remaining height ─────────────────────── */}
       {activeTab === 'timetable' ? (
         <TimetablePlannerScreen embedded />
-      ) : activeTab === 'docs' ? (
-        <DocumentationScreen
-          effectiveProfile={effectiveProfile}
-          effectiveSapsCore={effectiveSapsCore}
-          userProfile={userProfile}
-          createNotification={createNotification}
+      ) : activeTab === 'attendance' ? (
+        <AttendanceTab
+          teacherClasses={teacherClasses}
+          teacherName={effectiveProfile?.name}
+          onOpen={setAttendanceSlot}
+          onReport={(cls) => { setReportDefaultClass(cls); setShowAttendanceReport(true); }}
+          onUploadRoster={(cls) => { setRosterClass(cls); setShowRosterModal(true); }}
         />
+      ) : activeTab === 'docs' ? (
+        <View style={{ flex: 1 }}>
+          <TouchableOpacity
+            style={{ marginHorizontal: tSpacing.md, marginTop: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.cardAlt, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: tColors.border }}
+            onPress={() => setShowNAAC(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>🏛️ NAAC Docs</Text>
+          </TouchableOpacity>
+          <DocumentationScreen
+            effectiveProfile={effectiveProfile}
+            effectiveSapsCore={effectiveSapsCore}
+            userProfile={userProfile}
+            createNotification={createNotification}
+          />
+        </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
@@ -1516,13 +1564,22 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   {scheduleDay === todayDay && (
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green, alignSelf: 'center', marginRight: 6 }} />
                   )}
-                  <TouchableOpacity
-                    style={{ backgroundColor: colors.primary + '18', borderWidth: 1, borderColor: colors.primary, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}
-                    onPress={() => { setSubReqSlot(slot); setSubReqReason(''); setSubReqPrefSub(''); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{ fontSize: 11, color: colors.primary, fontWeight: '600' }}>Request Sub</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity
+                      style={{ backgroundColor: tColors.faculty.primaryDim, borderWidth: 1, borderColor: tColors.faculty.primary, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}
+                      onPress={() => setAttendanceSlot({ class_name: slot.class_name, course_name: slot.course_name, course_code: slot.course_code, period_name: slot.period_name, day: scheduleDay })}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={{ fontSize: 11, color: tColors.faculty.primary, fontWeight: '600' }}>✓ Attendance</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ backgroundColor: colors.primary + '18', borderWidth: 1, borderColor: colors.primary, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}
+                      onPress={() => { setSubReqSlot(slot); setSubReqReason(''); setSubReqPrefSub(''); }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={{ fontSize: 11, color: colors.primary, fontWeight: '600' }}>Request Sub</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))
             )}
@@ -3010,7 +3067,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
                 <Text style={styles.fieldLabel}>CLASS *</Text>
                 <View style={{ gap: 6, marginBottom: spacing.md }}>
-                  {ALL_CLASSES.map(cls => {
+                  {uniClasses.map(cls => {
                     const active = subjectClass === cls;
                     return (
                       <TouchableOpacity
@@ -3196,11 +3253,206 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* ── Take Attendance Modal ────────────────────────────────────────── */}
+      <TakeAttendanceScreen
+        visible={!!attendanceSlot}
+        onClose={() => setAttendanceSlot(null)}
+        slot={attendanceSlot}
+        teacherName={effectiveProfile?.name}
+        subject={attendanceSlot?.subject}
+        periodLabel={attendanceSlot?.periodLabel}
+      />
+
+      {/* ── Attendance Report Modal ──────────────────────────────────────── */}
+      <AttendanceReportScreen
+        visible={showAttendanceReport}
+        onClose={() => setShowAttendanceReport(false)}
+        mode="teacher"
+        defaultClass={reportDefaultClass}
+        userProfile={userProfile}
+      />
+
+      {/* ── Roster Upload Modal ──────────────────────────────────────────── */}
+      <RosterUploadModal
+        visible={showRosterModal}
+        onClose={() => setShowRosterModal(false)}
+        defaultClassName={rosterClass || (teacherClasses.length === 1 ? teacherClasses[0] : undefined)}
+        classOptions={!rosterClass && teacherClasses.length > 1 ? teacherClasses : undefined}
+      />
+
+      {/* ── NAAC Documentation Modal ─────────────────────────────────────── */}
+      <NAACScreen
+        visible={showNAAC}
+        onClose={() => setShowNAAC(false)}
+        userProfile={userProfile}
+      />
     </SafeAreaView>
   );
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
+
+function AttendanceTab({ teacherClasses, teacherName, onOpen, onReport, onUploadRoster }) {
+  const { classes: uniClasses, periods, subjects: uniSubjects } = useUniversityConfig();
+  const [selectedClass, setSelectedClass] = React.useState(teacherClasses?.[0] ?? '');
+  const [selectedDate, setSelectedDate] = React.useState(new Date().toLocaleDateString('en-CA'));
+  const [selectedSubject, setSelectedSubject] = React.useState('');
+  const [selectedPeriod, setSelectedPeriod] = React.useState('');
+
+  const PERIOD_OPTIONS = periods.map(p => p.label);
+  const subjects = uniSubjects
+    .filter(s => s.class_name === selectedClass)
+    .map(s => s.subject_name);
+
+  React.useEffect(() => {
+    if (!selectedClass && teacherClasses?.length) setSelectedClass(teacherClasses[0]);
+  }, [teacherClasses]);
+
+  React.useEffect(() => {
+    setSelectedSubject('');
+  }, [selectedClass]);
+
+  const classList = teacherClasses?.length ? teacherClasses : uniClasses;
+  const canTakeAttendance = !!selectedClass && !!selectedSubject && !!selectedPeriod;
+
+  return (
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: tSpacing.base, paddingBottom: 48 }}>
+      <Text style={{ fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>CLASS</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.base }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {classList.map(cls => (
+            <TouchableOpacity
+              key={cls}
+              onPress={() => setSelectedClass(cls)}
+              activeOpacity={0.75}
+              style={{
+                paddingHorizontal: tSpacing.md, paddingVertical: 8,
+                borderRadius: tRadius.full, borderWidth: 1,
+                backgroundColor: selectedClass === cls ? tColors.faculty.primaryDim : tColors.card,
+                borderColor: selectedClass === cls ? tColors.faculty.primary : tColors.border,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: typography.semibold, color: selectedClass === cls ? tColors.faculty.primary : tColors.textSecondary }}>
+                {cls}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      <Text style={{ fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>DATE</Text>
+      <View style={{ backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.md, padding: tSpacing.md, marginBottom: tSpacing.base }}>
+        <TextInput
+          value={selectedDate}
+          onChangeText={setSelectedDate}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={tColors.textTertiary}
+          style={{ fontSize: 15, color: tColors.textPrimary }}
+        />
+      </View>
+
+      <Text style={{ fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>SUBJECT</Text>
+      {subjects.length > 0 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.xl }}>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {subjects.map(sub => (
+              <TouchableOpacity
+                key={sub}
+                onPress={() => setSelectedSubject(sub)}
+                activeOpacity={0.75}
+                style={{
+                  paddingHorizontal: tSpacing.md, paddingVertical: 8,
+                  borderRadius: tRadius.full, borderWidth: 1,
+                  backgroundColor: selectedSubject === sub ? tColors.faculty.primaryDim : tColors.card,
+                  borderColor: selectedSubject === sub ? tColors.faculty.primary : tColors.border,
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: typography.semibold, color: selectedSubject === sub ? tColors.faculty.primary : tColors.textSecondary }}>
+                  {sub}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      ) : (
+        <Text style={{ fontSize: 12, color: tColors.textTertiary, marginBottom: tSpacing.base }}>
+          {selectedClass ? 'No subjects found for this class' : 'Select a class first'}
+        </Text>
+      )}
+
+      <Text style={{ fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>PERIOD</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.xl }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {PERIOD_OPTIONS.map(p => (
+            <TouchableOpacity
+              key={p}
+              onPress={() => setSelectedPeriod(p)}
+              activeOpacity={0.75}
+              style={{
+                paddingHorizontal: tSpacing.md, paddingVertical: 8,
+                borderRadius: tRadius.full, borderWidth: 1,
+                backgroundColor: selectedPeriod === p ? tColors.faculty.primaryDim : tColors.card,
+                borderColor: selectedPeriod === p ? tColors.faculty.primary : tColors.border,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: typography.semibold, color: selectedPeriod === p ? tColors.faculty.primary : tColors.textSecondary }}>
+                {p}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: canTakeAttendance ? tColors.faculty.primary : tColors.border,
+          borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center',
+        }}
+        onPress={() => canTakeAttendance && onOpen({ class_name: selectedClass, subject: selectedSubject, periodLabel: selectedPeriod, day: selectedDate })}
+        activeOpacity={0.8}
+        disabled={!canTakeAttendance}
+      >
+        <Text style={{ color: '#fff', fontSize: 15, fontWeight: typography.bold }}>✅ Take Attendance</Text>
+      </TouchableOpacity>
+      {!canTakeAttendance && (
+        <Text style={{ fontSize: 12, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.sm }}>
+          Select a class, subject and period to continue
+        </Text>
+      )}
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: 'transparent', borderWidth: 1,
+          borderColor: tColors.faculty.primary,
+          borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm,
+        }}
+        onPress={() => onReport(selectedClass)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: tColors.faculty.primary, fontSize: 15, fontWeight: typography.bold }}>📋 View Report</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: 'transparent', borderWidth: 1,
+          borderColor: tColors.border,
+          borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm,
+        }}
+        onPress={() => onUploadRoster(selectedClass)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: tColors.textSecondary, fontSize: 15, fontWeight: typography.bold }}>📊 Upload Roster</Text>
+      </TouchableOpacity>
+
+      {!teacherClasses?.length && (
+        <Text style={{ fontSize: 12, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.base }}>
+          Showing all classes — no timetable slots found for your account
+        </Text>
+      )}
+    </ScrollView>
+  );
+}
 
 function MenteeCard({ student, visitCount, loggingVisit, onLogVisit, onViewProfile, onOpenChat, isDynamic, removing, onRemove, nextSession }) {
   const av = avatarColor(student.name);

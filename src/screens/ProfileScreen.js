@@ -17,7 +17,7 @@ const SOCIAL_PROVIDERS = [
   { name: 'Instagram', abbr: 'ig', color: '#E1306C', bg: 'rgba(225,48,108,0.18)' },
   { name: 'LinkedIn',  abbr: 'in', color: '#0A66C2', bg: 'rgba(10,102,194,0.18)'  },
   { name: 'Twitter',   abbr: '𝕏',  color: '#6B7280', bg: 'rgba(107,114,128,0.22)' },
-  { name: 'GitHub',    abbr: 'gh', color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)'  },
+  { name: 'GitHub',    abbr: 'gh', color: colors.primary, bg: colors.primaryLight  },
 ];
 
 function getStudentSocialLinks(student) {

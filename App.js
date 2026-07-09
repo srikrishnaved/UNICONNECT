@@ -4,6 +4,9 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { Fraunces_600SemiBold, Fraunces_700Bold } from '@expo-google-fonts/fraunces';
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
 import AppNavigator from './src/navigation/AppNavigator';
 import ProfileScreen from './src/screens/ProfileScreen';
 import MyProfileScreen from './src/screens/MyProfileScreen';
@@ -26,6 +29,7 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import TeacherDashboardScreen from './src/screens/TeacherDashboardScreen';
 import { colors } from './src/theme';
+import { colors as tColors } from './src/theme/tokens';
 
 const navTheme = {
   ...DefaultTheme,
@@ -320,7 +324,7 @@ function AppShell() {
             </View>
 
             {bioError ? (
-              <Text style={{ fontSize: 13, color: '#EF4444', textAlign: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, color: tColors.error, textAlign: 'center', marginBottom: 12 }}>
                 {bioError}
               </Text>
             ) : null}
@@ -349,6 +353,17 @@ function AppShell() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Fraunces': Fraunces_700Bold,
+    'Fraunces-SemiBold': Fraunces_600SemiBold,
+    'IBMPlexMono': IBMPlexMono_400Regular,
+    'IBMPlexMono-Medium': IBMPlexMono_500Medium,
+  });
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: '#14120f' }} />;
+  }
+
   return (
     <SafeAreaProvider>
       <AppProvider>

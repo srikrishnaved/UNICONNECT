@@ -24,15 +24,15 @@ const COURSES = [
     key: 'BCom IAF',
     full: 'BCom International Accounting & Finance',
     sub: 'Integrated with ACCA',
-    color: '#3B82F6',
-    bg: 'rgba(59, 130, 246, 0.12)',
+    color: tColors.info,
+    bg: tColors.infoDim,
   },
   {
     key: 'BCom IBA',
     full: 'BCom International Business & Accounting',
     sub: 'Integrated with CPA Australia',
-    color: '#A855F7',
-    bg: 'rgba(168, 85, 247, 0.12)',
+    color: tColors.accent,
+    bg: tColors.accentDim,
   },
   {
     key: 'BCom F&A',
@@ -141,7 +141,8 @@ export default function OnboardingScreen() {
     setTeacherSignUpError('');
     if (!teacherName.trim()) { setTeacherSignUpError('Please enter your full name.'); return; }
     const emailDomain = teacherEmail.trim().toLowerCase().split('@')[1] ?? '';
-    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in');
+    // TEMPORARY: uniconnect.test allowed for QA — revert before production
+    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in') || emailDomain === 'uniconnect.test';
     if (!teacherEmail.trim() || !validDomain) {
       setTeacherSignUpError('Only christuniversity.in emails are accepted.');
       return;
@@ -258,7 +259,8 @@ export default function OnboardingScreen() {
       return;
     }
     const emailDomain = email.trim().toLowerCase().split('@')[1] ?? '';
-    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in');
+    // TEMPORARY: uniconnect.test allowed for QA — revert before production
+    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in') || emailDomain === 'uniconnect.test';
     if (!email.trim() || !validDomain) {
       setSignUpError('Only christuniversity.in emails are accepted.');
       return;
@@ -1253,7 +1255,7 @@ const styles = StyleSheet.create({
     fontSize: 11, color: colors.textTertiary, lineHeight: 16,
     textAlign: 'center', marginTop: spacing.sm,
   },
-  errorText: { fontSize: 13, color: '#EF4444', marginBottom: spacing.sm, marginTop: -spacing.xs },
+  errorText: { fontSize: 13, color: tColors.error, marginBottom: spacing.sm, marginTop: -spacing.xs },
   forgotLink: { fontSize: 13, color: colors.primary, ...font.medium },
   forgotBox: {
     backgroundColor: colors.card,

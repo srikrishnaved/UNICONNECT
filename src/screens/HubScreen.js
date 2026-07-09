@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList, Modal, TextInput, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList, Modal, TextInput, ActivityIndicator, Image, Linking, Platform } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
@@ -13,10 +13,11 @@ import {
   presets,
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
+import BunkmateModal from '../components/BunkmateModal';
 import { Star } from 'lucide-react-native';
 
 const EMOJIS = ['🏛️','💼','📊','🎯','🎉','🎭','🔬','⚽','🤝','🎨','🎤','📝','💡','🚀','🌏','📚','🎵','📸'];
-const COLORS = ['#6366F1','#3B82F6','#10B981','#A855F7','#EC4899','#F59E0B','#EF4444','#14B8A6','#8B5CF6','#E11D48'];
+const COLORS = ['#5A5FB8','#4A78C0','#3D9A72','#8050B4','#C05080','#C09030','#B04040','#3D9490','#7050C0','#B02048'];
 
 const TYPES = ['All', 'Clubs', 'Teams'];
 
@@ -35,12 +36,34 @@ export default function HubScreen() {
   const [cFullName, setCFullName] = useState('');
   const [cDesc, setCDesc] = useState('');
   const [cEmoji, setCEmoji] = useState('🏛️');
-  const [cColor, setCColor] = useState('#6366F1');
+  const [cColor, setCColor] = useState(tColors.accent);
   const [cType, setCType] = useState('Club');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
   const [submitted, setSubmitted] = useState(false);
+  const [showBunkmate, setShowBunkmate] = useState(false);
+
+  const eggHandler = (setter) => (val) => {
+    const low = val.toLowerCase();
+    if (low.includes('bubbles')) {
+      setter('');
+      setShowCreate(false);
+      setShowBunkmate(true);
+    } else if (low.includes('maximus')) {
+      setter('');
+      Linking.openURL('https://www.google.com/search?q=snorlax');
+    } else if (low.includes('i love krrish')) {
+      setter('');
+      const fallback = 'https://www.google.com/search?q=sharjah';
+      const chrome = Platform.OS === 'ios'
+        ? 'googlechromes://www.google.com/search?q=sharjah'
+        : 'intent://www.google.com/search?q=sharjah#Intent;scheme=https;package=com.android.chrome;end';
+      Linking.canOpenURL(chrome).then((ok) => Linking.openURL(ok ? chrome : fallback));
+    } else {
+      setter(val);
+    }
+  };
 
   const handleCreate = async () => {
     if (!cName.trim()) { setCreateError('Club name is required.'); return; }
@@ -48,7 +71,7 @@ export default function HubScreen() {
     setCreateError('');
     try {
       await submitClubCreationRequest({ name: cName.trim(), fullName: cFullName.trim() || cName.trim(), description: cDesc.trim(), emoji: cEmoji, color: cColor, type: cType });
-      setCName(''); setCFullName(''); setCDesc(''); setCEmoji('🏛️'); setCColor('#6366F1'); setCType('Club');
+      setCName(''); setCFullName(''); setCDesc(''); setCEmoji('🏛️'); setCColor(tColors.accent); setCType('Club');
       setSubmitted(true);
     } catch (e) {
       setCreateError(e.message || 'Could not submit request.');
@@ -179,13 +202,13 @@ export default function HubScreen() {
             </View>
 
             <Text style={styles.modalLabel}>NAME *</Text>
-            <TextInput value={cName} onChangeText={setCName} placeholder="e.g. Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
+            <TextInput value={cName} onChangeText={eggHandler(setCName)} placeholder="e.g. Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
 
             <Text style={styles.modalLabel}>FULL NAME (optional)</Text>
-            <TextInput value={cFullName} onChangeText={setCFullName} placeholder="e.g. Christ Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
+            <TextInput value={cFullName} onChangeText={eggHandler(setCFullName)} placeholder="e.g. Christ Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
 
             <Text style={styles.modalLabel}>DESCRIPTION</Text>
-            <TextInput value={cDesc} onChangeText={setCDesc} placeholder="What does your club do?" placeholderTextColor={colors.textTertiary} style={[styles.modalInput, { height: 72, textAlignVertical: 'top' }]} multiline />
+            <TextInput value={cDesc} onChangeText={eggHandler(setCDesc)} placeholder="What does your club do?" placeholderTextColor={colors.textTertiary} style={[styles.modalInput, { height: 72, textAlignVertical: 'top' }]} multiline />
 
             {createError ? <Text style={styles.createErrText}>{createError}</Text> : null}
 
@@ -197,6 +220,8 @@ export default function HubScreen() {
           </View>
         </View>
       </Modal>
+
+      <BunkmateModal visible={showBunkmate} onClose={() => setShowBunkmate(false)} />
 
       <FlatList
         data={[]}
