@@ -7,8 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor } from '../theme';
+import { colors as tColors } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
-import { SquareCheck } from 'lucide-react-native';
+import { ClipboardList, LayoutGrid, CircleCheck, Check, X, Trash2 } from 'lucide-react-native';
 
 // ── Period definitions ─────────────────────────────────────────────────────────
 const PERIODS = [
@@ -39,7 +40,7 @@ const QUICK_ACTIONS = [
     label: 'Email Teacher',
     desc: 'Professional & warm',
     emoji: '✉️',
-    color: '#3B82F6',
+    color: tColors.info,
     template: (name, course) =>
 `Subject: [Query] ${course} — Class Request
 
@@ -666,7 +667,7 @@ export default function CRDashboardScreen({ onClose }) {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>📋 CR Dashboard</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ClipboardList size={16} color={colors.textPrimary} /><Text style={styles.headerTitle}>CR Dashboard</Text></View>
           <Text style={styles.headerSub}>{course} · Christ University, Yeshwanthpur</Text>
         </View>
         <View style={[styles.crBadge, { backgroundColor: av.bg }]}>
@@ -677,20 +678,26 @@ export default function CRDashboardScreen({ onClose }) {
       {/* Tab bar */}
       <View style={styles.tabBar}>
         {[
-          { key: 'overview',    label: '🗂 Overview'   },
-          { key: 'attendance',  label: '✅ Attendance' },
-        ].map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
-            onPress={() => setActiveTab(tab.key)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.tabBtnText, activeTab === tab.key && styles.tabBtnTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+          { key: 'overview',    label: 'Overview',   Icon: LayoutGrid  },
+          { key: 'attendance',  label: 'Attendance', Icon: CircleCheck },
+        ].map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tabBtn, isActive && styles.tabBtnActive]}
+              onPress={() => setActiveTab(tab.key)}
+              activeOpacity={0.75}
+            >
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                <tab.Icon size={14} color={isActive ? colors.primary : colors.textTertiary} />
+                <Text style={[styles.tabBtnText, isActive && styles.tabBtnTextActive]}>
+                  {tab.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -755,13 +762,13 @@ export default function CRDashboardScreen({ onClose }) {
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>TASK TRACKER</Text>
                 {tasks.length === 0 ? (
-                  <EmptyState icon={SquareCheck} heading="No tasks yet" subtext="Add your first task to get started" />
+                  <EmptyState icon={CircleCheck} heading="No tasks yet" subtext="Add your first task to get started" />
                 ) : (
                   tasks.map(t => (
                     <View key={t.id} style={styles.taskRow}>
                       <TouchableOpacity onPress={() => toggleTask(t)} style={styles.taskCheck} activeOpacity={0.7}>
                         <View style={[styles.checkCircle, t.done && styles.checkCircleDone]}>
-                          {t.done && <Text style={styles.checkMark}>✓</Text>}
+                          {t.done && <Check size={14} color={colors.success} />}
                         </View>
                       </TouchableOpacity>
                       <Text style={[styles.taskText, t.done && styles.taskTextDone]} numberOfLines={2}>{t.text}</Text>
@@ -771,7 +778,7 @@ export default function CRDashboardScreen({ onClose }) {
                         </Text>
                       </View>
                       <TouchableOpacity onPress={() => deleteTask(t.id)} style={styles.taskDelete} activeOpacity={0.7}>
-                        <Text style={styles.taskDeleteText}>✕</Text>
+                        <X size={16} color={colors.error} />
                       </TouchableOpacity>
                     </View>
                   ))
@@ -848,7 +855,7 @@ export default function CRDashboardScreen({ onClose }) {
             {!takeAttMode && (
               <TouchableOpacity style={styles.takeAttCard} onPress={handleTakeAttendance} activeOpacity={0.85}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.takeAttTitle}>📋 Take Attendance</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ClipboardList size={16} color={colors.primary} /><Text style={styles.takeAttTitle}>Take Attendance</Text></View>
                   <Text style={styles.takeAttSub}>Mark absentees from your class roll list</Text>
                 </View>
                 <Text style={styles.takeAttArrow}>›</Text>
@@ -944,9 +951,20 @@ export default function CRDashboardScreen({ onClose }) {
                 )}
 
                 {/* Roll checklist */}
-                <Text style={styles.fieldLabel}>
-                  {`MARK ABSENTEES${checkedRolls.size > 0 ? ` (${checkedRolls.size} absent)` : ''}`}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={[styles.fieldLabel, { marginBottom: 0 }]}>
+                    {`MARK ABSENTEES${checkedRolls.size > 0 ? ` (${checkedRolls.size} absent)` : ''}`}
+                  </Text>
+                  {classRolls.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setCheckedRolls(new Set(classRolls.map(r => r.id)))}
+                      activeOpacity={0.7}
+                      style={styles.markAllAbsentBtn}
+                    >
+                      <Text style={styles.markAllAbsentText}>Mark All Absent</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 {rollsLoading ? (
                   <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
                 ) : classRolls.length === 0 ? (
@@ -969,7 +987,7 @@ export default function CRDashboardScreen({ onClose }) {
                             activeOpacity={0.7}
                           >
                             <View style={[styles.rollCheckBox, absent && styles.rollCheckBoxOn]}>
-                              {absent && <Text style={styles.rollCheckMark}>✓</Text>}
+                              {absent && <Check size={12} color={colors.success} />}
                             </View>
                             <Text style={[styles.rollNumText, absent && styles.rollNumAbsent]}>
                               Roll {roll.roll_number}
@@ -977,7 +995,7 @@ export default function CRDashboardScreen({ onClose }) {
                             {absent && <Text style={styles.absentPill}>Absent</Text>}
                           </TouchableOpacity>
                           <TouchableOpacity onPress={() => handleDeleteRoll(roll)} style={styles.rollDeleteBtn} activeOpacity={0.7}>
-                            <Text style={styles.rollDeleteText}>🗑</Text>
+                            <Trash2 size={16} color={colors.error} />
                           </TouchableOpacity>
                         </View>
                       </React.Fragment>
@@ -1024,7 +1042,7 @@ export default function CRDashboardScreen({ onClose }) {
                           <Text style={styles.absentBadgeText}>{log.absentee_count} absent</Text>
                         </View>
                         <TouchableOpacity onPress={() => deleteAttLog(log)} activeOpacity={0.7}>
-                          <Text style={{ fontSize: 15 }}>🗑</Text>
+                          <Trash2 size={15} color={colors.error} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -1060,7 +1078,7 @@ export default function CRDashboardScreen({ onClose }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle} numberOfLines={1}>{templateModal}</Text>
                 <TouchableOpacity onPress={() => setTemplateModal(null)}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ paddingBottom: 8 }}>
@@ -1074,7 +1092,7 @@ export default function CRDashboardScreen({ onClose }) {
                 />
               </ScrollView>
               <View style={styles.modalActions}>
-                <Text style={styles.copyFeedback}>{copied ? '✓ Copied!' : ' '}</Text>
+                {copied ? <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.copyFeedback}>Copied!</Text></View> : <Text style={styles.copyFeedback}> </Text>}
                 <TouchableOpacity style={styles.generateBtn} onPress={handleCopy} activeOpacity={0.85}>
                   <Text style={styles.generateBtnText}>{copied ? 'Copied!' : 'Copy'}</Text>
                 </TouchableOpacity>
@@ -1218,6 +1236,11 @@ const styles = StyleSheet.create({
     fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
     ...font.bold, marginBottom: 6, marginTop: spacing.sm,
   },
+  markAllAbsentBtn: {
+    borderWidth: 1, borderColor: colors.error, borderRadius: radius.sm,
+    paddingHorizontal: 10, paddingVertical: 4, marginTop: spacing.sm,
+  },
+  markAllAbsentText: { fontSize: 11, ...font.semibold, color: colors.error },
   periodGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.sm },
   periodBtn: {
     flex: 1, minWidth: '45%', alignItems: 'center', paddingVertical: 12,

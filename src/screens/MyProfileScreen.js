@@ -21,6 +21,7 @@ import {
 } from '../theme/tokens';
 import CRDashboardScreen from './CRDashboardScreen';
 import AttendanceReportScreen from '../components/AttendanceReportScreen';
+import { Pencil, Ban, ClipboardList, Clock, Award, Star, Trash2, CircleCheck, Check, X } from 'lucide-react-native';
 
 const COURSES = ['BCom IAF', 'BCom IBA', 'BCom F&A'];
 const YEARS   = ['1st Year', '2nd Year', '3rd Year'];
@@ -313,7 +314,10 @@ export default function MyProfileScreen() {
 
         {/* Edit profile button */}
         <TouchableOpacity style={styles.editBtn} onPress={openEdit} activeOpacity={0.8}>
-          <Text style={styles.editBtnText}>✎ Edit profile</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Pencil size={14} color={tColors.textPrimary} />
+            <Text style={styles.editBtnText}>Edit profile</Text>
+          </View>
         </TouchableOpacity>
 
         {/* About */}
@@ -334,16 +338,17 @@ export default function MyProfileScreen() {
             </View>
           ))}
           <TouchableOpacity style={styles.editSocialBtn} onPress={openSocialModal} activeOpacity={0.8}>
-            <Text style={styles.editSocialBtnText}>
-              {socialLinks.length > 0 ? '✎ Edit Social Links' : '+ Add Social Links'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              {socialLinks.length > 0 && <Pencil size={13} color={tColors.student.primary} />}
+              <Text style={styles.editSocialBtnText}>{socialLinks.length > 0 ? 'Edit Social Links' : '+ Add Social Links'}</Text>
+            </View>
           </TouchableOpacity>
         </Section>
 
 
         {/* Clubs */}
         {myClubs.length > 0 && (
-          <Section label="🏛 CLUBS">
+          <Section label="CLUBS">
             <View style={styles.clubsRow}>
               {myClubs.map(club => (
                 <View key={club.id} style={[styles.clubChip, { borderColor: club.color, backgroundColor: `${club.color}18` }]}>
@@ -381,7 +386,10 @@ export default function MyProfileScreen() {
 
         {/* Blocked profiles */}
         <TouchableOpacity style={styles.blockedBtn} onPress={openBlocked} activeOpacity={0.8}>
-          <Text style={styles.blockedBtnText}>🚫 Blocked Profiles</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ban size={14} color={tColors.textSecondary} />
+            <Text style={styles.blockedBtnText}>Blocked Profiles</Text>
+          </View>
           {blockedIds.size > 0 && (
             <View style={styles.blockedCount}>
               <Text style={styles.blockedCountText}>{blockedIds.size}</Text>
@@ -409,7 +417,14 @@ export default function MyProfileScreen() {
                     ))}
                   </View>
                   <Text style={[styles.themeLabel, active && styles.themeLabelActive]}>{t.label}</Text>
-                  <Text style={styles.themeDesc}>{active ? '✓ Active' : t.desc}</Text>
+                  {active ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <Check size={11} color={tColors.student.primary} />
+                      <Text style={styles.themeDesc}>Active</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.themeDesc}>{t.desc}</Text>
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -433,7 +448,7 @@ export default function MyProfileScreen() {
           onPress={() => setShowReport(true)}
           activeOpacity={0.85}
         >
-          <Text style={styles.crDashBtnEmoji}>📋</Text>
+          <ClipboardList size={20} color={tColors.textSecondary} />
           <View style={{ flex: 1 }}>
             <Text style={styles.crDashBtnTitle}>My Attendance</Text>
             <Text style={styles.crDashBtnSub}>View your attendance records</Text>
@@ -448,7 +463,7 @@ export default function MyProfileScreen() {
             onPress={() => setShowCRDashboard(true)}
             activeOpacity={0.85}
           >
-            <Text style={styles.crDashBtnEmoji}>📋</Text>
+            <ClipboardList size={20} color={tColors.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crDashBtnTitle}>CR Dashboard</Text>
               <Text style={styles.crDashBtnSub}>Open your Class Representative tools</Text>
@@ -457,7 +472,7 @@ export default function MyProfileScreen() {
           </TouchableOpacity>
         ) : crStatus === 'pending' ? (
           <View style={styles.crPendingCard}>
-            <Text style={styles.crPendingEmoji}>⏳</Text>
+            <Clock size={20} color={tColors.warning} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crPendingTitle}>CR Application Pending</Text>
               <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
@@ -469,7 +484,7 @@ export default function MyProfileScreen() {
             onPress={() => { setShowCRApply(true); setCrApplyError(''); setCrReason(''); }}
             activeOpacity={0.85}
           >
-            <Text style={styles.crApplyBtnEmoji}>🏅</Text>
+            <Award size={20} color={tColors.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crApplyBtnTitle}>Apply as Class Representative</Text>
               <Text style={styles.crApplyBtnSub}>Submit an application for admin approval</Text>
@@ -481,7 +496,7 @@ export default function MyProfileScreen() {
         {/* ── SAPS Core Team ──────────────────────────────────────────── */}
         {sapsMyRole !== null ? (
           <View style={styles.crDashBtn}>
-            <Text style={styles.crDashBtnEmoji}>⭐</Text>
+            <Star size={20} color={tColors.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crDashBtnTitle}>SAPS Core Team</Text>
               <Text style={styles.crDashBtnSub}>{sapsMyRole}</Text>
@@ -489,7 +504,7 @@ export default function MyProfileScreen() {
           </View>
         ) : availableSapsRoles.length === 0 ? (
           <View style={styles.crPendingCard}>
-            <Text style={styles.crPendingEmoji}>✓</Text>
+            <Check size={20} color={tColors.warning} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crPendingTitle}>SAPS Core Team is complete</Text>
               <Text style={styles.crPendingSub}>All 5 positions have been filled</Text>
@@ -497,7 +512,7 @@ export default function MyProfileScreen() {
           </View>
         ) : sapsAppStatus === 'pending' ? (
           <View style={styles.crPendingCard}>
-            <Text style={styles.crPendingEmoji}>⏳</Text>
+            <Clock size={20} color={tColors.warning} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crPendingTitle}>SAPS Application Pending</Text>
               <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
@@ -509,7 +524,7 @@ export default function MyProfileScreen() {
             onPress={() => { setSapsApplyError(''); setSapsSelectedRole(null); setShowSapsApply(true); }}
             activeOpacity={0.85}
           >
-            <Text style={styles.crApplyBtnEmoji}>⭐</Text>
+            <Star size={20} color={tColors.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.crApplyBtnTitle}>Apply for SAPS Core Team</Text>
               <Text style={styles.crApplyBtnSub}>Choose a role and submit for admin approval</Text>
@@ -573,9 +588,12 @@ export default function MyProfileScreen() {
         >
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✎ Edit Profile</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Pencil size={16} color={tColors.textPrimary} />
+                <Text style={styles.modalTitle}>Edit Profile</Text>
+              </View>
               <TouchableOpacity onPress={() => setShowEdit(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -682,7 +700,7 @@ export default function MyProfileScreen() {
               <Text style={styles.socialModalTitle}>Social Links</Text>
               <TouchableOpacity onPress={() => setShowSocialModal(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <View style={styles.closeBtn}>
-                  <Text style={styles.closeBtnText}>✕</Text>
+                  <X size={20} color={tColors.textSecondary} />
                 </View>
               </TouchableOpacity>
             </View>
@@ -702,7 +720,7 @@ export default function MyProfileScreen() {
                     style={styles.trashBtn}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={styles.trashIcon}>🗑</Text>
+                    <Trash2 size={18} color={tColors.error} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -763,15 +781,15 @@ export default function MyProfileScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modal, { paddingBottom: 40 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🚫 Blocked Profiles</Text>
+              <Text style={styles.modalTitle}>Blocked Profiles</Text>
               <TouchableOpacity onPress={() => setShowBlocked(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {blockedProfiles.length === 0 ? (
               <View style={styles.blockedEmpty}>
-                <Text style={styles.blockedEmptyIcon}>✅</Text>
+                <CircleCheck size={36} color={tColors.success} />
                 <Text style={styles.blockedEmptyText}>You haven't blocked anyone.</Text>
               </View>
             ) : (
@@ -838,7 +856,7 @@ export default function MyProfileScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Edit Interests</Text>
               <TouchableOpacity onPress={() => setShowInterestsModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={{ fontSize: typography.xs, color: tColors.textTertiary, marginBottom: tSpacing.md }}>
@@ -878,9 +896,12 @@ export default function MyProfileScreen() {
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.lg, borderWidth: 1, borderColor: tColors.border }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.lg }}>
-                <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>🏅 Apply as CR</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Award size={16} color={tColors.textPrimary} />
+                  <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>Apply as CR</Text>
+                </View>
                 <TouchableOpacity onPress={() => setShowCRApply(false)}>
-                  <Text style={{ fontSize: 22, color: tColors.textSecondary }}>✕</Text>
+                  <X size={22} color={tColors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6 }}>YOUR DETAILS</Text>
@@ -922,9 +943,12 @@ export default function MyProfileScreen() {
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.lg, borderWidth: 1, borderColor: tColors.border, maxHeight: '70%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.lg }}>
-              <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>⭐ Apply for SAPS Core Team</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Star size={16} color={tColors.textPrimary} />
+                <Text style={{ fontSize: typography.md, fontWeight: typography.bold, color: tColors.textPrimary }}>Apply for SAPS Core Team</Text>
+              </View>
               <TouchableOpacity onPress={() => setShowSapsApply(false)}>
-                <Text style={{ fontSize: 22, color: tColors.textSecondary }}>✕</Text>
+                <X size={22} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={{ fontSize: typography.xs, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: tSpacing.sm }}>SELECT A ROLE</Text>
@@ -944,7 +968,7 @@ export default function MyProfileScreen() {
                     activeOpacity={0.8}
                   >
                     <Text style={{ fontSize: typography.base, color: sel ? tColors.student.primary : tColors.textPrimary, fontWeight: typography.semibold }}>{role}</Text>
-                    {sel && <Text style={{ color: tColors.student.primary, fontSize: 16 }}>✓</Text>}
+                    {sel && <Check size={16} color={tColors.student.primary} />}
                   </TouchableOpacity>
                 );
               })}

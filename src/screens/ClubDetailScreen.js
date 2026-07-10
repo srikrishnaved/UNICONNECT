@@ -16,7 +16,7 @@ import {
   presets,
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
-import { Calendar as CalendarIcon, Users } from 'lucide-react-native';
+import { Calendar as CalendarIcon, Users, Check, BarChart2, Gift, ShieldCheck, GraduationCap, Megaphone, MapPin, Trash2, Image as ImageIcon, Timer, Camera, Briefcase, MessageCircle, Link, X, UserPlus } from 'lucide-react-native';
 
 // Lazy-load image picker so web bundler never tries to parse native-only APIs
 let ImagePicker = null;
@@ -140,10 +140,10 @@ export default function ClubDetailScreen({ route, navigation }) {
   const [savingLink, setSavingLink]           = useState(false);
 
   const SOCIAL_PLATFORMS = [
-    { name: 'Instagram', icon: '📸', prefix: 'instagram.com/' },
-    { name: 'LinkedIn',  icon: '💼', prefix: 'linkedin.com/company/' },
-    { name: 'WhatsApp',  icon: '💬', prefix: 'chat.whatsapp.com/' },
-    { name: 'Other',     icon: '🔗', prefix: '' },
+    { name: 'Instagram', Icon: Camera,        prefix: 'instagram.com/' },
+    { name: 'LinkedIn',  Icon: Briefcase,     prefix: 'linkedin.com/company/' },
+    { name: 'WhatsApp',  Icon: MessageCircle, prefix: 'chat.whatsapp.com/' },
+    { name: 'Other',     Icon: Link,          prefix: '' },
   ];
 
   useEffect(() => {
@@ -529,7 +529,7 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.nameBlock}>
           <Text style={styles.name}>{club.name}</Text>
           <Text style={styles.fullName}>{club.fullName}</Text>
-          <Text style={styles.members}>👥 {realMemberCount !== null ? realMemberCount : '…'} members</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={13} color={colors.textSecondary} /><Text style={styles.members}>{realMemberCount !== null ? realMemberCount : '…'} members</Text></View>
         </View>
 
         {/* Action buttons */}
@@ -565,9 +565,12 @@ export default function ClubDetailScreen({ route, navigation }) {
                 onPress={() => toggleClubFollow(clubId)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.followBtnText, following && styles.followBtnTextActive]}>
-                  {following ? '✓ Following' : '+ Follow'}
-                </Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                  {following && <Check size={13} color={colors.success} />}
+                  <Text style={[styles.followBtnText, following && styles.followBtnTextActive]}>
+                    {following ? 'Following' : '+ Follow'}
+                  </Text>
+                </View>
               </TouchableOpacity>
 
               {isMember ? (
@@ -585,7 +588,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                 </TouchableOpacity>
               ) : pendingJoinReq === 'pending' ? (
                 <View style={[styles.actionBtn, styles.pendingBtn]}>
-                  <Text style={styles.pendingBtnText}>⏳ Pending Approval</Text>
+                  <Text style={styles.pendingBtnText}>Pending Approval</Text>
                 </View>
               ) : (
                 <TouchableOpacity
@@ -609,7 +612,7 @@ export default function ClubDetailScreen({ route, navigation }) {
               activeOpacity={0.82}
             >
               <View style={styles.dashboardBtnLeft}>
-                <Text style={styles.dashboardBtnIcon}>📊</Text>
+                <BarChart2 size={18} color={colors.textPrimary} />
               </View>
               <View style={styles.dashboardBtnCenter}>
                 <Text style={styles.dashboardBtnText}>Club Dashboard</Text>
@@ -623,13 +626,13 @@ export default function ClubDetailScreen({ route, navigation }) {
         {/* Pending invite banner */}
         {pendingInvite && !isMember && (
           <View style={styles.inviteBanner}>
-            <Text style={styles.inviteBannerText}>🎉 You've been invited to join {club.name}!</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Gift size={16} color={colors.accent} /><Text style={styles.inviteBannerText}>You've been invited to join {club.name}!</Text></View>
             <View style={styles.inviteBannerBtns}>
               <TouchableOpacity onPress={handleAcceptInvite} style={styles.inviteAcceptBtn} activeOpacity={0.8}>
-                <Text style={styles.inviteAcceptBtnText}>✓ Accept</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color="#fff" /><Text style={styles.inviteAcceptBtnText}>Accept</Text></View>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleDeclineInvite} style={styles.inviteDeclineBtn} activeOpacity={0.8}>
-                <Text style={styles.inviteDeclineBtnText}>✗ Decline</Text>
+                <Text style={styles.inviteDeclineBtnText}>Decline</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -640,7 +643,7 @@ export default function ClubDetailScreen({ route, navigation }) {
           <View style={styles.adminRequestRow}>
             {(pendingRequest || pendingAdminReq) ? (
               <View style={styles.adminRequestPending}>
-                <Text style={styles.adminRequestPendingText}>⏳ Admin Request Submitted</Text>
+                <Text style={styles.adminRequestPendingText}>Admin Request Submitted</Text>
                 <Text style={styles.adminRequestPendingHint}>Your request is awaiting review</Text>
               </View>
             ) : (
@@ -649,7 +652,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                 onPress={() => setShowAdminRequest(true)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.adminRequestBtnText}>🛡️ Request Admin Access</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ShieldCheck size={14} color={colors.textSecondary} /><Text style={styles.adminRequestBtnText}>Request Admin Access</Text></View>
               </TouchableOpacity>
             )}
           </View>
@@ -660,7 +663,7 @@ export default function ClubDetailScreen({ route, navigation }) {
           <Text style={styles.body}>{club.desc}</Text>
           {club.coordinator && (
             <View style={styles.coordinatorRow}>
-              <Text style={styles.coordinatorIcon}>🎓</Text>
+              <GraduationCap size={18} color={colors.textSecondary} />
               <View>
                 <Text style={styles.coordinatorLabel}>FACULTY COORDINATOR</Text>
                 <Text style={styles.coordinatorName}>{club.coordinator}</Text>
@@ -673,9 +676,7 @@ export default function ClubDetailScreen({ route, navigation }) {
         {socialLink && (
           <Section label="LINKS">
             <View style={styles.socialLinkRow}>
-              <Text style={styles.socialLinkIcon}>
-                {SOCIAL_PLATFORMS.find(p => p.name === socialLink.platform)?.icon ?? '🔗'}
-              </Text>
+              {(() => { const plat = SOCIAL_PLATFORMS.find(p => p.name === socialLink.platform); const PlatIcon = plat?.Icon ?? Link; return <PlatIcon size={20} color={colors.textSecondary} />; })()}
               <View style={{ flex: 1 }}>
                 <Text style={styles.socialLinkPlatform}>{socialLink.platform}</Text>
                 <Text style={styles.socialLinkUrl} numberOfLines={1}>{socialLink.url}</Text>
@@ -693,7 +694,7 @@ export default function ClubDetailScreen({ route, navigation }) {
               activeOpacity={0.85}
               onPress={() => { setShowHoursRequest(true); setHoursError(''); }}
             >
-              <Text style={styles.adminActionIcon}>⏱</Text>
+              <Timer size={14} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.adminActionTitle}>Request contribution hours</Text>
                 <Text style={styles.adminActionDesc}>
@@ -716,13 +717,13 @@ export default function ClubDetailScreen({ route, navigation }) {
                 <View style={styles.eventBody}>
                   {event.isRecruitment && (
                     <View style={styles.recruitBadge}>
-                      <Text style={styles.recruitBadgeText}>📣 RECRUITMENT</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Megaphone size={11} color={colors.accent} /><Text style={styles.recruitBadgeText}>RECRUITMENT</Text></View>
                     </View>
                   )}
                   <Text style={styles.eventTitle}>{event.title}</Text>
                   <View style={styles.eventMetaRow}>
-                    <Text style={styles.eventMeta}>📅 {event.time}</Text>
-                    <Text style={styles.eventMeta}>📍 {event.venue}</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CalendarIcon size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.time}</Text></View>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><MapPin size={12} color={colors.textSecondary} /><Text style={styles.metaLine}>{event.venue}</Text></View>
                   </View>
                   <Text style={styles.eventDesc}>{event.desc}</Text>
                   {/* Team Assignments — shown when event has teams */}
@@ -741,9 +742,12 @@ export default function ClubDetailScreen({ route, navigation }) {
                           }}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.teamAssignToggleText}>
-                            👥 Team Assignments ({event.teams_needed.length} team{event.teams_needed.length !== 1 ? 's' : ''})
-                          </Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                            <Users size={12} color={colors.textSecondary} />
+                            <Text style={styles.teamAssignToggleText}>
+                              Team Assignments ({event.teams_needed.length} team{event.teams_needed.length !== 1 ? 's' : ''})
+                            </Text>
+                          </View>
                           <Text style={styles.teamAssignChevron}>{ta?.open ? '▲' : '▼'}</Text>
                         </TouchableOpacity>
                         {ta?.open && (
@@ -779,7 +783,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                                       <Text style={styles.teamAssignName}>{m.profile.name}</Text>
                                       <Text style={styles.teamAssignMeta}>{m.profile.course} · {m.profile.year}</Text>
                                     </View>
-                                    <Text style={styles.teamAssignDot}>✓</Text>
+                                    <Check size={12} color={colors.success} />
                                   </View>
                                 ))}
                               </View>
@@ -791,9 +795,10 @@ export default function ClubDetailScreen({ route, navigation }) {
                   })()}
 
                   <View style={styles.eventFooter}>
-                    <Text style={styles.eventInterested}>
-                      👥 {event.interested + (interested.has(event.id) ? 1 : 0)} interested
-                    </Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                      <Users size={12} color={colors.textSecondary} />
+                      <Text style={styles.eventInterested}>{event.interested + (interested.has(event.id) ? 1 : 0)} interested</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       {isEffectiveAdmin && (
                         <TouchableOpacity
@@ -807,7 +812,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                           style={styles.deleteEventBtn}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.deleteEventBtnText}>🗑 Delete</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Trash2 size={14} color={colors.error} /><Text style={styles.deleteEventBtnText}>Delete</Text></View>
                         </TouchableOpacity>
                       )}
                       <TouchableOpacity
@@ -815,9 +820,12 @@ export default function ClubDetailScreen({ route, navigation }) {
                         style={[styles.interestBtn, interested.has(event.id) && styles.interestBtnActive]}
                         activeOpacity={0.7}
                       >
-                        <Text style={[styles.interestBtnText, interested.has(event.id) && styles.interestBtnTextActive]}>
-                          {interested.has(event.id) ? '✓ Interested' : '+ Interested'}
-                        </Text>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                          {interested.has(event.id) && <Check size={12} color={colors.success} />}
+                          <Text style={[styles.interestBtnText, interested.has(event.id) && styles.interestBtnTextActive]}>
+                            {interested.has(event.id) ? 'Interested' : '+ Interested'}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -835,9 +843,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📅 Post Event</Text>
+              <Text style={styles.modalTitle}>Post Event</Text>
               <TouchableOpacity onPress={() => setShowPostEvent(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -943,12 +951,12 @@ export default function ClubDetailScreen({ route, navigation }) {
                     onPress={() => setEventForm(f => ({ ...f, imageUri: null }))}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.imageRemoveText}>✕</Text>
+                    <X size={16} color={colors.error} />
                   </TouchableOpacity>
                 </>
               ) : (
                 <View style={styles.imagePickerEmpty}>
-                  <Text style={styles.imagePickerIcon}>🖼️</Text>
+                  <ImageIcon size={24} color={colors.textSecondary} />
                   <Text style={styles.imagePickerText}>Tap to add a photo</Text>
                 </View>
               )}
@@ -970,9 +978,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📣 Open Recruitment</Text>
+              <Text style={styles.modalTitle}>Open Recruitment</Text>
               <TouchableOpacity onPress={() => setShowRecruitment(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -1030,9 +1038,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🛡️ Request Admin Access</Text>
+              <Text style={styles.modalTitle}>Request Admin Access</Text>
               <TouchableOpacity onPress={() => { setShowAdminRequest(false); setAdminReason(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -1086,9 +1094,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>⏱ Request Hours</Text>
+              <Text style={styles.modalTitle}>Request Hours</Text>
               <TouchableOpacity onPress={() => { setShowHoursRequest(false); setHoursError(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>WHAT DID YOU CONTRIBUTE? *</Text>
@@ -1131,9 +1139,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🔗 Social Link</Text>
+              <Text style={styles.modalTitle}>Social Link</Text>
               <TouchableOpacity onPress={() => setShowSocialModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -1146,7 +1154,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                   onPress={() => setSocialPlatform(p.name)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.platformPillIcon}>{p.icon}</Text>
+                  <p.Icon size={14} color={socialPlatform === p.name ? colors.primary : colors.textSecondary} />
                   <Text style={[styles.platformPillText, socialPlatform === p.name && styles.platformPillTextActive]}>
                     {p.name}
                   </Text>
@@ -1212,9 +1220,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🙋 Verify Membership</Text>
+              <Text style={styles.modalTitle}>Verify Membership</Text>
               <TouchableOpacity onPress={() => { setShowJoinRequest(false); setJoinMessage(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -1269,9 +1277,9 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📋 Join Requests</Text>
+              <Text style={styles.modalTitle}>Join Requests</Text>
               <TouchableOpacity onPress={() => setShowJoinReview(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {joinReviewList.length === 0 ? (
@@ -1332,15 +1340,15 @@ export default function ClubDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>👥 Members ({members.length})</Text>
+              <Text style={styles.modalTitle}>Members ({members.length})</Text>
               <TouchableOpacity onPress={() => { setShowMembers(false); setSearchQuery(''); setSearchResults([]); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Invite section */}
             <View style={styles.inviteSection}>
-              <Text style={styles.inviteSectionTitle}>➕ Invite a Member</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserPlus size={16} color={colors.textPrimary} /><Text style={styles.inviteSectionTitle}>Invite a Member</Text></View>
               <View style={styles.addMemberRow}>
                 <TextInput
                   value={searchQuery}

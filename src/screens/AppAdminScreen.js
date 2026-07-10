@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, Modal, ActivityIndicator, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
+import { ShieldCheck, Check, X, Pin, Trash2, Info, Landmark, Gift, ClipboardList } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import { hubClubs } from '../data';
 
@@ -180,7 +181,7 @@ export default function AppAdminScreen() {
       {/* Header banner */}
       <View style={styles.banner}>
         <View style={styles.bannerRow}>
-          <Text style={styles.bannerIcon}>🛡️</Text>
+          <ShieldCheck size={20} color={colors.textPrimary} />
           <Text style={styles.bannerEyebrow}>APP ADMIN PANEL</Text>
         </View>
         <Text style={styles.bannerTitle}>Admin Panel</Text>
@@ -192,9 +193,7 @@ export default function AppAdminScreen() {
       {/* Club Admin Requests */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>
-            🛡️ PENDING REQUESTS ({clubAdminRequests.length})
-          </Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ShieldCheck size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>PENDING REQUESTS ({clubAdminRequests.length})</Text></View>
           <TouchableOpacity onPress={handleRefresh} style={styles.refreshBtn} activeOpacity={0.7} disabled={refreshing}>
             {refreshing
               ? <ActivityIndicator size="small" color={colors.primary} />
@@ -205,7 +204,7 @@ export default function AppAdminScreen() {
 
         {clubAdminRequests.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>🛡️</Text>
+            <ShieldCheck size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No pending requests</Text>
             <Text style={styles.emptyDesc}>Students haven't requested club admin access yet.</Text>
           </View>
@@ -235,14 +234,14 @@ export default function AppAdminScreen() {
                   style={[styles.actionBtn, styles.approveBtn]}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleResolve(req, 'reject')}
                   style={[styles.actionBtn, styles.rejectBtn]}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.rejectBtnText}>✗ Reject</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -252,7 +251,7 @@ export default function AppAdminScreen() {
 
       {/* Featured Study Rooms */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>📌 FEATURED STUDY ROOMS ({permRooms.length})</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Pin size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>FEATURED STUDY ROOMS ({permRooms.length})</Text></View>
 
         {permRooms.map(room => (
           <View key={room.id} style={[styles.card, { flexDirection: 'row', alignItems: 'center' }]}>
@@ -266,7 +265,7 @@ export default function AppAdminScreen() {
               style={styles.roomDeleteBtn}
               activeOpacity={0.8}
             >
-              <Text style={{ fontSize: 16 }}>🗑</Text>
+              <Trash2 size={16} color={colors.error} />
             </TouchableOpacity>
           </View>
         ))}
@@ -290,9 +289,9 @@ export default function AppAdminScreen() {
           />
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📌 New Featured Room</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Pin size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>New Featured Room</Text></View>
               <TouchableOpacity onPress={() => setShowRoomModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -346,15 +345,13 @@ export default function AppAdminScreen() {
       </Modal>
 
       <View style={styles.tipBox}>
-        <Text style={styles.tipText}>
-          💡 Once approved, the applicant becomes the club admin and can freely post events without further approval.
-        </Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Info size={13} color={colors.textTertiary} /><Text style={styles.tipText}>Once approved, the applicant becomes the club admin and can freely post events without further approval.</Text></View>
       </View>
 
       {/* Club Creation Requests */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>🏛️ CLUB CREATION REQUESTS ({clubCreationRequests.length})</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CLUB CREATION REQUESTS ({clubCreationRequests.length})</Text></View>
           <TouchableOpacity onPress={loadClubCreationRequests} style={styles.refreshBtn} activeOpacity={0.7}>
             <Text style={styles.refreshBtnText}>↻ Refresh</Text>
           </TouchableOpacity>
@@ -362,7 +359,7 @@ export default function AppAdminScreen() {
 
         {clubCreationRequests.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>🎉</Text>
+            <Gift size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No Pending Requests</Text>
             <Text style={styles.emptyDesc}>All club creation requests have been reviewed.</Text>
           </View>
@@ -392,7 +389,7 @@ export default function AppAdminScreen() {
               >
                 {resolvingClub === req.id
                   ? <ActivityIndicator size="small" color="#0F0F1A" />
-                  : <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 }
               </TouchableOpacity>
               <TouchableOpacity
@@ -401,7 +398,7 @@ export default function AppAdminScreen() {
                 disabled={resolvingClub === req.id}
                 activeOpacity={0.7}
               >
-                <Text style={styles.rejectBtnText}>✕ Reject</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
               </TouchableOpacity>
             </View>
           </View>
@@ -411,7 +408,7 @@ export default function AppAdminScreen() {
       {/* CR Requests */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>📋 CR APPLICATIONS ({crRequests.length})</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CR APPLICATIONS ({crRequests.length})</Text></View>
           <TouchableOpacity onPress={loadCrRequests} style={styles.refreshBtn} activeOpacity={0.7}>
             <Text style={styles.refreshBtnText}>↻ Refresh</Text>
           </TouchableOpacity>
@@ -419,7 +416,7 @@ export default function AppAdminScreen() {
 
         {crRequests.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>🎉</Text>
+            <Gift size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No Pending Applications</Text>
             <Text style={styles.emptyDesc}>All CR applications have been reviewed.</Text>
           </View>
@@ -451,7 +448,7 @@ export default function AppAdminScreen() {
               >
                 {resolvingCR === req.id
                   ? <ActivityIndicator size="small" color="#0F0F1A" />
-                  : <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 }
               </TouchableOpacity>
               <TouchableOpacity
@@ -460,7 +457,7 @@ export default function AppAdminScreen() {
                 disabled={resolvingCR === req.id}
                 activeOpacity={0.7}
               >
-                <Text style={styles.rejectBtnText}>✕ Reject</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
               </TouchableOpacity>
             </View>
           </View>
@@ -468,14 +465,12 @@ export default function AppAdminScreen() {
       </View>
 
       <View style={styles.tipBox}>
-        <Text style={styles.tipText}>
-          💡 Approved CRs can access the CR Dashboard from their profile to manage attendance and class announcements.
-        </Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Info size={13} color={colors.textTertiary} /><Text style={styles.tipText}>Approved CRs can access the CR Dashboard from their profile to manage attendance and class announcements.</Text></View>
       </View>
 
       {/* Manage Clubs & Teams */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>🏛️ MANAGE CLUBS & TEAMS</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MANAGE CLUBS & TEAMS</Text></View>
         {[...hubClubs, ...(userCreatedClubs || [])].map(club => {
           const isHidden = hiddenClubIds?.has(String(club.id));
           return (
@@ -504,7 +499,7 @@ export default function AppAdminScreen() {
                   )}
                   activeOpacity={0.8}
                 >
-                  <Text style={{ fontSize: 16 }}>🗑</Text>
+                  <Trash2 size={16} color={colors.error} />
                 </TouchableOpacity>
               )}
             </View>

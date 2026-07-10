@@ -4,6 +4,7 @@ import { students, hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
+import { Users, Sparkles, MessageCircle, Unlock, Ban, Flag, CircleCheck, Check, X } from 'lucide-react-native';
 
 const REPORT_REASONS = [
   'Harassment or bullying',
@@ -51,9 +52,9 @@ function getProfileExtras(student) {
       sessions: 5 + (seed % 15),
     },
     activity: [
-      { text: `Joined a ${student.course} study group`, time: '2 days ago', icon: '👥' },
-      { text: 'Updated profile interests', time: '5 days ago', icon: '✨' },
-      { text: 'Connected with new students', time: '1 week ago', icon: '🤝' },
+      { text: `Joined a ${student.course} study group`, time: '2 days ago', Icon: Users },
+      { text: 'Updated profile interests', time: '5 days ago', Icon: Sparkles },
+      { text: 'Connected with new students', time: '1 week ago', Icon: Users },
     ],
   };
 }
@@ -206,13 +207,19 @@ export default function ProfileScreen({ route, navigation }) {
           }}
           activeOpacity={0.8}
         >
-          <Text style={[
-            styles.connectBtnText,
-            connected && styles.connectBtnTextActive,
-            pending && styles.connectBtnTextPending,
-          ]}>
-            {connected ? '✓ Connected' : pending ? '⏳ Pending' : '+ Connect'}
-          </Text>
+          {connected ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Check size={15} color={colors.success} />
+              <Text style={[styles.connectBtnText, styles.connectBtnTextActive]}>Connected</Text>
+            </View>
+          ) : (
+            <Text style={[
+              styles.connectBtnText,
+              pending && styles.connectBtnTextPending,
+            ]}>
+              {pending ? 'Pending' : '+ Connect'}
+            </Text>
+          )}
         </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -225,7 +232,7 @@ export default function ProfileScreen({ route, navigation }) {
           })}
           activeOpacity={0.8}
         >
-          <Text style={styles.messageBtnText}>💬</Text>
+          <MessageCircle size={18} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -261,7 +268,7 @@ export default function ProfileScreen({ route, navigation }) {
 
       {/* Clubs */}
       {theirClubs.length > 0 && (
-        <Section label="🏛 CLUBS">
+        <Section label="CLUBS">
           <View style={styles.clubsRow}>
             {theirClubs.map(club => (
               <View key={club.id} style={[styles.clubChip, { borderColor: club.color, backgroundColor: `${club.color}18` }]}>
@@ -279,7 +286,7 @@ export default function ProfileScreen({ route, navigation }) {
         <Section label="RECENT ACTIVITY">
           {extras.activity.map((a, i) => (
             <View key={i} style={styles.activityRow}>
-              <Text style={styles.activityIcon}>{a.icon}</Text>
+              <a.Icon size={14} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.activityText}>{a.text}</Text>
                 <Text style={styles.activityTime}>{a.time}</Text>
@@ -301,7 +308,7 @@ export default function ProfileScreen({ route, navigation }) {
             activeOpacity={0.7}
             onPress={handleBlock}
           >
-            <Text style={styles.menuItemIcon}>{blocked ? '🔓' : '🚫'}</Text>
+            {blocked ? <Unlock size={18} color={colors.textSecondary} /> : <Ban size={18} color={colors.error} />}
             <Text style={styles.menuItemText}>{blocked ? 'Unblock user' : 'Block user'}</Text>
           </TouchableOpacity>
           <View style={styles.menuDivider} />
@@ -310,7 +317,7 @@ export default function ProfileScreen({ route, navigation }) {
             activeOpacity={0.7}
             onPress={() => { setShowMenu(false); setReportReason(''); setReportNote(''); setReportDone(false); setShowReport(true); }}
           >
-            <Text style={styles.menuItemIcon}>🚩</Text>
+            <Flag size={16} color={colors.error} />
             <Text style={[styles.menuItemText, { color: colors.red }]}>Report user</Text>
           </TouchableOpacity>
         </View>
@@ -322,15 +329,15 @@ export default function ProfileScreen({ route, navigation }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>🚩 Report User</Text>
+            <Text style={styles.modalTitle}>Report User</Text>
             <TouchableOpacity onPress={() => setShowReport(false)}>
-              <Text style={styles.modalClose}>✕</Text>
+              <X size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {reportDone ? (
             <View style={styles.reportDone}>
-              <Text style={styles.reportDoneIcon}>✅</Text>
+              <CircleCheck size={32} color={colors.success} />
               <Text style={styles.reportDoneTitle}>Report submitted</Text>
               <Text style={styles.reportDoneSub}>Our admin team will review this and take action if needed.</Text>
               <TouchableOpacity style={styles.reportDoneBtn} onPress={() => setShowReport(false)} activeOpacity={0.8}>

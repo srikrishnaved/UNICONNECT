@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
+import { Calendar, MapPin, Users, Check } from 'lucide-react-native';
 
 export default function EventDetailScreen({ route }) {
   const event = route.params.event;
@@ -45,8 +46,8 @@ export default function EventDetailScreen({ route }) {
 
           {/* Meta */}
           <View style={styles.metaBlock}>
-            <Text style={styles.metaLine}>📅 {event.time}</Text>
-            {!!event.venue && <Text style={styles.metaLine}>📍 {event.venue}</Text>}
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={13} color={colors.textSecondary} /><Text style={styles.metaLine}>{event.time}</Text></View>
+            {!!event.venue && <View style={{flexDirection:'row',alignItems:'center',gap:6}}><MapPin size={13} color={colors.textSecondary} /><Text style={styles.metaLine}>{event.venue}</Text></View>}
           </View>
 
           {/* Description */}
@@ -59,15 +60,18 @@ export default function EventDetailScreen({ route }) {
 
           {/* Interested */}
           <View style={styles.interestedRow}>
-            <Text style={styles.interestedCount}>👥 {displayCount} interested</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Users size={13} color={colors.textSecondary} /><Text style={styles.interestedCount}>{displayCount} interested</Text></View>
             <TouchableOpacity
               style={[styles.interestedBtn, isInterested && styles.interestedBtnActive]}
               onPress={() => toggleEventInterest(event.id)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.interestedBtnText, isInterested && styles.interestedBtnTextActive]}>
-                {isInterested ? '✓ Interested' : '+ Interested'}
-              </Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                {isInterested && <Check size={13} color={colors.primary} />}
+                <Text style={[styles.interestedBtnText, isInterested && styles.interestedBtnTextActive]}>
+                  {isInterested ? 'Interested' : '+ Interested'}
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>

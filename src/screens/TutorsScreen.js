@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, FlatLi
 import { tutors as seedTutors } from '../data';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { BookMarked } from 'lucide-react-native';
+import { BookMarked, Search, Pin, Sparkles, X, CheckCircle2, CreditCard, Clock, Star, Check } from 'lucide-react-native';
 
 const TYPES = ['All', 'Free', 'Paid'];
 const COURSES = ['All', 'BCom IAF', 'BCom F&A', 'BCom IBA'];
@@ -91,7 +91,7 @@ export default function TutorsScreen() {
       {/* Top bar */}
       <View style={styles.topBar}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Search size={18} color={colors.textSecondary} />
           <TextInput
             value={search}
             onChangeText={setSearch}
@@ -154,7 +154,7 @@ export default function TutorsScreen() {
           <>
             {myPostings.length > 0 && (
               <>
-                <Text style={styles.sectionLabel}>📌 MY POSTINGS ({myPostings.length})</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Pin size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY POSTINGS ({myPostings.length})</Text></View>
                 {myPostings.map(t => (
                   <TutorCard
                     key={t.id}
@@ -166,9 +166,7 @@ export default function TutorsScreen() {
               </>
             )}
 
-            <Text style={styles.sectionLabel}>
-              ✨ AVAILABLE TUTORS ({otherPostings.length})
-            </Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>AVAILABLE TUTORS ({otherPostings.length})</Text></View>
             {otherPostings.length === 0 ? (
               <EmptyState icon={BookMarked} heading="No tutors listed yet" subtext="Be the first to offer tutoring in your subject" />
             ) : (
@@ -189,9 +187,9 @@ export default function TutorsScreen() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✨ Post Tuition</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Post Tuition</Text></View>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -285,7 +283,7 @@ export default function TutorsScreen() {
           <View style={styles.bookSheet}>
             {bookingState === 'success' ? (
               <View style={{ alignItems: 'center', padding: spacing.lg }}>
-                <Text style={styles.successIcon}>✓</Text>
+                <CheckCircle2 size={32} color={colors.success} />
                 <Text style={styles.successTitle}>Session Booked!</Text>
                 <Text style={styles.successDesc}>
                   {bookingTutor?.name} will be notified. You'll get a confirmation within 24 hours.
@@ -301,9 +299,9 @@ export default function TutorsScreen() {
             ) : (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>💳 Book Session</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:8}}><CreditCard size={18} color={colors.textPrimary} /><Text style={styles.modalTitle}>Book Session</Text></View>
                   <TouchableOpacity onPress={() => { setBookingTutor(null); setBookingState('idle'); }}>
-                    <Text style={styles.modalClose}>✕</Text>
+                    <X size={22} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
 
@@ -315,7 +313,7 @@ export default function TutorsScreen() {
                       <Text style={styles.bookPriceLabel}>Amount</Text>
                       <Text style={styles.bookPriceValue}>₹{bookingTutor.price}</Text>
                     </View>
-                    <Text style={styles.bookSlot}>🕐 {bookingTutor.slots}</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={14} color={colors.textSecondary} /><Text style={styles.bookSlot}>{bookingTutor.slots}</Text></View>
                   </View>
                 )}
 
@@ -358,7 +356,10 @@ function TutorCard({ tutor, onAction, isMine }) {
             <Text style={styles.name}>{tutor.name}</Text>
             {tutor.verified && (
               <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedText}>✓ Verified</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Check size={12} color={colors.success} />
+                  <Text style={styles.verifiedText}>Verified</Text>
+                </View>
               </View>
             )}
           </View>
@@ -369,7 +370,9 @@ function TutorCard({ tutor, onAction, isMine }) {
           </View>
           {tutor.reviews > 0 && (
             <View style={styles.ratingRow}>
-              <Text style={styles.ratingStars}>{'★'.repeat(Math.floor(tutor.rating))}</Text>
+              <View style={{flexDirection:'row',gap:2}}>
+                {Array.from({length: Math.floor(tutor.rating)}, (_, i) => <Star key={i} size={12} color={colors.warning} fill={colors.warning} />)}
+              </View>
               <Text style={styles.ratingText}>{tutor.rating.toFixed(1)} ({tutor.reviews} reviews)</Text>
             </View>
           )}
@@ -393,7 +396,10 @@ function TutorCard({ tutor, onAction, isMine }) {
       </View>
 
       <View style={styles.cardFooter}>
-        <Text style={styles.slots}>🕐 {tutor.slots}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Clock size={13} color={colors.textSecondary} />
+          <Text style={styles.slots}>{tutor.slots}</Text>
+        </View>
         <TouchableOpacity
           style={[styles.actionBtn, isMine && styles.manageBtn, isFree && !isMine && styles.requestBtn]}
           onPress={onAction}

@@ -11,6 +11,7 @@ import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
 import DocumentationScreen from './DocumentationScreen';
+import { X, Camera, Briefcase, MessageCircle, Link, RefreshCw, Image as ImageIcon, ClipboardList, Zap, Calendar, Megaphone, Users, FileText, Trash2, Layers, LayoutTemplate, Pencil, Check, MapPin, Phone, Lock, Compass, CalendarDays, Landmark, GraduationCap, BookOpen } from 'lucide-react-native';
 
 let ImagePicker = null;
 if (Platform.OS !== 'web') {
@@ -128,8 +129,8 @@ function eventStatusLabel(status) {
     case 'pending_faculty_coordinator': return 'Awaiting Faculty Coordinator';
     case 'pending_saps': return 'Awaiting SAPS';
     case 'pending_hod': return 'Awaiting HOD';
-    case 'approved': return '✓ Approved';
-    case 'rejected': return '✕ Rejected';
+    case 'approved': return 'Approved';
+    case 'rejected': return 'Rejected';
     default: return status || 'Unknown';
   }
 }
@@ -248,10 +249,10 @@ export default function ClubDashboardScreen({
   const WHEN_OPTIONS = ['today', 'thisWeek', 'upcoming'];
   const WHEN_LABELS  = { today: 'Today', thisWeek: 'This Week', upcoming: 'Upcoming' };
   const SOCIAL_PLATFORMS = [
-    { name: 'Instagram', icon: '📸', prefix: 'instagram.com/' },
-    { name: 'LinkedIn',  icon: '💼', prefix: 'linkedin.com/company/' },
-    { name: 'WhatsApp',  icon: '💬', prefix: 'chat.whatsapp.com/' },
-    { name: 'Other',     icon: '🔗', prefix: '' },
+    { name: 'Instagram', Icon: Camera,        prefix: 'instagram.com/' },
+    { name: 'LinkedIn',  Icon: Briefcase,     prefix: 'linkedin.com/company/' },
+    { name: 'WhatsApp',  Icon: MessageCircle, prefix: 'chat.whatsapp.com/' },
+    { name: 'Other',     Icon: Link,          prefix: '' },
   ];
 
   const pickAndUploadLogo = async () => {
@@ -1025,7 +1026,7 @@ export default function ClubDashboardScreen({
       {/* ── Header ── */}
       <View style={[styles.header, { backgroundColor: club.color }]}>
         <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.7}>
-          <Text style={styles.backIcon}>{onClose ? '✕' : '‹'}</Text>
+          {onClose ? <X size={18} color={colors.textSecondary} /> : <Text style={styles.backIcon}>‹</Text>}
         </TouchableOpacity>
         <View style={styles.headerContent}>
           {logoUrl ? (
@@ -1047,7 +1048,7 @@ export default function ClubDashboardScreen({
             >
               {uploadingLogo
                 ? <ActivityIndicator size="small" color="rgba(255,255,255,0.9)" />
-                : <Text style={styles.uploadLogoBtnText}>{logoUrl ? '🔄 Change Logo' : '🖼️ Upload Logo'}</Text>
+                : <View style={{flexDirection:'row',alignItems:'center',gap:6}}>{logoUrl ? <RefreshCw size={13} color="rgba(255,255,255,0.9)" /> : <ImageIcon size={13} color="rgba(255,255,255,0.9)" />}<Text style={styles.uploadLogoBtnText}>{logoUrl ? 'Change Logo' : 'Upload Logo'}</Text></View>
               }
             </TouchableOpacity>
           )}
@@ -1086,7 +1087,7 @@ export default function ClubDashboardScreen({
           activeOpacity={0.82}
         >
           <View style={[styles.teamDashBannerIcon, { backgroundColor: club.color + '22' }]}>
-            <Text style={{ fontSize: 22 }}>📋</Text>
+            <ClipboardList size={22} color={club.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.teamDashBannerTitle, { color: club.color }]}>Event Assignments</Text>
@@ -1103,10 +1104,10 @@ export default function ClubDashboardScreen({
           {/* ── Admin Actions ── */}
           {canWrite && (
             <View style={styles.section}>
-              <SectionHeader label="⚡ ADMIN ACTIONS" />
+              <SectionHeader label="ADMIN ACTIONS" />
               {club.type !== 'Team' && (
                 <TouchableOpacity style={styles.adminActionBtn} onPress={() => setShowPostHubEvent(true)} activeOpacity={0.85}>
-                  <Text style={styles.adminActionIcon}>📅</Text>
+                  <Calendar size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.adminActionTitle}>Post a new event</Text>
                     <Text style={styles.adminActionDesc}>Add to the Hub events feed</Text>
@@ -1116,7 +1117,7 @@ export default function ClubDashboardScreen({
               )}
               {club.type !== 'Team' && (
                 <TouchableOpacity style={styles.adminActionBtn} onPress={() => setShowRecruitment(true)} activeOpacity={0.85}>
-                  <Text style={styles.adminActionIcon}>📣</Text>
+                  <Megaphone size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.adminActionTitle}>Open recruitment</Text>
                     <Text style={styles.adminActionDesc}>Find new members</Text>
@@ -1125,7 +1126,7 @@ export default function ClubDashboardScreen({
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={styles.adminActionBtn} onPress={() => setShowAllMembers(true)} activeOpacity={0.85}>
-                <Text style={styles.adminActionIcon}>👥</Text>
+                <Users size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.adminActionTitle}>Manage members</Text>
                   <Text style={styles.adminActionDesc}>{members.length} members · view & manage</Text>
@@ -1141,7 +1142,7 @@ export default function ClubDashboardScreen({
                   setShowJoinReview(true);
                 }}
               >
-                <Text style={styles.adminActionIcon}>📋</Text>
+                <ClipboardList size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.adminActionTitle}>Review join requests</Text>
                   <Text style={styles.adminActionDesc}>Approve or reject member applications</Text>
@@ -1157,7 +1158,7 @@ export default function ClubDashboardScreen({
                   setShowSocialModal(true);
                 }}
               >
-                <Text style={styles.adminActionIcon}>🔗</Text>
+                <Link size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.adminActionTitle}>Update social link</Text>
                   <Text style={styles.adminActionDesc}>
@@ -1167,7 +1168,7 @@ export default function ClubDashboardScreen({
                 <Text style={styles.adminActionArrow}>›</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.adminActionBtn} onPress={() => setShowDocsModal(true)} activeOpacity={0.85}>
-                <Text style={styles.adminActionIcon}>📄</Text>
+                <FileText size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.adminActionTitle}>Documents</Text>
                   <Text style={styles.adminActionDesc}>Submit NFAs &amp; Activity Reports</Text>
@@ -1176,7 +1177,7 @@ export default function ClubDashboardScreen({
               </TouchableOpacity>
               {(isCoordinator || (isAppAdmin && !adminTestTeacher)) && (
                 <TouchableOpacity style={styles.deleteClubBtn} onPress={handleDeleteClub} activeOpacity={0.85}>
-                  <Text style={styles.adminActionIcon}>🗑</Text>
+                  <Trash2 size={18} color={colors.textSecondary} style={styles.adminActionIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.deleteClubTitle}>Delete club</Text>
                     <Text style={styles.adminActionDesc}>Permanently remove this club</Text>
@@ -1189,7 +1190,7 @@ export default function ClubDashboardScreen({
           {/* ── My Wing (member self-assignment) — shown at top so members see it first ── */}
           {wings.length > 0 && !!userProfile && !teacherProfile && (
             <View style={styles.section}>
-              <SectionHeader label="🪂 MY WING" />
+              <SectionHeader label="MY WING" />
               <Text style={styles.wingPickerHint}>Select the wing you belong to:</Text>
               {wings.map(w => {
                 const selected = myCurrentWing === w.wing_name;
@@ -1203,7 +1204,7 @@ export default function ClubDashboardScreen({
                   >
                     <View style={[styles.wingDot, { backgroundColor: club.color }]} />
                     <Text style={[styles.wingPickerText, selected && styles.wingPickerTextSelected]}>{w.wing_name}</Text>
-                    {selected && <Text style={{ color: club.color, fontSize: 16, ...font.bold }}>✓</Text>}
+                    {selected && <Check size={16} color={club.color} />}
                   </TouchableOpacity>
                 );
               })}
@@ -1212,7 +1213,7 @@ export default function ClubDashboardScreen({
 
           {/* ── Upcoming Events ── */}
           <View style={styles.section}>
-            <SectionHeader label={`📅 UPCOMING EVENTS (${clubEvents.length})`} />
+            <SectionHeader label={`UPCOMING EVENTS (${clubEvents.length})`} />
             {clubEvents.length === 0 ? (
               <EmptyState text="No upcoming events." />
             ) : (
@@ -1223,7 +1224,10 @@ export default function ClubDashboardScreen({
                     <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.eventTitle}>{e.title}</Text>
-                        <Text style={styles.eventMeta}>📅 {e.time}  📍 {e.venue}</Text>
+                        <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:8,marginTop:2}}>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{e.time}</Text></View>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><MapPin size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{e.venue}</Text></View>
+                        </View>
                       </View>
                       {canWrite && (
                         <TouchableOpacity
@@ -1241,7 +1245,7 @@ export default function ClubDashboardScreen({
                           activeOpacity={0.7}
                           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
-                          <Text style={styles.deleteIconText}>🗑</Text>
+                          <Trash2 size={16} color={colors.textSecondary} />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -1249,7 +1253,7 @@ export default function ClubDashboardScreen({
                     {canWrite && (
                       <View style={styles.eventCardActions}>
                         <TouchableOpacity style={styles.trackerBtn} onPress={() => openTracker(e)} activeOpacity={0.8}>
-                          <Text style={styles.trackerBtnText}>📋 Track Progress</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:5}}><ClipboardList size={13} color={colors.textSecondary} /><Text style={styles.trackerBtnText}>Track Progress</Text></View>
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.nfaBtn}
@@ -1268,7 +1272,7 @@ export default function ClubDashboardScreen({
                             setShowDocsModal(true);
                           }}
                         >
-                          <Text style={styles.nfaBtnText}>📄 Create NFA</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:5}}><FileText size={13} color={colors.textSecondary} /><Text style={styles.nfaBtnText}>Create NFA</Text></View>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -1281,7 +1285,7 @@ export default function ClubDashboardScreen({
           {/* ── Team Members ── */}
           <View style={styles.section}>
             <SectionHeader
-              label={`👥 TEAM MEMBERS (${members.length})`}
+              label={`TEAM MEMBERS (${members.length})`}
               action={members.length > 6 ? (
                 <TouchableOpacity onPress={() => setShowAllMembers(true)} activeOpacity={0.7}>
                   <Text style={styles.seeAll}>See all</Text>
@@ -1328,7 +1332,7 @@ export default function ClubDashboardScreen({
           {/* ── Wings & Responsibilities ── */}
           <View style={styles.section}>
             <SectionHeader
-              label="🏗 WINGS & RESPONSIBILITIES"
+              label="WINGS & RESPONSIBILITIES"
               action={canWrite ? (
                 <TouchableOpacity onPress={() => setShowAddWing(true)} activeOpacity={0.7} style={styles.addBtn}>
                   <Text style={styles.addBtnText}>+ Add Wing</Text>
@@ -1353,7 +1357,7 @@ export default function ClubDashboardScreen({
                         </View>
                         {canWrite && (
                           <TouchableOpacity onPress={() => deleteWing(w.id)} activeOpacity={0.7} style={styles.deleteIcon} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                            <Text style={styles.deleteIconText}>✕</Text>
+                            <X size={14} color={colors.textSecondary} />
                           </TouchableOpacity>
                         )}
                       </View>
@@ -1372,7 +1376,7 @@ export default function ClubDashboardScreen({
           {(canWrite) && (
             <View style={styles.section}>
               <SectionHeader
-                label={`📅 EVENT REQUESTS (${clubEventList.length})`}
+                label={`EVENT REQUESTS (${clubEventList.length})`}
                 action={
                   <TouchableOpacity onPress={() => { setShowEventModal(true); setEventError(''); }} activeOpacity={0.7} style={styles.addBtn}>
                     <Text style={styles.addBtnText}>+ Request</Text>
@@ -1396,7 +1400,7 @@ export default function ClubDashboardScreen({
                           </View>
                           {canWrite && (
                             <TouchableOpacity onPress={() => deleteClubEvent(ev)} activeOpacity={0.7}>
-                              <Text style={{ fontSize: 15 }}>🗑</Text>
+                              <Trash2 size={15} color={colors.textSecondary} />
                             </TouchableOpacity>
                           )}
                         </View>
@@ -1415,7 +1419,7 @@ export default function ClubDashboardScreen({
           {canWrite && (
             <View style={styles.section}>
               <SectionHeader
-                label="⏱ MEMBER HOURS"
+                label="MEMBER HOURS"
                 action={hoursLoading
                   ? <ActivityIndicator size="small" color={colors.primary} />
                   : <TouchableOpacity onPress={loadHours} activeOpacity={0.7} style={styles.addBtn}>
@@ -1502,7 +1506,7 @@ export default function ClubDashboardScreen({
           {/* ── Notices Board ── */}
           <View style={styles.section}>
             <SectionHeader
-              label="📌 NOTICES BOARD"
+              label="NOTICES BOARD"
               action={canWrite ? (
                 <TouchableOpacity onPress={() => setShowAddNotice(true)} activeOpacity={0.7} style={styles.addBtn}>
                   <Text style={styles.addBtnText}>+ Post</Text>
@@ -1518,7 +1522,7 @@ export default function ClubDashboardScreen({
                     <Text style={styles.noticeTitle}>{n.title}</Text>
                     {canWrite && (
                       <TouchableOpacity onPress={() => deleteNotice(n.id)} activeOpacity={0.7} style={styles.deleteIcon}>
-                        <Text style={styles.deleteIconText}>✕</Text>
+                        <X size={14} color={colors.textSecondary} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -1534,7 +1538,7 @@ export default function ClubDashboardScreen({
           {/* ── Resource Persons ── */}
           <View style={styles.section}>
             <SectionHeader
-              label="🎤 RESOURCE PERSONS"
+              label="RESOURCE PERSONS"
               action={canWrite ? (
                 <TouchableOpacity onPress={() => setShowAddRP(true)} activeOpacity={0.7} style={styles.addBtn}>
                   <Text style={styles.addBtnText}>+ Add</Text>
@@ -1554,12 +1558,12 @@ export default function ClubDashboardScreen({
                   <View style={{ flex: 1 }}>
                     <Text style={styles.rpName}>{r.name}</Text>
                     {r.designation ? <Text style={styles.rpMeta}>{r.designation}</Text> : null}
-                    {r.event_name ? <Text style={styles.rpEvent}>📅 {r.event_name}</Text> : null}
-                    {r.contact ? <Text style={styles.rpContact}>📞 {r.contact}</Text> : null}
+                    {r.event_name ? <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Calendar size={11} color={colors.textSecondary} /><Text style={styles.rpEvent}>{r.event_name}</Text></View> : null}
+                    {r.contact ? <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Phone size={11} color={colors.textSecondary} /><Text style={styles.rpContact}>{r.contact}</Text></View> : null}
                   </View>
                   {canWrite && (
                     <TouchableOpacity onPress={() => deleteRP(r.id)} activeOpacity={0.7} style={styles.deleteIcon}>
-                      <Text style={styles.deleteIconText}>✕</Text>
+                      <X size={14} color={colors.textSecondary} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -1572,12 +1576,12 @@ export default function ClubDashboardScreen({
   );
 
   const BOTTOM_TABS = [
-    { key: 'Discover', icon: '🧭', label: 'Discover' },
-    { key: 'Planner',  icon: '🗓️', label: 'Planner'  },
-    { key: 'Hub',      icon: '🏛️', label: 'Hub'      },
-    { key: 'Groups',   icon: '👥', label: 'Groups'   },
-    { key: 'Mentors',  icon: '🎓', label: 'Mentors'  },
-    { key: 'Teachers', icon: '📖', label: 'Teachers' },
+    { key: 'Discover', Icon: Compass,       label: 'Discover' },
+    { key: 'Planner',  Icon: CalendarDays,  label: 'Planner'  },
+    { key: 'Hub',      Icon: Landmark,      label: 'Hub'      },
+    { key: 'Groups',   Icon: Users,         label: 'Groups'   },
+    { key: 'Mentors',  Icon: GraduationCap, label: 'Mentors'  },
+    { key: 'Teachers', Icon: BookOpen,      label: 'Teachers' },
   ];
 
   const bottomNav = !onClose ? (
@@ -1589,7 +1593,7 @@ export default function ClubDashboardScreen({
           onPress={() => navigation.navigate('Main', { screen: tab.key })}
           activeOpacity={0.7}
         >
-          <Text style={styles.bottomNavIcon}>{tab.icon}</Text>
+          <tab.Icon size={20} color={colors.textTertiary} />
           <Text style={styles.bottomNavLabel}>{tab.label}</Text>
         </TouchableOpacity>
       ))}
@@ -1612,9 +1616,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>👥 All Members ({members.length})</Text>
+              <Text style={styles.modalTitle}>All Members ({members.length})</Text>
               <TouchableOpacity onPress={() => setShowAllMembers(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
@@ -1652,9 +1656,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <View style={[styles.modal, { maxHeight: 340 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>⏱ Set Hours</Text>
+              <Text style={styles.modalTitle}>Set Hours</Text>
               <TouchableOpacity onPress={() => { setShowSetHoursModal(false); setSetHoursTarget(null); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.memberRowName}>{setHoursTarget?.name}</Text>
@@ -1689,9 +1693,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📌 Post Notice</Text>
+              <Text style={styles.modalTitle}>Post Notice</Text>
               <TouchableOpacity onPress={() => { setShowAddNotice(false); setNoticeForm({ title: '', body: '' }); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>TITLE *</Text>
@@ -1728,9 +1732,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🏗 Add Wing</Text>
+              <Text style={styles.modalTitle}>Add Wing</Text>
               <TouchableOpacity onPress={() => { setShowAddWing(false); setWingForm({ wing_name: '', responsibilities: '' }); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>WING NAME *</Text>
@@ -1767,9 +1771,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <View style={[styles.modal, { paddingBottom: 8 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✏️ Set Role</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Pencil size={15} color={colors.textSecondary} /><Text style={styles.modalTitle}>Set Role</Text></View>
               <TouchableOpacity onPress={() => setEditingMember(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {editingMember && (
@@ -1799,7 +1803,7 @@ export default function ClubDashboardScreen({
                       <Text style={[styles.roleOptionText, selected && styles.roleOptionTextSelected]}>
                         {opt}
                       </Text>
-                      {selected && <Text style={styles.roleOptionCheck}>✓</Text>}
+                      {selected && <Check size={14} color={colors.primary} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -1868,9 +1872,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🎤 Add Resource Person</Text>
+              <Text style={styles.modalTitle}>Add Resource Person</Text>
               <TouchableOpacity onPress={() => { setShowAddRP(false); setRpForm({ name: '', designation: '', contact: '', event_name: '' }); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>NAME *</Text>
@@ -1924,9 +1928,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📅 Request Event</Text>
+              <Text style={styles.modalTitle}>Request Event</Text>
               <TouchableOpacity onPress={() => { setShowEventModal(false); setEventForm({ name: '', description: '', date: '', startTime: '', endTime: '' }); setEventError(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>EVENT NAME *</Text>
@@ -1966,7 +1970,7 @@ export default function ClubDashboardScreen({
                   ? (() => { const [y,m,d] = eventForm.date.split('-'); return `${d}/${m}/${y}`; })()
                   : 'Select date'}
               </Text>
-              <Text style={styles.datePickerIcon}>📅</Text>
+              <Calendar size={16} color={colors.textSecondary} />
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
@@ -2094,7 +2098,7 @@ export default function ClubDashboardScreen({
                 {/* Header */}
                 <View style={[styles.trackerHeader, { backgroundColor: club.color }]}>
                   <TouchableOpacity onPress={() => { setTrackingEvent(null); setUndoStep(null); }} style={styles.backBtn} activeOpacity={0.7}>
-                    <Text style={styles.backIcon}>✕</Text>
+                    <X size={18} color="rgba(255,255,255,0.9)" />
                   </TouchableOpacity>
                   <View style={{ flex: 1, paddingHorizontal: spacing.md }}>
                     <Text style={styles.trackerHeaderTitle} numberOfLines={1}>{trackingEvent.title}</Text>
@@ -2143,8 +2147,8 @@ export default function ClubDashboardScreen({
                             disabled={isLocked}
                             activeOpacity={0.7}
                           >
-                            {isCompleted && <Text style={styles.stepCheckTick}>✓</Text>}
-                            {isLocked && <Text style={styles.stepLockIcon}>🔒</Text>}
+                            {isCompleted && <Check size={14} color="#fff" />}
+                            {isLocked && <Lock size={13} color={colors.textTertiary} />}
                           </TouchableOpacity>
                           {/* Label */}
                           <View style={{ flex: 1, paddingLeft: spacing.md }}>
@@ -2157,7 +2161,7 @@ export default function ClubDashboardScreen({
                           </View>
                           {/* Delete */}
                           <TouchableOpacity style={styles.stepDelete} onPress={() => deleteTrackerStep(step)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                            <Text style={styles.stepDeleteIcon}>🗑</Text>
+                            <Trash2 size={16} color={colors.textTertiary} />
                           </TouchableOpacity>
                         </View>
                       );
@@ -2231,14 +2235,14 @@ export default function ClubDashboardScreen({
                 ) : null}
               </View>
               <TouchableOpacity onPress={() => setSelectedWing(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {selectedWing && (() => {
               const wingMembers = members.filter(m => m.wing === selectedWing.wing_name);
               return wingMembers.length === 0 ? (
-                <View style={{ paddingVertical: 32, alignItems: 'center' }}>
-                  <Text style={{ fontSize: 28, marginBottom: 8 }}>👥</Text>
+                <View style={{ paddingVertical: 32, alignItems: 'center', gap: 8 }}>
+                  <Users size={28} color={colors.textSecondary} />
                   <Text style={{ color: colors.textSecondary, fontSize: 14 }}>No members in this wing yet.</Text>
                 </View>
               ) : (
@@ -2267,9 +2271,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📅 Post Event</Text>
+              <Text style={styles.modalTitle}>Post Event</Text>
               <TouchableOpacity onPress={() => setShowPostHubEvent(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>EVENT TITLE *</Text>
@@ -2328,9 +2332,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📣 Open Recruitment</Text>
+              <Text style={styles.modalTitle}>Open Recruitment</Text>
               <TouchableOpacity onPress={() => setShowRecruitment(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>ROLE / POSITION *</Text>
@@ -2353,9 +2357,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📋 Join Requests</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={15} color={colors.textSecondary} /><Text style={styles.modalTitle}>Join Requests</Text></View>
               <TouchableOpacity onPress={() => setShowJoinReview(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {joinReviewList.length === 0 ? (
@@ -2406,9 +2410,9 @@ export default function ClubDashboardScreen({
       <Modal visible={showDocsModal} animationType="slide" transparent={false} onRequestClose={() => setShowDocsModal(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>📄 Documents</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:8}}><FileText size={16} color={colors.textPrimary} /><Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>Documents</Text></View>
             <TouchableOpacity onPress={() => setShowDocsModal(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={{ fontSize: 22, color: colors.textSecondary, lineHeight: 26 }}>✕</Text>
+              <X size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <DocumentationScreen
@@ -2435,9 +2439,9 @@ export default function ClubDashboardScreen({
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🔗 Social Link</Text>
+              <Text style={styles.modalTitle}>Social Link</Text>
               <TouchableOpacity onPress={() => setShowSocialModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>PLATFORM</Text>
@@ -2448,7 +2452,7 @@ export default function ClubDashboardScreen({
                     borderRadius: radius.full, borderWidth: 1,
                     borderColor: socialPlatform === p.name ? colors.primary : colors.border,
                     backgroundColor: socialPlatform === p.name ? colors.primaryLight : colors.card }}>
-                  <Text style={{ fontSize: 14 }}>{p.icon}</Text>
+                  <p.Icon size={14} color={socialPlatform === p.name ? colors.primary : colors.textSecondary} />
                   <Text style={{ fontSize: 12, color: socialPlatform === p.name ? colors.primary : colors.textSecondary, ...font.semibold }}>{p.name}</Text>
                 </TouchableOpacity>
               ))}

@@ -11,6 +11,7 @@ import {
   radius as tRadius,
   shadows,
 } from '../theme/tokens';
+import { ChevronLeft, X, Sparkles, Check } from 'lucide-react-native';
 import { NAAC_MASTER_TEMPLATE } from '../data/naacMasterTemplate';
 
 const CRITERION_IDS = Object.keys(NAAC_MASTER_TEMPLATE).map(Number).sort((a, b) => a - b);
@@ -319,7 +320,7 @@ export default function NAACScreen({ visible, onClose, userProfile }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={selectedMetric ? closeDetail : onClose} activeOpacity={0.7} style={{ padding: 4 }}>
-            <Text style={{ fontSize: 18, color: tColors.textSecondary }}>{selectedMetric ? '←' : '✕'}</Text>
+            {selectedMetric ? <ChevronLeft size={20} color={tColors.textPrimary} /> : <X size={20} color={tColors.textPrimary} />}
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={styles.headerTitle}>
@@ -359,7 +360,7 @@ export default function NAACScreen({ visible, onClose, userProfile }) {
               >
                 {generating
                   ? <ActivityIndicator size="small" color={tColors.student.primary} />
-                  : <Text style={styles.generateBtnText}>✨ Generate AI Content</Text>}
+                  : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={14} color={tColors.student.primary} /><Text style={styles.generateBtnText}>Generate AI Content</Text></View>}
               </TouchableOpacity>
             )}
 
@@ -391,7 +392,7 @@ export default function NAACScreen({ visible, onClose, userProfile }) {
                 disabled={saving}
                 activeOpacity={0.85}
               >
-                {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.completeBtnText}>Mark Complete ✓</Text>}
+                {saving ? <ActivityIndicator size="small" color="#fff" /> : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Text style={styles.completeBtnText}>Mark Complete</Text><Check size={14} color={tColors.success} /></View>}
               </TouchableOpacity>
             </View>
           </ScrollView>

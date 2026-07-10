@@ -16,6 +16,7 @@ import {
   shadows,
   presets,
 } from '../theme/tokens';
+import { Timer, Sparkles, BookOpen, FilePen, Trash2, Calendar, Cpu, Check, File, FolderOpen, X } from 'lucide-react-native';
 
 const DAYS_OF_WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -371,7 +372,7 @@ export default function StudyPlannerScreen() {
               <Text style={styles.primaryBtnText}>+ Add Exam</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => setShowAvailability(true)} activeOpacity={0.85}>
-              <Text style={styles.secondaryBtnText}>⏱ Availability</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Timer size={14} color={colors.textSecondary} /><Text style={styles.secondaryBtnText}>Availability</Text></View>
             </TouchableOpacity>
           </View>
 
@@ -386,7 +387,7 @@ export default function StudyPlannerScreen() {
               >
                 {generating
                   ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={styles.generateBtnText}>✦ Generate with SAGE</Text>}
+                  : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={14} color={colors.accent} /><Text style={styles.generateBtnText}>Generate with SAGE</Text></View>}
               </TouchableOpacity>
               {generating && (
                 <Text style={styles.generateHint}>
@@ -397,7 +398,7 @@ export default function StudyPlannerScreen() {
                 <Text style={styles.generateError}>{generateError}</Text>
               ) : null}
               <Text style={styles.aiDisclaimer}>AI-generated content should be reviewed before official use. Content may be processed by Anthropic's API.</Text>
-              <Text style={styles.poweredBy}>✦ Powered by SAGE</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6,justifyContent:'center'}}><Sparkles size={13} color={colors.textTertiary} /><Text style={styles.poweredBy}>Powered by SAGE</Text></View>
             </View>
           )}
 
@@ -406,7 +407,7 @@ export default function StudyPlannerScreen() {
             <ActivityIndicator color={tColors.student.primary} style={{ marginVertical: 40 }} />
           ) : exams.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyIcon}>📚</Text>
+              <BookOpen size={36} color={tColors.textTertiary} />
               <Text style={styles.emptyTitle}>No exams on record yet.</Text>
               <Text style={styles.emptySub}>
                 Add an exam and let SAGE build your study plan.
@@ -421,7 +422,7 @@ export default function StudyPlannerScreen() {
                 return (
                   <View key={exam.id} style={styles.examCard}>
                     <View style={styles.examIconBox}>
-                      <Text style={styles.examEmoji}>📝</Text>
+                      <FilePen size={18} color={tColors.textSecondary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.examSubject} numberOfLines={1}>{exam.subject_name}</Text>
@@ -452,7 +453,7 @@ export default function StudyPlannerScreen() {
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.examDeleteIcon}>🗑</Text>
+                      <Trash2 size={16} color={colors.error} />
                     </TouchableOpacity>
                   </View>
                 );
@@ -468,7 +469,7 @@ export default function StudyPlannerScreen() {
 
         if (exams.length === 0) return (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>📅</Text>
+            <Calendar size={36} color={tColors.textTertiary} />
             <Text style={styles.emptyTitle}>No exams on record yet.</Text>
             <Text style={styles.emptySub}>Head to the Study Plan tab and add an exam. SAGE will handle the rest.</Text>
           </View>
@@ -476,7 +477,7 @@ export default function StudyPlannerScreen() {
 
         if (!hasScheduled) return (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>🤖</Text>
+            <Cpu size={36} color={tColors.textTertiary} />
             <Text style={styles.emptyTitle}>Ready to build your study plan.</Text>
             <Text style={styles.emptySub}>
               Go to the Study Plan tab and tap "Generate with SAGE" to get started.
@@ -561,7 +562,7 @@ export default function StudyPlannerScreen() {
                 >
                   {regenerating
                     ? <ActivityIndicator color="#fff" size="small" />
-                    : <Text style={styles.regenBtnText}>✦ SAGE — Recalculate</Text>}
+                    : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={14} color={colors.accent} /><Text style={styles.regenBtnText}>SAGE — Recalculate</Text></View>}
                 </TouchableOpacity>
               </View>
             )}
@@ -608,7 +609,7 @@ export default function StudyPlannerScreen() {
                         const color = examColorMap[e.id];
                         return (
                           <View key={e.id} style={[styles.examDayPill, { backgroundColor: color?.bg, borderColor: color?.border }]}>
-                            <Text style={{ fontSize: 13 }}>📝</Text>
+                            <FilePen size={13} color={colors.textSecondary} />
                             <Text style={[styles.examDayPillText, { color: color?.text }]}>{e.subject_name} — Exam Day</Text>
                           </View>
                         );
@@ -657,7 +658,7 @@ export default function StudyPlannerScreen() {
                               onPress={() => toggleTopicDone(topic)}
                               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                             >
-                              {done && <Text style={styles.calCheckmark}>✓</Text>}
+                              {done && <Check size={12} color={colors.success} />}
                             </TouchableOpacity>
                             <View style={{ flex: 1, minWidth: 0 }}>
                               <Text style={[styles.calTopicName, done && styles.calTopicNameDone]} numberOfLines={2}>
@@ -668,7 +669,7 @@ export default function StudyPlannerScreen() {
                               </Text>
                             </View>
                             {isSelected
-                              ? <Text style={[styles.calSelIcon, { color: color.text }]}>✦</Text>
+                              ? <Sparkles size={10} color={color.text} />
                               : !done && <Text style={styles.calGrabIcon}>⋮⋮</Text>}
                           </TouchableOpacity>
                         );
@@ -706,7 +707,7 @@ export default function StudyPlannerScreen() {
                         <Text style={styles.calTopicSubject}>{topic.study_exams?.subject_name}</Text>
                       </View>
                       {isSelected
-                        ? <Text style={[styles.calSelIcon, { color: color.text }]}>✦</Text>
+                        ? <Sparkles size={10} color={color.text} />
                         : <Text style={styles.calGrabIcon}>⋮⋮</Text>}
                     </TouchableOpacity>
                   );
@@ -732,7 +733,7 @@ export default function StudyPlannerScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Add Exam</Text>
               <TouchableOpacity onPress={() => setShowAddExam(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -791,7 +792,7 @@ export default function StudyPlannerScreen() {
               <View style={styles.filePickerArea}>
                 {selectedFile ? (
                   <View style={styles.fileSelected}>
-                    <Text style={styles.fileSelectedIcon}>📄</Text>
+                    <File size={16} color={colors.textSecondary} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.fileSelectedName} numberOfLines={1}>{selectedFile.name}</Text>
                       <Text style={styles.fileSelectedSize}>{(selectedFile.size / 1024).toFixed(1)} KB</Text>
@@ -800,12 +801,12 @@ export default function StudyPlannerScreen() {
                       onPress={() => setSelectedFile(null)}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Text style={styles.fileRemove}>✕</Text>
+                      <X size={16} color={colors.error} />
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity style={styles.filePickerBtn} onPress={pickFile} activeOpacity={0.8}>
-                    <Text style={styles.filePickerBtnIcon}>📁</Text>
+                    <FolderOpen size={16} color={colors.textSecondary} />
                     <Text style={styles.filePickerBtnLabel}>Choose File</Text>
                     <Text style={styles.filePickerBtnHint}>PDF only</Text>
                   </TouchableOpacity>
@@ -836,7 +837,7 @@ export default function StudyPlannerScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Date</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -916,7 +917,7 @@ export default function StudyPlannerScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Study Availability</Text>
               <TouchableOpacity onPress={() => setShowAvailability(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -1398,7 +1399,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },
-  calCheckboxDone: { backgroundColor: '#10B981', borderColor: '#10B981' },
+  calCheckboxDone: { backgroundColor: tColors.success, borderColor: tColors.success },
   calCheckmark: { fontSize: 11, color: '#fff', fontWeight: typography.bold },
   calTopicName: { fontSize: 13, fontWeight: typography.semibold, color: tColors.textPrimary, marginBottom: 1 },
   calTopicNameDone: { textDecorationLine: 'line-through', color: tColors.textTertiary },

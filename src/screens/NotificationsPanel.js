@@ -17,7 +17,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { hubClubs, teachers } from '../data';
 import { EmptyState } from '../components/EmptyState';
-import { Bell } from 'lucide-react-native';
+import { Bell, MessageCircle, Calendar, GraduationCap, Users, Gift, Target, X, Check } from 'lucide-react-native';
 
 function timeAgo(ts) {
   const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
@@ -82,14 +82,14 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
 
   const unread = notifs.filter(n => !n.read).length;
 
-  const iconFor = (type) => {
-    if (type === 'dm') return '💬';
-    if (type === 'event') return '📅';
-    if (type === 'mentor') return '🎓';
-    if (type === 'connection') return '🤝';
-    if (type === 'invite') return '🎉';
-    if (type === 'assignment') return '🎯';
-    return '🔔';
+  const NotifIcon = ({ type, size = 20 }) => {
+    if (type === 'dm') return <MessageCircle size={size} color={tColors.textSecondary} />;
+    if (type === 'event') return <Calendar size={size} color={tColors.textSecondary} />;
+    if (type === 'mentor') return <GraduationCap size={size} color={tColors.textSecondary} />;
+    if (type === 'connection') return <Users size={size} color={tColors.textSecondary} />;
+    if (type === 'invite') return <Gift size={size} color={tColors.textSecondary} />;
+    if (type === 'assignment') return <Target size={size} color={tColors.textSecondary} />;
+    return <Bell size={size} color={tColors.textSecondary} />;
   };
 
 
@@ -205,7 +205,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                 </TouchableOpacity>
               )}
               <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-                <Text style={styles.closeText}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -253,7 +253,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                     disabled={!isDM}
                   >
                     <View style={[styles.iconBox, !n.read && styles.iconBoxUnread]}>
-                      <Text style={styles.iconText}>{iconFor(n.type)}</Text>
+                      <NotifIcon type={n.type} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.itemTitle, !n.read && styles.itemTitleUnread]} numberOfLines={2}>
@@ -270,7 +270,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                           >
                             {resolving === n.meta.invite_id
                               ? <ActivityIndicator size="small" color="#fff" />
-                              : <Text style={styles.acceptBtnText}>✓ Accept</Text>
+                              : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={tColors.success} /><Text style={styles.acceptBtnText}>Accept</Text></View>
                             }
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -279,7 +279,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                             disabled={resolving === n.meta.invite_id}
                             activeOpacity={0.8}
                           >
-                            <Text style={styles.declineBtnText}>✗ Decline</Text>
+                            <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={tColors.error} /><Text style={styles.declineBtnText}>Decline</Text></View>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -293,7 +293,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                           >
                             {resolving === n.meta.request_id
                               ? <ActivityIndicator size="small" color="#fff" />
-                              : <Text style={styles.acceptBtnText}>✓ Accept</Text>
+                              : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={tColors.success} /><Text style={styles.acceptBtnText}>Accept</Text></View>
                             }
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -302,7 +302,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                             disabled={resolving === n.meta.request_id}
                             activeOpacity={0.8}
                           >
-                            <Text style={styles.declineBtnText}>✗ Decline</Text>
+                            <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={tColors.error} /><Text style={styles.declineBtnText}>Decline</Text></View>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -316,7 +316,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                           >
                             {resolving === n.meta.slot_id
                               ? <ActivityIndicator size="small" color="#fff" />
-                              : <Text style={styles.approveBtnText}>✓ Approve</Text>
+                              : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={tColors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                             }
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -325,7 +325,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                             disabled={!!resolving}
                             activeOpacity={0.8}
                           >
-                            <Text style={styles.rejectBtnText}>✗ Reject</Text>
+                            <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={tColors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -338,7 +338,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                         activeOpacity={0.7}
                         style={styles.clearOneBtn}
                       >
-                        <Text style={styles.clearOneText}>✕</Text>
+                        <X size={16} color={tColors.textTertiary} />
                       </TouchableOpacity>
                     </View>
                   </TouchableOpacity>

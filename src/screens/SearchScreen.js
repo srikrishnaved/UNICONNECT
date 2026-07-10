@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { Search, Users, Star } from 'lucide-react-native';
+import { Search, Users, Star, X, User, Landmark } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
@@ -70,7 +70,7 @@ export default function SearchScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       {/* Search bar */}
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Search size={18} color={colors.textSecondary} />
         <TextInput
           value={query}
           onChangeText={search}
@@ -83,7 +83,7 @@ export default function SearchScreen({ navigation }) {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => { setQuery(''); setStudents([]); setDbClubs([]); setSearched(false); }}>
-            <Text style={styles.clearBtn}>✕</Text>
+            <X size={16} color={colors.textTertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -91,7 +91,7 @@ export default function SearchScreen({ navigation }) {
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
         {!searched && (
           <View style={styles.hint}>
-            <Text style={styles.hintIcon}>🔍</Text>
+            <Search size={36} color={colors.textSecondary} />
             <Text style={styles.hintText}>Search for students, study groups, or clubs</Text>
           </View>
         )}
@@ -99,7 +99,7 @@ export default function SearchScreen({ navigation }) {
         {/* Students */}
         {searched && (
           <View>
-            <Text style={styles.sectionLabel}>👤 STUDENTS</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:spacing.lg,paddingTop:spacing.lg,paddingBottom:spacing.xs}}><User size={13} color={colors.textTertiary} /><Text style={[styles.sectionLabel,{paddingHorizontal:0,paddingTop:0,paddingBottom:0}]}>STUDENTS</Text></View>
             {loading ? (
               <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
             ) : students.length === 0 ? (
@@ -134,7 +134,7 @@ export default function SearchScreen({ navigation }) {
         {/* Clubs */}
         {searched && (
           <View>
-            <Text style={styles.sectionLabel}>🏛️ CLUBS & TEAMS</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:spacing.lg,paddingTop:spacing.lg,paddingBottom:spacing.xs}}><Landmark size={13} color={colors.textTertiary} /><Text style={[styles.sectionLabel,{paddingHorizontal:0,paddingTop:0,paddingBottom:0}]}>CLUBS & TEAMS</Text></View>
             {loading ? (
               <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
             ) : allMatchedClubs.length === 0 ? (
@@ -168,7 +168,7 @@ export default function SearchScreen({ navigation }) {
         {/* Groups */}
         {matchedGroups.length > 0 && (
           <View>
-            <Text style={styles.sectionLabel}>👥 GROUPS</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:spacing.lg,paddingTop:spacing.lg,paddingBottom:spacing.xs}}><Users size={13} color={colors.textTertiary} /><Text style={[styles.sectionLabel,{paddingHorizontal:0,paddingTop:0,paddingBottom:0}]}>GROUPS</Text></View>
             {matchedGroups.map(g => (
               <TouchableOpacity
                 key={g.id}
@@ -181,7 +181,7 @@ export default function SearchScreen({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowName}>{g.name}</Text>
-                  <Text style={styles.rowSub}>{g.course} · 👥 {g.members}</Text>
+                  <Text style={styles.rowSub}>{g.course} · {g.members} members</Text>
                 </View>
               </TouchableOpacity>
             ))}

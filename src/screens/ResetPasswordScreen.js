@@ -5,7 +5,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font } from '../theme';
+import { colors as tColors } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
+import { Sparkles } from 'lucide-react-native';
 
 const isValidPassword = (pwd) =>
   pwd.length >= 6 && /[0-9]/.test(pwd) && /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pwd);
@@ -43,7 +45,7 @@ export default function ResetPasswordScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>✦</Text>
+          <Sparkles size={22} color="#fff" />
         </View>
 
         {done ? (
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   hint: { fontSize: 11, color: colors.textTertiary, marginBottom: spacing.lg, marginTop: -spacing.xs },
-  errorText: { fontSize: 13, color: '#EF4444', marginBottom: spacing.sm },
+  errorText: { fontSize: 13, color: tColors.error, marginBottom: spacing.sm },
   btn: {
     backgroundColor: colors.primary,
     borderRadius: radius.md,

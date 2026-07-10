@@ -8,6 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius } from '../theme/tokens';
+import { BarChart2, CircleCheck, FolderOpen, X } from 'lucide-react-native';
 import { useUniversityConfig } from '../hooks/useUniversityConfig';
 
 export default function RosterUploadModal({ visible, onClose, defaultClassName, classOptions }) {
@@ -188,15 +189,15 @@ export default function RosterUploadModal({ visible, onClose, defaultClassName, 
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>📊 Upload Roster</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:8}}><BarChart2 size={18} color={tColors.textPrimary} /><Text style={styles.title}>Upload Roster</Text></View>
             <TouchableOpacity onPress={handleClose} activeOpacity={0.7} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <X size={18} color={tColors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {step === 'done' ? (
             <View style={styles.centeredBody}>
-              <Text style={{ fontSize: 40, marginBottom: 12 }}>✅</Text>
+              <CircleCheck size={40} color={tColors.success} />
               <Text style={styles.doneText}>{savedCount} student{savedCount !== 1 ? 's' : ''} saved</Text>
               <Text style={styles.doneSubtext}>Roster uploaded for {selectedClass}</Text>
               <TouchableOpacity style={[styles.primaryBtn, { marginTop: 24 }]} onPress={handleClose} activeOpacity={0.8}>
@@ -246,7 +247,7 @@ export default function RosterUploadModal({ visible, onClose, defaultClassName, 
               <View style={styles.section}>
                 <Text style={styles.label}>Excel / CSV File</Text>
                 <TouchableOpacity style={styles.filePicker} onPress={pickFile} activeOpacity={0.8}>
-                  <Text style={styles.filePickerIcon}>📂</Text>
+                  <FolderOpen size={24} color={tColors.textSecondary} />
                   <Text style={styles.filePickerText}>
                     {fileName ? fileName : 'Tap to choose file (.xlsx · .xls · .csv)'}
                   </Text>

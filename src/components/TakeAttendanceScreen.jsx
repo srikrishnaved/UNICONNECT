@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius } from '../theme/tokens';
+import { Target, X, CircleCheck, ClipboardList } from 'lucide-react-native';
 
 export default function TakeAttendanceScreen({ visible, onClose, slot, teacherName, subject, periodLabel }) {
   const className = slot?.class_name;
@@ -114,19 +115,19 @@ export default function TakeAttendanceScreen({ visible, onClose, slot, teacherNa
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>🎯 Attendance</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Target size={18} color={tColors.textPrimary} /><Text style={styles.title}>Attendance</Text></View>
               <Text style={styles.subtitle} numberOfLines={1}>
                 {className}{subject ? ` · ${subject}` : ''}{periodLabel ? ` · ${periodLabel}` : ''}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <X size={20} color={tColors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {submitted ? (
             <View style={styles.centeredBody}>
-              <Text style={{ fontSize: 40, marginBottom: 12 }}>✅</Text>
+              <CircleCheck size={40} color={tColors.success} />
               <Text style={styles.doneText}>Attendance Saved</Text>
               <Text style={styles.doneSubtext}>{presentCount} present · {absentCount} absent</Text>
               <TouchableOpacity style={[styles.primaryBtn, { marginTop: 24 }]} onPress={onClose} activeOpacity={0.8}>
@@ -140,7 +141,7 @@ export default function TakeAttendanceScreen({ visible, onClose, slot, teacherNa
             </View>
           ) : students.length === 0 && !loading ? (
             <View style={styles.centeredBody}>
-              <Text style={{ fontSize: 36, marginBottom: 12 }}>📋</Text>
+              <ClipboardList size={36} color={tColors.textTertiary} />
               <Text style={styles.doneText}>No students found</Text>
               <Text style={styles.doneSubtext}>Upload a roster for {className} first</Text>
               <TouchableOpacity style={[styles.secondaryBtn, { marginTop: 24 }]} onPress={onClose} activeOpacity={0.8}>

@@ -6,6 +6,7 @@ import { colors, spacing, radius, font, avatarColor, initials, courseColor } fro
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { hubClubs, teachers } from '../data';
+import { Users, UserPlus, MessageCircle, Paperclip, Check, X } from 'lucide-react-native';
 // Flip to true after creating the group_teacher_requests table in Supabase
 const GROUP_TEACHER_TABLE_EXISTS = false;
 
@@ -192,9 +193,10 @@ export default function GroupDetailScreen({ route, navigation }) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.bannerName}>{group.name}</Text>
-          <Text style={styles.bannerMeta}>
-            👥 {group.members} members · {group.active ? '🟢 Active now' : '⚪ Quiet'}
-          </Text>
+          <View style={[styles.bannerMeta, {flexDirection:'row',alignItems:'center',gap:4}]}>
+            <Users size={13} color={colors.textSecondary} />
+            <Text style={styles.bannerMeta}>{group.members} members · {group.active ? 'Active' : 'Quiet'}</Text>
+          </View>
           <View style={styles.groupActions}>
             <TouchableOpacity
               style={styles.membersBtn}
@@ -209,7 +211,7 @@ export default function GroupDetailScreen({ route, navigation }) {
                 onPress={() => setShowInviteTeacher(true)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.inviteTeacherBtnText}>👩‍🏫 Invite Teacher</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserPlus size={14} color={colors.amber} /><Text style={styles.inviteTeacherBtnText}>Invite Teacher</Text></View>
               </TouchableOpacity>
             )}
           </View>
@@ -237,7 +239,7 @@ export default function GroupDetailScreen({ route, navigation }) {
 
         {messages.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>💬</Text>
+            <MessageCircle size={36} color={colors.textTertiary} />
             <Text style={styles.emptyText}>No messages yet</Text>
             <Text style={styles.emptySubtext}>Be the first to start the conversation!</Text>
           </View>
@@ -273,7 +275,7 @@ export default function GroupDetailScreen({ route, navigation }) {
         <TouchableOpacity onPress={pickMedia} style={styles.mediaBtn} disabled={uploadingMedia} activeOpacity={0.7}>
           {uploadingMedia
             ? <ActivityIndicator size="small" color={colors.primary} />
-            : <Text style={{ fontSize: 20 }}>📎</Text>}
+            : <Paperclip size={20} color={colors.textSecondary} />}
         </TouchableOpacity>
         <TextInput
           value={draft}
@@ -299,9 +301,9 @@ export default function GroupDetailScreen({ route, navigation }) {
           <TouchableOpacity style={styles.modalBackdrop} onPress={() => setShowInviteTeacher(false)} activeOpacity={1} />
           <View style={styles.membersModal}>
             <View style={styles.membersModalHeader}>
-              <Text style={styles.membersModalTitle}>👩‍🏫 Invite a Teacher</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserPlus size={16} color={colors.textPrimary} /><Text style={styles.membersModalTitle}>Invite a Teacher</Text></View>
               <TouchableOpacity onPress={() => setShowInviteTeacher(false)}>
-                <Text style={styles.membersModalClose}>✕</Text>
+                <X size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
@@ -319,7 +321,7 @@ export default function GroupDetailScreen({ route, navigation }) {
                     </View>
                     {sent ? (
                       <View style={styles.sentBadge}>
-                        <Text style={styles.sentBadgeText}>✓ Sent</Text>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Check size={11} color={colors.success} /><Text style={styles.sentBadgeText}>Sent</Text></View>
                       </View>
                     ) : (
                       <TouchableOpacity
@@ -345,9 +347,9 @@ export default function GroupDetailScreen({ route, navigation }) {
           <TouchableOpacity style={styles.modalBackdrop} onPress={() => setShowMembers(false)} activeOpacity={1} />
           <View style={styles.membersModal}>
             <View style={styles.membersModalHeader}>
-              <Text style={styles.membersModalTitle}>👥 Members</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Users size={16} color={colors.textPrimary} /><Text style={styles.membersModalTitle}>Members</Text></View>
               <TouchableOpacity onPress={() => setShowMembers(false)}>
-                <Text style={styles.membersModalClose}>✕</Text>
+                <X size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {loadingMembers ? (

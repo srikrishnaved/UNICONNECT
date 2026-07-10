@@ -6,17 +6,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { students, studyGroups, hubClubs, tutors, teachers, pendingClubs as seedPending } from '../data';
 import { colors, spacing, radius, font } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { Shield } from 'lucide-react-native';
+import { Users, BookOpen, Landmark, Zap, GraduationCap, BarChart2, Clock, Check, X, ShieldCheck, UserCheck, AlertCircle, Pin, Trash2, Sparkles } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
 const STATS = [
-  { label: 'Students',     value: students.length,                              icon: '👥' },
-  { label: 'Study Groups', value: studyGroups.length,                           icon: '📚' },
-  { label: 'Clubs',        value: hubClubs.filter(c => c.type === 'Club').length, icon: '🏛️' },
-  { label: 'Teams',        value: hubClubs.filter(c => c.type === 'Team').length, icon: '⚡' },
-  { label: 'Tutors',       value: tutors.length,                                icon: '🎓' },
-  { label: 'Teachers',     value: teachers.length,                              icon: '📖' },
+  { label: 'Students',     value: students.length,                              Icon: Users },
+  { label: 'Study Groups', value: studyGroups.length,                           Icon: BookOpen },
+  { label: 'Clubs',        value: hubClubs.filter(c => c.type === 'Club').length, Icon: Landmark },
+  { label: 'Teams',        value: hubClubs.filter(c => c.type === 'Team').length, Icon: Zap },
+  { label: 'Tutors',       value: tutors.length,                                Icon: GraduationCap },
+  { label: 'Teachers',     value: teachers.length,                              Icon: BookOpen },
 ];
 
 export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
@@ -134,7 +134,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoIcon}>✦</Text>
+            <Sparkles size={18} color="#fff" />
           </View>
           <View>
             <Text style={styles.headerTitle}>Admin Panel</Text>
@@ -149,11 +149,11 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Stats */}
-        <Text style={styles.sectionLabel}>📊 OVERVIEW</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BarChart2 size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>OVERVIEW</Text></View>
         <View style={styles.statsGrid}>
           {STATS.map(s => (
             <View key={s.label} style={styles.statCard}>
-              <Text style={styles.statIcon}>{s.icon}</Text>
+              <s.Icon size={22} color={colors.textSecondary} />
               <Text style={styles.statValue}>{s.value}</Text>
               <Text style={styles.statLabel}>{s.label}</Text>
             </View>
@@ -162,7 +162,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {/* Pending approvals */}
         <View style={styles.approvalHeader}>
-          <Text style={styles.sectionLabel}>⏳ PENDING APPROVALS</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>PENDING APPROVALS</Text></View>
           <View style={styles.approvalPills}>
             <View style={[styles.countPill, { borderColor: colors.amber }]}>
               <Text style={[styles.countPillText, { color: colors.amber }]}>{pending.length} pending</Text>
@@ -201,14 +201,14 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
                   onPress={() => handleApprove(item)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionBtn, styles.rejectBtn]}
                   onPress={() => handleReject(item)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.rejectBtnText}>✗ Reject</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -217,7 +217,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {/* Club Admin Requests */}
         <View style={styles.approvalHeader}>
-          <Text style={styles.sectionLabel}>🛡️ CLUB ADMIN REQUESTS</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ShieldCheck size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CLUB ADMIN REQUESTS</Text></View>
           <View style={styles.approvalPills}>
             <View style={[styles.countPill, { borderColor: colors.amber }]}>
               <Text style={[styles.countPillText, { color: colors.amber }]}>{clubAdminRequests.length} pending</Text>
@@ -227,7 +227,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {clubAdminRequests.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>🛡️</Text>
+            <ShieldCheck size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No requests</Text>
             <Text style={styles.emptyDesc}>Students haven't requested club admin access yet.</Text>
           </View>
@@ -248,11 +248,11 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
               <View style={styles.actionRow}>
                 <TouchableOpacity style={[styles.actionBtn, styles.approveBtn]}
                   onPress={() => resolveClubAdminRequest(req.id, 'approve')} activeOpacity={0.85}>
-                  <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.actionBtn, styles.rejectBtn]}
                   onPress={() => resolveClubAdminRequest(req.id, 'reject')} activeOpacity={0.85}>
-                  <Text style={styles.rejectBtnText}>✗ Reject</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -261,7 +261,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {/* Faculty Coordinator Requests */}
         <View style={styles.approvalHeader}>
-          <Text style={styles.sectionLabel}>👩‍🏫 FACULTY COORDINATOR REQUESTS</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserCheck size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>FACULTY COORDINATOR REQUESTS</Text></View>
           <View style={styles.approvalPills}>
             <View style={[styles.countPill, { borderColor: colors.primary }]}>
               <Text style={[styles.countPillText, { color: colors.primary }]}>{facultyRequests.length} pending</Text>
@@ -271,7 +271,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {facultyRequests.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>👩‍🏫</Text>
+            <UserCheck size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No faculty requests</Text>
             <Text style={styles.emptyDesc}>Teachers haven't requested coordinator access yet.</Text>
           </View>
@@ -291,11 +291,11 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
               <View style={styles.actionRow}>
                 <TouchableOpacity style={[styles.actionBtn, styles.approveBtn]}
                   onPress={() => resolveFacultyRequest(req, 'approve')} activeOpacity={0.85}>
-                  <Text style={styles.approveBtnText}>✓ Approve</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.actionBtn, styles.rejectBtn]}
                   onPress={() => resolveFacultyRequest(req, 'reject')} activeOpacity={0.85}>
-                  <Text style={styles.rejectBtnText}>✗ Reject</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.rejectBtnText}>Reject</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -304,7 +304,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {/* Reports */}
         <View style={styles.approvalHeader}>
-          <Text style={styles.sectionLabel}>🚨 USER REPORTS</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><AlertCircle size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>USER REPORTS</Text></View>
           <View style={styles.approvalPills}>
             <View style={[styles.countPill, { borderColor: colors.red }]}>
               <Text style={[styles.countPillText, { color: colors.red }]}>{reports.length} pending</Text>
@@ -314,7 +314,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {reports.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>🛡️</Text>
+            <ShieldCheck size={36} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>No reports</Text>
             <Text style={styles.emptyDesc}>No pending user reports at the moment.</Text>
           </View>
@@ -347,7 +347,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
                   onPress={() => resolveReport(report.id, 'reviewed')}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.approveBtnText}>✓ Mark Reviewed</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Mark Reviewed</Text></View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -356,7 +356,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
 
         {/* Featured Study Rooms */}
         <View style={styles.approvalHeader}>
-          <Text style={styles.sectionLabel}>📌 FEATURED STUDY ROOMS</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Pin size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>FEATURED STUDY ROOMS</Text></View>
           <View style={styles.approvalPills}>
             <View style={[styles.countPill, { borderColor: colors.amber }]}>
               <Text style={[styles.countPillText, { color: colors.amber }]}>{permRooms.length} rooms</Text>
@@ -376,7 +376,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
               style={styles.roomDeleteBtn}
               activeOpacity={0.8}
             >
-              <Text style={styles.roomDeleteBtnText}>🗑</Text>
+              <Trash2 size={16} color={colors.error} />
             </TouchableOpacity>
           </View>
         ))}
@@ -399,9 +399,9 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
             />
             <View style={styles.modal}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>📌 New Featured Room</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Pin size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>New Featured Room</Text></View>
                 <TouchableOpacity onPress={() => setShowRoomModal(false)}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 

@@ -9,7 +9,7 @@ import { pickAndUploadMedia } from '../lib/uploadMedia';
 import MediaMessage from '../components/MediaMessage';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { MessageCircle } from 'lucide-react-native';
+import { MessageCircle, Clock, Lock, Paperclip } from 'lucide-react-native';
 
 export default function DMScreen({ route, navigation }) {
   const { personKey, name, isTeacher, recipientId } = route.params;
@@ -149,7 +149,7 @@ export default function DMScreen({ route, navigation }) {
     if (theirId && theirId !== userProfile.id) {
       createNotification(
         theirId, 'dm', `New message from ${userProfile.name}`,
-        mediaUrl ? '📷 Sent a photo' : (text.length > 60 ? text.slice(0, 57) + '…' : text),
+        mediaUrl ? 'Sent a photo' : (text.length > 60 ? text.slice(0, 57) + '…' : text),
         { person_key: `student-${userProfile.id}`, recipient_id: userProfile.id, sender_name: userProfile.name, is_teacher: false }
       );
     }
@@ -186,7 +186,10 @@ export default function DMScreen({ route, navigation }) {
 
       {/* Disappearing messages notice */}
       <View style={styles.expiryBanner}>
-        <Text style={styles.expiryText}>⏳ Messages & media are wiped every 3 days</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+          <Clock size={13} color={colors.textTertiary} />
+          <Text style={styles.expiryText}>Messages & media are wiped every 3 days</Text>
+        </View>
       </View>
 
       {/* Messages */}
@@ -238,7 +241,7 @@ export default function DMScreen({ route, navigation }) {
       {/* Input */}
       {!isTeacher && recipientId && !isConnected(recipientId) ? (
         <View style={styles.lockedBar}>
-          <Text style={styles.lockedIcon}>🔒</Text>
+          <Lock size={16} color={colors.textTertiary} />
           <Text style={styles.lockedText}>Connect with {name.split(' ')[0]} to send messages</Text>
         </View>
       ) : (
@@ -246,7 +249,7 @@ export default function DMScreen({ route, navigation }) {
           <TouchableOpacity onPress={pickMedia} style={styles.mediaBtn} disabled={uploadingMedia} activeOpacity={0.7}>
             {uploadingMedia
               ? <ActivityIndicator size="small" color={colors.primary} />
-              : <Text style={{ fontSize: 20 }}>📎</Text>}
+              : <Paperclip size={20} color={colors.textSecondary} />}
           </TouchableOpacity>
           <TextInput
             value={draft}

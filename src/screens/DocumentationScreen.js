@@ -17,6 +17,7 @@ import {
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as ImagePicker from 'expo-image-picker';
+import { Download, Sparkles, Camera, PenLine, X } from 'lucide-react-native';
 
 // ── Default form states ───────────────────────────────────────────────────────
 
@@ -506,14 +507,14 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
 
   // ── Status helpers ────────────────────────────────────────────────────────
   const nfaStatusColor = st => st === 'approved' ? colors.green : st === 'rejected' ? colors.red : colors.amber;
-  const nfaStatusLabel = st => st === 'approved' ? '✓ Approved' : st === 'rejected' ? '✗ Rejected' : '⏳ Pending';
+  const nfaStatusLabel = st => st === 'approved' ? 'Approved' : st === 'rejected' ? 'Rejected' : 'Pending';
   const arStatusColor = (cs, ss) => cs === 'rejected' || ss === 'rejected' ? colors.red : cs === 'approved' && ss === 'approved' ? colors.green : colors.amber;
   const arStatusLabel = (cs, ss) => {
-    if (cs === 'rejected') return '✗ Coordinator Rejected';
-    if (cs === 'pending') return '⏳ Awaiting Coordinator';
-    if (ss === 'rejected') return '✗ SAPS Rejected';
-    if (ss === 'pending') return '⏳ Awaiting SAPS';
-    return '✓ Fully Approved';
+    if (cs === 'rejected') return 'Coordinator Rejected';
+    if (cs === 'pending') return 'Awaiting Coordinator';
+    if (ss === 'rejected') return 'SAPS Rejected';
+    if (ss === 'pending') return 'Awaiting SAPS';
+    return 'Fully Approved';
   };
 
   const budgetTotal = items => items.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
@@ -533,7 +534,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
     <ScrollView style={s.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
       {/* Section pills */}
       <View style={s.sectionPills}>
-        {[{ key: 'nfa', label: '📄 NFA' }, { key: 'activity', label: '📋 Activity Report' }].map(p => (
+        {[{ key: 'nfa', label: 'NFA' }, { key: 'activity', label: 'Activity Report' }].map(p => (
           <TouchableOpacity
             key={p.key}
             style={[s.sectionPill, section === p.key && s.sectionPillActive]}
@@ -578,7 +579,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                 >
                   {downloading === nfa.id
                     ? <ActivityIndicator size="small" color={colors.primary} />
-                    : <Text style={s.docxBtnText}>⬇ Download .docx</Text>}
+                    : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Download size={14} color={colors.textSecondary} /><Text style={s.docxBtnText}>Download .docx</Text></View>}
                 </TouchableOpacity>
               </View>
             ))
@@ -606,14 +607,14 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                     >
                       {downloading === nfa.id
                         ? <ActivityIndicator size="small" color={colors.primary} />
-                        : <Text style={s.docxBtnText}>⬇ Preview .docx</Text>}
+                        : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Download size={14} color={colors.textSecondary} /><Text style={s.docxBtnText}>Preview .docx</Text></View>}
                     </TouchableOpacity>
                     <View style={s.approvalRow}>
                       <TouchableOpacity style={s.approveBtn} onPress={() => approveNFA(nfa)} activeOpacity={0.8}>
-                        <Text style={s.approveBtnText}>✓ Approve</Text>
+                        <Text style={s.approveBtnText}>Approve</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.rejectBtn} onPress={() => { setRejectNFA(nfa); setRejectNFAReason(''); }} activeOpacity={0.8}>
-                        <Text style={s.rejectBtnText}>✗ Reject</Text>
+                        <Text style={s.rejectBtnText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -665,7 +666,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                     >
                       {downloading === ar.id
                         ? <ActivityIndicator size="small" color={colors.primary} />
-                        : <Text style={s.docxBtnText}>⬇ Download .docx</Text>}
+                        : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Download size={14} color={colors.textSecondary} /><Text style={s.docxBtnText}>Download .docx</Text></View>}
                     </TouchableOpacity>
                   </View>
                 ))
@@ -695,14 +696,14 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                     >
                       {downloading === ar.id
                         ? <ActivityIndicator size="small" color={colors.primary} />
-                        : <Text style={s.docxBtnText}>⬇ Preview .docx</Text>}
+                        : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Download size={14} color={colors.textSecondary} /><Text style={s.docxBtnText}>Preview .docx</Text></View>}
                     </TouchableOpacity>
                     <View style={s.approvalRow}>
                       <TouchableOpacity style={s.approveBtn} onPress={() => approveARCoord(ar)} activeOpacity={0.8}>
-                        <Text style={s.approveBtnText}>✓ Approve → SAPS</Text>
+                        <Text style={s.approveBtnText}>Approve → SAPS</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.rejectBtn} onPress={() => { setRejectAR({ ar, stage: 'coord' }); setRejectARReason(''); }} activeOpacity={0.8}>
-                        <Text style={s.rejectBtnText}>✗ Reject</Text>
+                        <Text style={s.rejectBtnText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -733,14 +734,14 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                     >
                       {downloading === ar.id
                         ? <ActivityIndicator size="small" color={colors.primary} />
-                        : <Text style={s.docxBtnText}>⬇ Preview .docx</Text>}
+                        : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Download size={14} color={colors.textSecondary} /><Text style={s.docxBtnText}>Preview .docx</Text></View>}
                     </TouchableOpacity>
                     <View style={s.approvalRow}>
                       <TouchableOpacity style={s.approveBtn} onPress={() => approveARSAPS(ar)} activeOpacity={0.8}>
-                        <Text style={s.approveBtnText}>✓ Final Approve</Text>
+                        <Text style={s.approveBtnText}>Final Approve</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.rejectBtn} onPress={() => { setRejectAR({ ar, stage: 'saps' }); setRejectARReason(''); }} activeOpacity={0.8}>
-                        <Text style={s.rejectBtnText}>✗ Reject</Text>
+                        <Text style={s.rejectBtnText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -761,7 +762,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>New NFA Request</Text>
               <TouchableOpacity onPress={() => setShowNFAForm(false)}>
-                <Text style={s.modalClose}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -791,7 +792,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                 onPress={() => setShowAIModal(true)}
                 activeOpacity={0.85}
               >
-                <Text style={s.aiGenerateBtnText}>✨ Generate with AI</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={14} color={tColors.student.primary} /><Text style={s.aiGenerateBtnText}>Generate with AI</Text></View>
               </TouchableOpacity>
               <Text style={s.aiDisclaimer}>AI-generated content should be reviewed before official use. Content may be processed by Anthropic's API.</Text>
 
@@ -954,7 +955,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Activity Report</Text>
               <TouchableOpacity onPress={() => setShowARForm(false)}>
-                <Text style={s.modalClose}>✕</Text>
+                <X size={20} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -1057,7 +1058,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
       <Modal visible={showAIModal} animationType="fade" transparent onRequestClose={() => setShowAIModal(false)}>
         <View style={s.smallModalOverlay}>
           <View style={s.aiModalBox}>
-            <Text style={s.smallModalTitle}>✨ Generate with AI</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={16} color={tColors.student.primary} /><Text style={s.smallModalTitle}>Generate with AI</Text></View>
             <Text style={s.smallModalSub}>Choose how to describe the event:</Text>
 
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: spacing.md }}>
@@ -1066,14 +1067,14 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
                 onPress={() => { setAIMode('poster'); setAIDescription(''); }}
                 activeOpacity={0.7}
               >
-                <Text style={[s.aiModeBtnText, aiMode === 'poster' && s.aiModeBtnTextActive]}>📸 Upload Poster</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Camera size={14} color={aiMode === 'poster' ? '#fff' : tColors.textSecondary} /><Text style={[s.aiModeBtnText, aiMode === 'poster' && s.aiModeBtnTextActive]}>Upload Poster</Text></View>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.aiModeBtn, aiMode === 'describe' && s.aiModeBtnActive]}
                 onPress={() => { setAIMode('describe'); setAIPoster(null); }}
                 activeOpacity={0.7}
               >
-                <Text style={[s.aiModeBtnText, aiMode === 'describe' && s.aiModeBtnTextActive]}>✏️ Describe the Event</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><PenLine size={14} color={aiMode === 'describe' ? '#fff' : tColors.textSecondary} /><Text style={[s.aiModeBtnText, aiMode === 'describe' && s.aiModeBtnTextActive]}>Describe the Event</Text></View>
               </TouchableOpacity>
             </View>
 

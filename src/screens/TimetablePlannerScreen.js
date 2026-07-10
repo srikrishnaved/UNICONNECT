@@ -10,6 +10,7 @@ import { colors, spacing, radius, font } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
 import * as DocumentPicker from 'expo-document-picker';
+import { CircleCheck, Calendar, Cpu, X, School, Check, Upload, MessageSquare, Trash2, Paperclip, Search, TriangleAlert } from 'lucide-react-native';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -1737,7 +1738,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         >
           {applyingSlots
             ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={styles.previewApplyBtnText}>✅ Apply to Timetable</Text>}
+            : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CircleCheck size={14} color="#fff" /><Text style={styles.previewApplyBtnText}>Apply to Timetable</Text></View>}
         </TouchableOpacity>
       </View>
     );
@@ -1763,7 +1764,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>📅 Timetable Planner</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Calendar size={16} color={colors.textPrimary} /><Text style={styles.headerTitle}>Timetable Planner</Text></View>
           {isActiveTeam && (
             <View style={styles.teamBadge}><Text style={styles.teamBadgeText}>TEAM</Text></View>
           )}
@@ -1835,7 +1836,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                 }}
                 activeOpacity={1}
               >
-                <Text style={styles.assistantComingSoonText}>🤖 Timetable AI — Coming Soon</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Cpu size={14} color={colors.textTertiary} /><Text style={styles.assistantComingSoonText}>Timetable AI — Coming Soon</Text></View>
               </TouchableOpacity>
             )}
           </View>
@@ -1849,7 +1850,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   : 'Swap mode — tap first slot'}
               </Text>
               <TouchableOpacity onPress={cancelSwap} activeOpacity={0.7}>
-                <Text style={styles.swapHintCancel}>✕</Text>
+                <X size={16} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
           )}
@@ -1899,7 +1900,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           {/* Classroom info */}
           {classroom && (
             <View style={styles.roomBar}>
-              <Text style={styles.roomBarText}>🏫 {classroom.room_number}{classroom.max_time ? ` · until ${classroom.max_time}` : ''}</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><School size={13} color={colors.textSecondary} /><Text style={styles.roomBarText}>{classroom.room_number}{classroom.max_time ? ` · until ${classroom.max_time}` : ''}</Text></View>
             </View>
           )}
 
@@ -1991,7 +1992,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                                 )}
                                 {isApproved && (
                                   <View style={styles.approvedBadge}>
-                                    <Text style={styles.approvedBadgeText}>✓</Text>
+                                    <Check size={12} color={colors.success} />
                                   </View>
                                 )}
                                 {isRejected && (
@@ -2060,9 +2061,9 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
             <View style={styles.assistantPanel}>
               {/* Header */}
               <View style={styles.assistantHeader}>
-                <Text style={styles.assistantTitle}>🤖 Timetable Assistant</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Cpu size={16} color={colors.textPrimary} /><Text style={styles.assistantTitle}>Timetable Assistant</Text></View>
                 <TouchableOpacity onPress={() => { setAssistantOpen(false); resetAssistant(); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Text style={styles.assistantCloseText}>✕ Close</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={14} color={colors.textSecondary} /><Text style={styles.assistantCloseText}>Close</Text></View>
                 </TouchableOpacity>
               </View>
 
@@ -2073,18 +2074,18 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   onPress={() => { resetAssistant(); setChatMode('upload'); }}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.assistantModeBtnText, chatMode === 'upload' && styles.assistantModeBtnTextActive]}>📤 Upload</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Upload size={13} color={chatMode === 'upload' ? colors.accent : colors.textSecondary} /><Text style={[styles.assistantModeBtnText, chatMode === 'upload' && styles.assistantModeBtnTextActive]}>Upload</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.assistantModeBtn, chatMode === 'scratch' && styles.assistantModeBtnActive]}
                   onPress={() => { resetAssistant(); startScratchMode(); }}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.assistantModeBtnText, chatMode === 'scratch' && styles.assistantModeBtnTextActive]}>💬 Build</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><MessageSquare size={13} color={chatMode === 'scratch' ? colors.accent : colors.textSecondary} /><Text style={[styles.assistantModeBtnText, chatMode === 'scratch' && styles.assistantModeBtnTextActive]}>Build</Text></View>
                 </TouchableOpacity>
                 {chatMessages.length > 0 && (
                   <TouchableOpacity style={styles.assistantClearBtn} onPress={resetAssistant} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                    <Text style={styles.assistantClearText}>🗑</Text>
+                    <Trash2 size={16} color={colors.error} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -2122,7 +2123,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
               {/* Upload file button (upload mode, no messages yet) */}
               {chatMode === 'upload' && !chatLoading && (
                 <TouchableOpacity style={styles.chatUploadBtn} onPress={handleFileUpload} activeOpacity={0.85}>
-                  <Text style={styles.chatUploadBtnText}>📎 Choose Excel File (.xlsx)</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Paperclip size={14} color={colors.textSecondary} /><Text style={styles.chatUploadBtnText}>Choose Excel File (.xlsx)</Text></View>
                 </TouchableOpacity>
               )}
 
@@ -2281,7 +2282,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                               }}
                               activeOpacity={0.7}
                             >
-                              <Text style={styles.subSuggestMiniText}>🔍</Text>
+                              <Search size={14} color={colors.textSecondary} />
                             </TouchableOpacity>
                           </View>
                         );
@@ -2628,7 +2629,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={closeEdit} style={styles.modalCloseBtn} activeOpacity={0.7}>
-                  <Text style={styles.modalCloseText}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -2707,7 +2708,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
               {conflicts.length > 0 && (
                 <View style={styles.conflictBox}>
                   {conflicts.map((c, i) => (
-                    <Text key={i} style={styles.conflictText}>⚠️ {c}</Text>
+                    <View key={i} style={{flexDirection:'row',alignItems:'center',gap:6}}><TriangleAlert size={13} color={colors.warning} /><Text style={styles.conflictText}>{c}</Text></View>
                   ))}
                 </View>
               )}
@@ -2723,7 +2724,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   }}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.suggestBtnText}>🔍 Suggest Substitutes</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Search size={14} color={colors.textSecondary} /><Text style={styles.suggestBtnText}>Suggest Substitutes</Text></View>
                 </TouchableOpacity>
               )}
 
@@ -2770,15 +2771,15 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
               </View>
 
               {/* Permanent change */}
-              <View style={[styles.switchRow, { marginTop: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: editForm.isPermanent ? 'rgba(239,68,68,0.08)' : 'transparent', borderWidth: editForm.isPermanent ? 1 : 0, borderColor: '#EF4444' }]}>
+              <View style={[styles.switchRow, { marginTop: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: editForm.isPermanent ? tColors.errorDim : 'transparent', borderWidth: editForm.isPermanent ? 1 : 0, borderColor: tColors.error }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.fieldLabel, { color: editForm.isPermanent ? '#EF4444' : colors.textSecondary, marginBottom: 2 }]}>Permanent Change</Text>
+                  <Text style={[styles.fieldLabel, { color: editForm.isPermanent ? tColors.error : colors.textSecondary, marginBottom: 2 }]}>Permanent Change</Text>
                   <Text style={{ fontSize: 11, color: colors.textTertiary, lineHeight: 15 }}>Survives a timetable reset</Text>
                 </View>
                 <Switch
                   value={editForm.isPermanent}
                   onValueChange={v => setEditForm(f => ({ ...f, isPermanent: v }))}
-                  trackColor={{ false: colors.border, true: '#EF4444' }}
+                  trackColor={{ false: colors.border, true: tColors.error }}
                   thumbColor="#fff"
                 />
               </View>
@@ -2835,7 +2836,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   style={styles.modalCloseBtn}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalCloseText}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -3114,7 +3115,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                 <Text style={styles.modalSubtitle}>Overrides apply on top of the built-in defaults</Text>
               </View>
               <TouchableOpacity style={styles.modalCloseBtn} onPress={() => { setShowAvailEditor(false); setEditingAvail(null); }} activeOpacity={0.7}>
-                <Text style={styles.modalCloseText}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -3238,7 +3239,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                           >
                             {availDeleting === dbEntry.id
                               ? <ActivityIndicator size="small" color={colors.red} />
-                              : <Text style={styles.availDeleteBtnText}>✕</Text>
+                              : <X size={16} color={colors.error} />
                             }
                           </TouchableOpacity>
                         </View>
@@ -3275,7 +3276,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => setSubReqTarget(null)} style={styles.modalCloseBtn} activeOpacity={0.7}>
-                  <Text style={styles.modalCloseText}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -3304,7 +3305,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.suggestBtnText}>🔍 Suggest Substitutes</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Search size={14} color={colors.textSecondary} /><Text style={styles.suggestBtnText}>Suggest Substitutes</Text></View>
               </TouchableOpacity>
 
               {subReqPrefSub ? (
@@ -3367,7 +3368,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setAbsentTodayModal(false)} style={styles.modalCloseBtn} activeOpacity={0.7}>
-                <Text style={styles.modalCloseText}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.fieldLabel}>Reason (optional)</Text>
@@ -4109,7 +4110,7 @@ const styles = StyleSheet.create({
   absentTodayBtn: {
     marginHorizontal: tSpacing.md,
     marginTop: tSpacing.md,
-    backgroundColor: '#EF444420',
+    backgroundColor: tColors.errorDim,
     borderWidth: 1, borderColor: tColors.error,
     borderRadius: tRadius.md,
     paddingVertical: tSpacing.md, alignItems: 'center',
@@ -4279,7 +4280,7 @@ const styles = StyleSheet.create({
   },
   previewChipText: { fontSize: 10, fontWeight: typography.semibold, color: tColors.faculty.primary },
   previewApplyBtn: {
-    backgroundColor: '#10B981',
+    backgroundColor: tColors.success,
     borderRadius: tRadius.sm,
     paddingVertical: 9, alignItems: 'center',
     marginTop: tSpacing.sm,

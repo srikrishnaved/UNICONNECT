@@ -16,6 +16,7 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
 
@@ -38,8 +39,8 @@ const COURSES = [
     key: 'BCom F&A',
     full: 'BCom Finance & Accountancy',
     sub: null,
-    color: '#10B981',
-    bg: 'rgba(16, 185, 129, 0.12)',
+    color: tColors.success,
+    bg: tColors.successDim,
   },
 ];
 
@@ -316,7 +317,7 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.logoRow}>
-            <View style={styles.logoBox}><Text style={styles.logoIcon}>✦</Text></View>
+            <View style={styles.logoBox}><Sparkles size={18} color="#fff" /></View>
             <Text style={styles.logoText}>Christ<Text style={{ color: colors.primary }}>Connect</Text></Text>
           </View>
 
@@ -328,7 +329,7 @@ export default function OnboardingScreen() {
             onPress={() => setStep('signup')}
             activeOpacity={0.85}
           >
-            <Text style={styles.roleCardEmoji}>🎓</Text>
+            <GraduationCap size={32} color={colors.accent} />
             <View style={{ flex: 1 }}>
               <Text style={styles.roleCardTitle}>I am a Student</Text>
               <Text style={styles.roleCardSub}>Sign up with your university email</Text>
@@ -341,7 +342,7 @@ export default function OnboardingScreen() {
             onPress={() => setStep('teacherSignup')}
             activeOpacity={0.85}
           >
-            <Text style={styles.roleCardEmoji}>👩‍🏫</Text>
+            <UserCheck size={32} color={colors.accent} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.roleCardTitle, { color: colors.amber }]}>I am a Teacher</Text>
               <Text style={styles.roleCardSub}>Register as faculty — pending admin approval</Text>
@@ -382,7 +383,7 @@ export default function OnboardingScreen() {
             </View>
 
             <View style={styles.logoRow}>
-              <View style={[styles.logoBox, { backgroundColor: colors.amber }]}><Text style={styles.logoIcon}>✦</Text></View>
+              <View style={[styles.logoBox, { backgroundColor: colors.amber }]}><Sparkles size={18} color="#fff" /></View>
               <Text style={styles.logoText}>Teacher <Text style={{ color: colors.amber }}>Registration</Text></Text>
             </View>
 
@@ -424,7 +425,7 @@ export default function OnboardingScreen() {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowTeacherPassword(v => !v)} style={styles.showPasswordRow} activeOpacity={0.7}>
-              <Text style={styles.showPasswordTick}>{showTeacherPassword ? '☑' : '☐'}</Text>
+              {showTeacherPassword ? <CheckSquare size={18} color={colors.accent} /> : <Square size={18} color={colors.textSecondary} />}
               <Text style={styles.showPasswordText}>{showTeacherPassword ? 'Hide password' : 'Show password'}</Text>
             </TouchableOpacity>
             <Text style={styles.hint}>Min 6 characters · at least one number · at least one special character</Text>
@@ -511,7 +512,7 @@ export default function OnboardingScreen() {
 
             <View style={styles.logoRow}>
               <View style={[styles.logoBox, { backgroundColor: colors.amber }]}>
-                <Text style={styles.logoIcon}>✦</Text>
+                <Sparkles size={18} color="#fff" />
               </View>
               <Text style={styles.logoText}>Who are <Text style={{ color: colors.amber }}>you?</Text></Text>
             </View>
@@ -543,7 +544,7 @@ export default function OnboardingScreen() {
                     <Text style={[styles.subjectName, sel && { color: colors.amber }]}>{t.name}</Text>
                     <Text style={styles.subjectMeta}>Faculty</Text>
                   </View>
-                  {sel && <Text style={{ color: colors.amber, fontSize: 18, ...font.bold }}>✓</Text>}
+                  {sel && <Check size={18} color={colors.amber} />}
                 </TouchableOpacity>
               );
             })}
@@ -563,7 +564,7 @@ export default function OnboardingScreen() {
                 </Text>
                 <Text style={styles.subjectMeta}>You'll select your subjects manually in the next step</Text>
               </View>
-              {!selectedSeedTeacher && <Text style={{ color: colors.amber, fontSize: 18, ...font.bold }}>✓</Text>}
+              {!selectedSeedTeacher && <Check size={18} color={colors.amber} />}
             </TouchableOpacity>
 
             {teacherSignUpError ? <Text style={styles.errorText}>{teacherSignUpError}</Text> : null}
@@ -606,7 +607,7 @@ export default function OnboardingScreen() {
 
             <View style={styles.logoRow}>
               <View style={[styles.logoBox, { backgroundColor: colors.amber }]}>
-                <Text style={styles.logoIcon}>✦</Text>
+                <Sparkles size={18} color="#fff" />
               </View>
               <Text style={styles.logoText}>Select <Text style={{ color: colors.amber }}>Subjects</Text></Text>
             </View>
@@ -636,7 +637,7 @@ export default function OnboardingScreen() {
                       <Text style={[styles.subjectName, sel && { color: colors.amber }]}>{subject.name}</Text>
                       <Text style={styles.subjectMeta}>{subject.code}{subject.class ? ` · ${subject.class}` : ''}</Text>
                     </View>
-                    {sel && <Text style={{ color: colors.amber, fontSize: 18, ...font.bold }}>✓</Text>}
+                    {sel && <Check size={18} color={colors.amber} />}
                   </TouchableOpacity>
                 );
               })
@@ -699,7 +700,7 @@ export default function OnboardingScreen() {
                 onPress={() => setSelectedRole('student')}
                 activeOpacity={0.85}
               >
-                <Text style={siStyles.roleIcon}>🎓</Text>
+                <GraduationCap size={28} color={tColors.student.primary} />
                 <Text style={siStyles.roleAccessLabel}>ACCESS</Text>
                 <Text style={siStyles.roleName}>Student</Text>
               </TouchableOpacity>
@@ -709,7 +710,7 @@ export default function OnboardingScreen() {
                 onPress={() => setSelectedRole('faculty')}
                 activeOpacity={0.85}
               >
-                <Text style={siStyles.roleIcon}>🏫</Text>
+                <School size={28} color={tColors.faculty.primary} />
                 <Text style={siStyles.roleAccessLabel}>PORTAL</Text>
                 <Text style={siStyles.roleName}>Faculty</Text>
               </TouchableOpacity>
@@ -719,7 +720,7 @@ export default function OnboardingScreen() {
             <View style={siStyles.formCard}>
               {/* Email input */}
               <View style={siStyles.inputRow}>
-                <Text style={siStyles.inputIcon}>✉</Text>
+                <Mail size={16} color={tColors.textTertiary} />
                 <TextInput
                   value={signInEmail}
                   onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
@@ -734,7 +735,7 @@ export default function OnboardingScreen() {
 
               {/* Password input */}
               <View style={[siStyles.inputRow, { marginBottom: 0 }]}>
-                <Text style={siStyles.inputIcon}>🔒</Text>
+                <Lock size={16} color={tColors.textTertiary} />
                 <TextInput
                   key={showSignInPassword ? 'si-visible' : 'si-hidden'}
                   value={signInPassword}
@@ -750,9 +751,7 @@ export default function OnboardingScreen() {
                   activeOpacity={0.7}
                   style={{ paddingHorizontal: tSpacing.xs }}
                 >
-                  <Text style={{ fontSize: 15, color: tColors.textSecondary }}>
-                    {showSignInPassword ? '🙈' : '👁'}
-                  </Text>
+                  {showSignInPassword ? <EyeOff size={16} color={tColors.textTertiary} /> : <Eye size={16} color={tColors.textTertiary} />}
                 </TouchableOpacity>
               </View>
 
@@ -768,7 +767,7 @@ export default function OnboardingScreen() {
                 <View style={siStyles.forgotBox}>
                   {forgotSent ? (
                     <Text style={siStyles.forgotSuccess}>
-                      ✓ Reset link sent — check your inbox and click the link to set a new password.
+                      Reset link sent — check your inbox and click the link to set a new password.
                     </Text>
                   ) : (
                     <>
@@ -847,7 +846,7 @@ export default function OnboardingScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.logoRow}>
-              <View style={styles.logoBox}><Text style={styles.logoIcon}>✦</Text></View>
+              <View style={styles.logoBox}><Sparkles size={18} color="#fff" /></View>
               <Text style={styles.logoText}>Christ<Text style={{ color: colors.primary }}>Connect</Text></Text>
             </View>
 
@@ -889,7 +888,7 @@ export default function OnboardingScreen() {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.showPasswordRow} activeOpacity={0.7}>
-              <Text style={styles.showPasswordTick}>{showPassword ? '☑' : '☐'}</Text>
+              {showPassword ? <CheckSquare size={18} color={colors.accent} /> : <Square size={18} color={colors.textSecondary} />}
               <Text style={styles.showPasswordText}>{showPassword ? 'Hide password' : 'Show password'}</Text>
             </TouchableOpacity>
             <Text style={styles.hint}>Min 6 characters · at least one number · at least one special character</Text>
@@ -953,7 +952,7 @@ export default function OnboardingScreen() {
                   <Text style={styles.courseFull}>{c.full}</Text>
                   {c.sub ? <Text style={styles.courseSub}>{c.sub}</Text> : null}
                 </View>
-                {selected && <Text style={[styles.courseCheck, { color: c.color }]}>✓</Text>}
+                {selected && <Check size={14} color={c.color} />}
               </TouchableOpacity>
             );
           })}
@@ -1128,7 +1127,7 @@ export default function OnboardingScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.allsetContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.checkCircle}>
-          <Text style={styles.checkIcon}>✓</Text>
+          <Check size={16} color={colors.success} />
         </View>
 
         <Text style={styles.allsetTitle}>You're all set, {name.split(' ')[0]}!</Text>
@@ -1153,7 +1152,7 @@ export default function OnboardingScreen() {
         <View style={styles.consentChecks}>
           <View style={styles.consentCheck}>
             <TouchableOpacity onPress={() => setAgreedTerms(v => !v)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.consentCheckTick}>{agreedTerms ? '☑' : '☐'}</Text>
+              {agreedTerms ? <CheckSquare size={18} color={colors.accent} /> : <Square size={18} color={colors.textSecondary} />}
             </TouchableOpacity>
             <Text style={styles.consentCheckText}>
               I agree to the{' '}
@@ -1165,7 +1164,7 @@ export default function OnboardingScreen() {
 
           <View style={[styles.consentCheck, { marginTop: spacing.sm }]}>
             <TouchableOpacity onPress={() => setAgreedAge(v => !v)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.consentCheckTick}>{agreedAge ? '☑' : '☐'}</Text>
+              {agreedAge ? <CheckSquare size={18} color={colors.accent} /> : <Square size={18} color={colors.textSecondary} />}
             </TouchableOpacity>
             <Text style={styles.consentCheckText}>
               I confirm I am 18 years of age or older, or have obtained parental consent.
@@ -1195,7 +1194,7 @@ export default function OnboardingScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
             <TouchableOpacity onPress={() => setLegalModal(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={{ fontSize: 22, color: colors.textSecondary }}>✕</Text>
+              <X size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <LegalScreen route={{ params: { type: legalModal } }} />

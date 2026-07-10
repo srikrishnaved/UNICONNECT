@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { colors, spacing, radius, font } from '../theme';
+import { Lock, ClipboardList } from 'lucide-react-native';
 
 const PRIVACY_POLICY = [
   {
@@ -92,11 +93,12 @@ export default function LegalScreen({ route }) {
   const type = route?.params?.type ?? 'privacy';
   const isPrivacy = type === 'privacy';
   const sections = isPrivacy ? PRIVACY_POLICY : TERMS_OF_SERVICE;
-  const title = isPrivacy ? '🔒 Privacy Policy' : '📋 Terms of Service';
+  const titleIcon = isPrivacy ? <Lock size={20} color={colors.textSecondary} /> : <ClipboardList size={20} color={colors.textSecondary} />;
+  const titleText = isPrivacy ? 'Privacy Policy' : 'Terms of Service';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>{title}</Text>
+      <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:4}}>{titleIcon}<Text style={styles.title}>{titleText}</Text></View>
       <Text style={styles.subtitle}>UniConnect · Christ University</Text>
 
       {sections.map((section, i) => (

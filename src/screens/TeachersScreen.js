@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { GraduationCap } from 'lucide-react-native';
+import { GraduationCap, Search, Landmark, MessageCircle, UserCheck } from 'lucide-react-native';
 
 export default function TeachersScreen() {
   const [search, setSearch] = useState('');
@@ -42,7 +42,7 @@ export default function TeachersScreen() {
       </View>
 
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Search size={18} color={colors.textSecondary} />
         <TextInput
           value={search}
           onChangeText={setSearch}
@@ -65,7 +65,7 @@ export default function TeachersScreen() {
             <>
               {filtered.length > 0 && (
                 <>
-                  <Text style={styles.sectionLabel}>👨‍🏫 FACULTY ({filtered.length})</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserCheck size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>FACULTY ({filtered.length})</Text></View>
                   {filtered.map(t => <TeacherCard key={t.id} teacher={t} />)}
                 </>
               )}
@@ -108,7 +108,7 @@ function TeacherCard({ teacher }) {
         )}
 
         {teacher.campus && (
-          <Text style={styles.specialisation}>🏛 {teacher.campus}</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Landmark size={12} color={colors.textTertiary} /><Text style={styles.specialisation}>{teacher.campus}</Text></View>
         )}
 
         {subjects.length > 0 && (
@@ -131,7 +131,7 @@ function TeacherCard({ teacher }) {
         })}
         activeOpacity={0.7}
       >
-        <Text style={styles.msgIcon}>💬</Text>
+        <MessageCircle size={18} color={colors.textPrimary} />
       </TouchableOpacity>
     </View>
   );

@@ -24,6 +24,7 @@ import AttendanceReportScreen from '../components/AttendanceReportScreen';
 import UniversitySetupWizard from '../components/UniversitySetupWizard';
 import NAACScreen from '../components/NAACScreen';
 import { useUniversityConfig } from '../hooks/useUniversityConfig';
+import { User, UserCheck, GraduationCap, Landmark, BadgeCheck, Calendar, RefreshCw, ClipboardList, FileText, BarChart2, Gift, Wrench, Settings, X, Check, Trash2 } from 'lucide-react-native';
 
 const TABS = ['Teachers', 'CR', 'Subjects', 'SAPS', 'Stats'];
 const SAPS_ROLES = ['President', 'Vice President', 'Member Secretary', 'Secretary', 'Vice Secretary'];
@@ -609,7 +610,7 @@ export default function SuperAdminScreen({ navigation }) {
                 onPress={showAddForm ? () => setShowAddForm(false) : openAddSubjectForm}
                 activeOpacity={0.8}
               >
-                <Text style={styles.approveBtnText}>{showAddForm ? '✕ Cancel' : '+ Add Subject'}</Text>
+                <Text style={styles.approveBtnText}>{showAddForm ? 'Cancel' : '+ Add Subject'}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.rejectBtn, { flex: 1 }, importingSubjects && { opacity: 0.5 }]}
@@ -619,7 +620,7 @@ export default function SuperAdminScreen({ navigation }) {
               >
                 {importingSubjects
                   ? <ActivityIndicator size="small" color={tColors.error} />
-                  : <Text style={styles.rejectBtnText}>📄 Import Excel</Text>}
+                  : <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><FileText size={14} color={tColors.error} /><Text style={styles.rejectBtnText}>Import Excel</Text></View>}
               </TouchableOpacity>
             </View>
 
@@ -660,7 +661,7 @@ export default function SuperAdminScreen({ navigation }) {
                   activeOpacity={0.75}
                 >
                   <Text style={[styles.filterPillText, subjectIsElective && styles.filterPillTextActive]}>
-                    {subjectIsElective ? '✓ Elective' : 'Elective?'}
+                    {subjectIsElective ? 'Elective' : 'Elective?'}
                   </Text>
                 </TouchableOpacity>
                 {!!subjectFormError && (
@@ -708,7 +709,7 @@ export default function SuperAdminScreen({ navigation }) {
                   >
                     {deletingSubject === s.id
                       ? <ActivityIndicator size="small" color={tColors.error} />
-                      : <Text style={styles.rejectBtnText}>🗑</Text>}
+                      : <Trash2 size={16} color={tColors.error} />}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -835,7 +836,7 @@ export default function SuperAdminScreen({ navigation }) {
           </View>
           {crRequests.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Text style={{ fontSize: 28, marginBottom: 8 }}>🎉</Text>
+              <Gift size={28} color={tColors.accent} style={{ marginBottom: 8 }} />
               <Text style={styles.emptyText}>No pending CR applications</Text>
             </View>
           ) : crRequests.map(req => (
@@ -977,22 +978,22 @@ export default function SuperAdminScreen({ navigation }) {
 
   const renderPlaceholder = (label) => (
     <View style={styles.centerBox}>
-      <Text style={{ fontSize: 32, marginBottom: 12 }}>🚧</Text>
+      <Wrench size={32} color={tColors.warning} style={{ marginBottom: 12 }} />
       <Text style={styles.emptyText}>{label} — coming soon</Text>
     </View>
   );
 
   const STAT_CARDS = stats ? [
-    { label: 'Total Users',            value: stats.users,          icon: '👤' },
-    { label: 'Teachers',               value: stats.teachers,       icon: '🧑‍🏫' },
-    { label: 'Students',               value: stats.students,       icon: '🎓' },
-    { label: 'Clubs',                  value: stats.clubs,          icon: '🏛️' },
-    { label: 'Club Memberships',       value: stats.memberships,    icon: '🪪' },
-    { label: 'Hub Events',             value: stats.hubEvents,      icon: '📅' },
-    { label: 'Substitute Requests',    value: stats.subRequests,    icon: '🔄' },
-    { label: 'Compensatory Requests',  value: stats.compRequests,   icon: '📋' },
-    { label: 'NFAs Created',           value: stats.nfaRequests,    icon: '📝' },
-    { label: 'Activity Reports',       value: stats.activityReports, icon: '📊' },
+    { label: 'Total Users',            value: stats.users,          Icon: User },
+    { label: 'Teachers',               value: stats.teachers,       Icon: UserCheck },
+    { label: 'Students',               value: stats.students,       Icon: GraduationCap },
+    { label: 'Clubs',                  value: stats.clubs,          Icon: Landmark },
+    { label: 'Club Memberships',       value: stats.memberships,    Icon: BadgeCheck },
+    { label: 'Hub Events',             value: stats.hubEvents,      Icon: Calendar },
+    { label: 'Substitute Requests',    value: stats.subRequests,    Icon: RefreshCw },
+    { label: 'Compensatory Requests',  value: stats.compRequests,   Icon: ClipboardList },
+    { label: 'NFAs Created',           value: stats.nfaRequests,    Icon: FileText },
+    { label: 'Activity Reports',       value: stats.activityReports, Icon: BarChart2 },
   ] : [];
 
   const renderStatsTab = () => {
@@ -1013,7 +1014,7 @@ export default function SuperAdminScreen({ navigation }) {
         <View style={styles.statsGrid}>
           {STAT_CARDS.map(card => (
             <View key={card.label} style={styles.statsCard}>
-              <Text style={styles.statsCardIcon}>{card.icon}</Text>
+              <card.Icon size={22} color={tColors.textSecondary} style={{ marginBottom: 6 }} />
               <Text style={styles.statsCardValue}>{card.value}</Text>
               <Text style={styles.statsCardLabel}>{card.label}</Text>
             </View>
@@ -1048,9 +1049,10 @@ export default function SuperAdminScreen({ navigation }) {
       {/* Setup incomplete banner */}
       {userProfile?.is_super_admin && !setupComplete && (
         <View style={styles.setupBanner}>
-          <Text style={styles.setupBannerText}>
-            ⚙️ University setup incomplete — some features won't work until you finish setup.
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+            <Settings size={14} color={tColors.warning} />
+            <Text style={styles.setupBannerText}>University setup incomplete — some features won't work until you finish setup.</Text>
+          </View>
           <TouchableOpacity
             onPress={() => setShowWizard(true)}
             activeOpacity={0.8}
@@ -1081,7 +1083,7 @@ export default function SuperAdminScreen({ navigation }) {
         onPress={() => navigation.navigate('TeacherDashboard')}
         activeOpacity={0.8}
       >
-        <Text style={{ color: '#fff', fontSize: 14, fontWeight: typography.bold }}>📋 Open Teacher Dashboard</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><ClipboardList size={14} color="#fff" /><Text style={{ color: '#fff', fontSize: 14, fontWeight: typography.bold }}>Open Teacher Dashboard</Text></View>
       </TouchableOpacity>
 
       {/* Upload Roster shortcut */}
@@ -1090,7 +1092,7 @@ export default function SuperAdminScreen({ navigation }) {
         onPress={() => setShowRosterModal(true)}
         activeOpacity={0.8}
       >
-        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>📊 Upload Class Roster</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><BarChart2 size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>Upload Class Roster</Text></View>
       </TouchableOpacity>
 
       {/* Attendance Reports shortcut */}
@@ -1099,7 +1101,7 @@ export default function SuperAdminScreen({ navigation }) {
         onPress={() => setShowReport(true)}
         activeOpacity={0.8}
       >
-        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>📋 Attendance Reports</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><ClipboardList size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>Attendance Reports</Text></View>
       </TouchableOpacity>
 
       {/* NAAC shortcut */}
@@ -1108,7 +1110,7 @@ export default function SuperAdminScreen({ navigation }) {
         onPress={() => setShowNAAC(true)}
         activeOpacity={0.8}
       >
-        <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>🏛️ NAAC Documentation</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Landmark size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>NAAC Documentation</Text></View>
       </TouchableOpacity>
 
       {/* Tab content */}
@@ -1128,8 +1130,8 @@ export default function SuperAdminScreen({ navigation }) {
                 <Text style={{ fontSize: 16, fontWeight: typography.bold, color: tColors.textPrimary }}>
                   Approve {approvalTarget?.name}
                 </Text>
-                <TouchableOpacity onPress={() => !approvalLoading && setApprovalTarget(null)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
+                <TouchableOpacity onPress={() => !approvalLoading && setApprovalTarget(null)} activeOpacity={0.7} style={{ padding: 4 }}>
+                  <X size={22} color={tColors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <Text style={{ fontSize: 12, color: tColors.textSecondary, marginBottom: tSpacing.md }}>
@@ -1159,7 +1161,7 @@ export default function SuperAdminScreen({ navigation }) {
                         <Text style={[styles.seedRowName, sel && { color: tColors.student.primary }]}>{t.name}</Text>
                         <Text style={styles.seedRowMeta}>Faculty</Text>
                       </View>
-                      {sel && <Text style={{ color: tColors.student.primary, fontSize: 16, fontWeight: typography.bold }}>✓</Text>}
+                      {sel && <Check size={16} color={tColors.student.primary} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -1174,7 +1176,7 @@ export default function SuperAdminScreen({ navigation }) {
                     </Text>
                     <Text style={styles.seedRowMeta}>Approve without linking — teacher selects subjects manually</Text>
                   </View>
-                  {!approvalSeedPick && <Text style={{ color: tColors.student.primary, fontSize: 16, fontWeight: typography.bold }}>✓</Text>}
+                  {!approvalSeedPick && <Check size={16} color={tColors.student.primary} />}
                 </TouchableOpacity>
               </ScrollView>
               <View style={styles.actionRow}>
@@ -1213,8 +1215,8 @@ export default function SuperAdminScreen({ navigation }) {
             <View style={{ backgroundColor: tColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: tSpacing.base, maxHeight: '80%', borderWidth: 1, borderColor: tColors.border }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.md }}>
                 <Text style={{ fontSize: 16, fontWeight: typography.bold, color: tColors.textPrimary }}>Assign {assignRole}</Text>
-                <TouchableOpacity onPress={() => setShowAssignModal(false)} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
+                <TouchableOpacity onPress={() => setShowAssignModal(false)} activeOpacity={0.7} style={{ padding: 4 }}>
+                  <X size={22} color={tColors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <TextInput
@@ -1458,7 +1460,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     ...shadows.card,
   },
-  statsCardIcon: { fontSize: 22, marginBottom: 6 },
   statsCardValue: { fontSize: 28, fontWeight: typography.bold, color: tColors.textPrimary },
   statsCardLabel: { fontSize: 11, color: tColors.textTertiary, fontWeight: typography.medium, textAlign: 'center', marginTop: 4 },
 });

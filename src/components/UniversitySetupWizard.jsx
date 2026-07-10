@@ -13,6 +13,7 @@ import {
   spacing as tSpacing,
   radius as tRadius,
 } from '../theme/tokens';
+import { Check, FileText, X } from 'lucide-react-native';
 
 const STEPS = [
   { number: 1, title: 'Details' },
@@ -266,7 +267,7 @@ export default function UniversitySetupWizard({
               step > s.number && styles.stepCircleDone,
             ]}>
               {step > s.number
-                ? <Text style={styles.stepCircleText}>✓</Text>
+                ? <Check size={14} color="#fff" />
                 : <Text style={[styles.stepCircleText, step < s.number && styles.stepCircleTextInactive]}>
                     {s.number}
                   </Text>
@@ -382,7 +383,7 @@ export default function UniversitySetupWizard({
       >
         {importing
           ? <ActivityIndicator size="small" color={tColors.student.primary} />
-          : <Text style={styles.importBtnText}>📄 Import from Excel / CSV</Text>
+          : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><FileText size={14} color={tColors.student.primary} /><Text style={styles.importBtnText}>Import from Excel / CSV</Text></View>
         }
       </TouchableOpacity>
 
@@ -397,7 +398,7 @@ export default function UniversitySetupWizard({
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 activeOpacity={0.7}
               >
-                <Text style={styles.chipRemove}>✕</Text>
+                <X size={14} color={tColors.textTertiary} />
               </TouchableOpacity>
             </View>
           ))}
@@ -491,7 +492,7 @@ export default function UniversitySetupWizard({
             style={{ width: 28, alignItems: 'center' }}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 15, color: tColors.error }}>✕</Text>
+            <X size={15} color={tColors.error} />
           </TouchableOpacity>
         </View>
       ))}
@@ -514,7 +515,7 @@ export default function UniversitySetupWizard({
         >
           {saving
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.primaryBtnText}>Complete Setup ✓</Text>
+            : <Text style={styles.primaryBtnText}>Complete Setup</Text>
           }
         </TouchableOpacity>
       </View>
@@ -531,7 +532,7 @@ export default function UniversitySetupWizard({
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>University Setup</Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-                <Text style={{ fontSize: 22, color: tColors.textSecondary, padding: 4 }}>✕</Text>
+                <X size={22} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
 

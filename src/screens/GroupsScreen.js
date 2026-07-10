@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, font, courseColor } from '../theme';
+import { colors as tColors } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { hubClubs } from '../data';
 import { EmptyState } from '../components/EmptyState';
-import { BookOpen } from 'lucide-react-native';
+import { BookOpen, Landmark, Check, Search, Sparkles, UserCheck, X } from 'lucide-react-native';
 
 const COURSES = ['All', 'BCom IAF', 'BCom IBA', 'BCom F&A'];
 
@@ -115,7 +116,7 @@ export default function GroupsScreen() {
               <View style={styles.nameRow}>
                 <Text style={styles.name} numberOfLines={1}>{club.name}</Text>
                 <View style={styles.clubBadge}>
-                  <Text style={styles.clubBadgeText}>🏛 Club</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Landmark size={11} color={colors.primary} /><Text style={styles.clubBadgeText}>Club</Text></View>
                 </View>
               </View>
               <Text style={styles.course}>{club.category || 'Club Group'}</Text>
@@ -123,7 +124,7 @@ export default function GroupsScreen() {
           </View>
           <Text style={styles.desc} numberOfLines={2}>{club.desc || `Members-only group for ${club.name}.`}</Text>
           <View style={styles.cardFooter}>
-            <Text style={styles.members}>✓ Member</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Check size={12} color={colors.success} /><Text style={styles.members}>Member</Text></View>
             <View style={[styles.joinBtn, styles.joinBtnActive]}>
               <Text style={[styles.joinBtnText, styles.joinBtnTextActive]}>Open →</Text>
             </View>
@@ -155,7 +156,7 @@ export default function GroupsScreen() {
                 {group.active && <View style={styles.activeDot} />}
                 {group.createdByTeacher && (
                   <View style={styles.teacherBadge}>
-                    <Text style={styles.teacherBadgeText}>👩‍🏫 Teacher</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:4}}><UserCheck size={11} color={colors.amber} /><Text style={styles.teacherBadgeText}>Teacher</Text></View>
                   </View>
                 )}
               </View>
@@ -164,15 +165,16 @@ export default function GroupsScreen() {
           </View>
           <Text style={styles.desc} numberOfLines={2}>{group.desc}</Text>
           <View style={styles.cardFooter}>
-            <Text style={styles.members}>👥 {group.members} member{group.members !== 1 ? 's' : ''}</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:4}}><UserCheck size={12} color={colors.textSecondary} /><Text style={styles.members}>{group.members} member{group.members !== 1 ? 's' : ''}</Text></View>
             <TouchableOpacity
               style={[styles.joinBtn, isJoined && styles.joinBtnActive]}
               onPress={() => toggleGroupJoin(group.id)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.joinBtnText, isJoined && styles.joinBtnTextActive]}>
-                {isJoined ? '✓ Joined' : '+ Join'}
-              </Text>
+              {isJoined
+                ? <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Check size={12} color={colors.green} /><Text style={[styles.joinBtnText, styles.joinBtnTextActive]}>Joined</Text></View>
+                : <Text style={styles.joinBtnText}>+ Join</Text>
+              }
             </TouchableOpacity>
           </View>
         </View>
@@ -184,7 +186,7 @@ export default function GroupsScreen() {
     <View style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Search size={18} color={colors.textSecondary} />
           <TextInput
             value={search}
             onChangeText={setSearch}
@@ -213,17 +215,17 @@ export default function GroupsScreen() {
           <>
             {myClubGroups.length > 0 && (
               <>
-                <Text style={styles.sectionLabel}>🏛 MY CLUBS ({myClubGroups.length})</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY CLUBS ({myClubGroups.length})</Text></View>
                 {myClubGroups.map(c => <ClubGroupCard key={c.id} club={c} />)}
               </>
             )}
             {myGroups.length > 0 && (
               <>
-                <Text style={styles.sectionLabel}>📌 YOUR GROUPS ({myGroups.length})</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>YOUR GROUPS ({myGroups.length})</Text></View>
                 {myGroups.map(g => <GroupCard key={g.id} group={g} />)}
               </>
             )}
-            <Text style={styles.sectionLabel}>✨ DISCOVER ({discoverGroups.length})</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>DISCOVER ({discoverGroups.length})</Text></View>
             {discoverGroups.map(g => <GroupCard key={g.id} group={g} />)}
             {discoverGroups.length === 0 && myGroups.length === 0 && (
               <EmptyState
@@ -242,10 +244,10 @@ export default function GroupsScreen() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✨ Create Study Group</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Create Study Group</Text></View>
               <Text style={{ fontSize: 11, color: colors.textTertiary }}>{createdGroupIds.size}/3 created</Text>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -297,7 +299,7 @@ export default function GroupsScreen() {
               multiline
             />
 
-            {createError ? <Text style={{ fontSize: 13, color: '#EF4444', marginTop: 8, textAlign: 'center' }}>{createError}</Text> : null}
+            {createError ? <Text style={{ fontSize: 13, color: tColors.error, marginTop: 8, textAlign: 'center' }}>{createError}</Text> : null}
             <TouchableOpacity
               style={[styles.modalSubmit, (!newGroup.name.trim() || createdGroupIds.size >= 3) && { opacity: 0.45 }]}
               onPress={handleCreate}

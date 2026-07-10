@@ -7,6 +7,7 @@ import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
+import { Users, Clock, BarChart2, ShieldCheck, Calendar, MapPin, UserCheck, UserPlus, ClipboardList, X } from 'lucide-react-native';
 
 export default function TeamDetailScreen({ route, navigation }) {
   const teamId = Number(route.params.clubId);
@@ -183,7 +184,7 @@ export default function TeamDetailScreen({ route, navigation }) {
         <View style={styles.nameBlock}>
           <Text style={styles.name}>{team.name}</Text>
           <Text style={styles.fullName}>{team.fullName}</Text>
-          <Text style={styles.members}>👥 {team.members} members</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={13} color={colors.textSecondary} /><Text style={styles.members}>{team.members} members</Text></View>
         </View>
 
         {/* Action buttons */}
@@ -216,7 +217,7 @@ export default function TeamDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           ) : pendingJoinReq === 'pending' ? (
             <View style={[styles.actionBtn, styles.pendingBtn]}>
-              <Text style={styles.pendingBtnText}>⏳ Request Pending</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={14} color={colors.textSecondary} /><Text style={styles.pendingBtnText}>Request Pending</Text></View>
             </View>
           ) : (
             <TouchableOpacity
@@ -238,7 +239,7 @@ export default function TeamDetailScreen({ route, navigation }) {
               activeOpacity={0.82}
             >
               <View style={styles.dashboardBtnLeft}>
-                <Text style={styles.dashboardBtnIcon}>📊</Text>
+                <BarChart2 size={18} color={colors.textPrimary} />
               </View>
               <View style={styles.dashboardBtnCenter}>
                 <Text style={styles.dashboardBtnText}>Team Dashboard</Text>
@@ -254,7 +255,7 @@ export default function TeamDetailScreen({ route, navigation }) {
           <View style={styles.adminRequestRow}>
             {(pendingAdminReqFromCtx || pendingAdminReq) ? (
               <View style={styles.adminRequestPending}>
-                <Text style={styles.adminRequestPendingText}>⏳ Admin Request Submitted</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={13} color={colors.textSecondary} /><Text style={styles.adminRequestPendingText}>Admin Request Submitted</Text></View>
                 <Text style={styles.adminRequestPendingHint}>Awaiting review</Text>
               </View>
             ) : (
@@ -263,7 +264,7 @@ export default function TeamDetailScreen({ route, navigation }) {
                 onPress={() => setShowAdminRequest(true)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.adminRequestBtnText}>🛡️ Request Admin Access</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ShieldCheck size={14} color={colors.textSecondary} /><Text style={styles.adminRequestBtnText}>Request Admin Access</Text></View>
               </TouchableOpacity>
             )}
           </View>
@@ -282,7 +283,7 @@ export default function TeamDetailScreen({ route, navigation }) {
               activeOpacity={0.85}
               onPress={() => { setShowMembers(true); loadRealMembers(); }}
             >
-              <Text style={styles.adminActionIcon}>👥</Text>
+              <Users size={20} color={colors.textPrimary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.adminActionTitle}>Manage members</Text>
                 <Text style={styles.adminActionDesc}>View, invite, or remove team members</Text>
@@ -299,7 +300,7 @@ export default function TeamDetailScreen({ route, navigation }) {
                 setShowJoinReview(true);
               }}
             >
-              <Text style={styles.adminActionIcon}>📋</Text>
+              <ClipboardList size={20} color={colors.textPrimary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.adminActionTitle}>Review join requests</Text>
                 <Text style={styles.adminActionDesc}>Approve or reject applications</Text>
@@ -339,8 +340,8 @@ export default function TeamDetailScreen({ route, navigation }) {
                     </View>
                     <Text style={styles.assignmentTitle}>{event.title}</Text>
                     <View style={styles.assignmentMetaRow}>
-                      <Text style={styles.assignmentMeta}>📅 {event.time}</Text>
-                      <Text style={styles.assignmentMeta}>📍 {event.venue}</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.metaLine}>{event.time}</Text></View>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><MapPin size={12} color={colors.textSecondary} /><Text style={styles.metaLine}>{event.venue}</Text></View>
                     </View>
                   </View>
                 </View>
@@ -357,9 +358,9 @@ export default function TeamDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🙋 Join {team.name}</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><UserCheck size={18} color={colors.textPrimary} /><Text style={styles.modalTitle}>Join {team.name}</Text></View>
               <TouchableOpacity onPress={() => { setShowJoinRequest(false); setJoinMessage(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -414,9 +415,9 @@ export default function TeamDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🛡️ Request Admin Access</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ShieldCheck size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Request Admin Access</Text></View>
               <TouchableOpacity onPress={() => { setShowAdminRequest(false); setAdminReason(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -470,9 +471,9 @@ export default function TeamDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📋 Join Requests</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ClipboardList size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Join Requests</Text></View>
               <TouchableOpacity onPress={() => setShowJoinReview(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {joinReviewList.length === 0 ? (
@@ -531,14 +532,14 @@ export default function TeamDetailScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>👥 Members ({members.length})</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Users size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Members ({members.length})</Text></View>
               <TouchableOpacity onPress={() => { setShowMembers(false); setSearchQuery(''); setSearchResults([]); }}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.inviteSection}>
-              <Text style={styles.inviteSectionTitle}>➕ Invite a Member</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><UserPlus size={16} color={colors.textPrimary} /><Text style={styles.inviteSectionTitle}>Invite a Member</Text></View>
               <View style={styles.addMemberRow}>
                 <TextInput
                   value={searchQuery}

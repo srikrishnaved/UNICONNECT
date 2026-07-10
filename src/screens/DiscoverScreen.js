@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { Users, Star } from 'lucide-react-native';
+import { Users, Star, Check, Landmark, Sparkles, Search, CircleCheck } from 'lucide-react-native';
 
 const COURSES = ['All', 'BCom IAF', 'BCom F&A', 'BCom IBA'];
 const YEARS = ['All', '1st Year', '2nd Year', '3rd Year'];
@@ -144,7 +144,7 @@ export default function DiscoverScreen() {
     const connected = isConnected(student.id);
     const pending = !connected && hasPendingRequest(student.id);
     const isSelf = userProfile?.id === student.id;
-    const connectLabel = connected ? '✓ Connected' : pending ? '⏳ Pending' : '+ Connect';
+    const connectLabel = connected ? 'Connected' : pending ? 'Pending' : '+ Connect';
     const connectStyle = connected
       ? [styles.connectBtn, styles.connectBtnActive]
       : pending
@@ -191,7 +191,14 @@ export default function DiscoverScreen() {
               onPress={handleConnectPress}
               activeOpacity={0.7}
             >
-              <Text style={connectTextStyle}>{connectLabel}</Text>
+              {connected ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Check size={11} color={colors.success} />
+                  <Text style={connectTextStyle}>{connectLabel}</Text>
+                </View>
+              ) : (
+                <Text style={connectTextStyle}>{connectLabel}</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -202,7 +209,12 @@ export default function DiscoverScreen() {
         <View style={[styles.courseBadge, { backgroundColor: cc.bg }]}>
           <Text style={[styles.courseText, { color: cc.text }]}>{student.class || student.course}</Text>
         </View>
-        {student.campus ? <Text style={styles.meta}>🏛 {student.campus}</Text> : null}
+        {student.campus ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Landmark size={12} color={colors.textTertiary} />
+            <Text style={styles.meta}>{student.campus}</Text>
+          </View>
+        ) : null}
         {shownShared.length > 0 && (
           <View style={styles.sharedRow}>
             {shownShared.map(i => (
@@ -240,17 +252,28 @@ export default function DiscoverScreen() {
             onPress={() => toggleConnect(student.id)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.connectBtnText, connected && styles.connectBtnTextActive]}>
-              {connected ? '✓ Connected' : '+ Connect'}
-            </Text>
+            {connected ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Check size={11} color={colors.success} />
+                <Text style={[styles.connectBtnText, styles.connectBtnTextActive]}>Connected</Text>
+              </View>
+            ) : (
+              <Text style={styles.connectBtnText}>+ Connect</Text>
+            )}
           </TouchableOpacity>
         </View>
         <Text style={styles.name}>{student.name}</Text>
         <View style={[styles.courseBadge, { backgroundColor: cc.bg }]}>
           <Text style={[styles.courseText, { color: cc.text }]}>{student.class || student.course}</Text>
         </View>
-        <Text style={styles.meta}>🏛 {student.campus}</Text>
-        <Text style={styles.interest}>✨ {student.interest}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Landmark size={12} color={colors.textTertiary} />
+          <Text style={styles.meta}>{student.campus}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Sparkles size={12} color={colors.textTertiary} />
+          <Text style={styles.interest}>{student.interest}</Text>
+        </View>
       </TouchableOpacity>
     );
   }
@@ -260,7 +283,7 @@ export default function DiscoverScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Search size={18} color={colors.textSecondary} />
         <TextInput
           value={search}
           onChangeText={handleSearch}
@@ -290,7 +313,10 @@ export default function DiscoverScreen() {
               <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
             ) : filteredReal.length > 0 ? (
               <>
-                <Text style={styles.subLabel}>✅ SIGNED-UP STUDENTS</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <CircleCheck size={13} color={colors.textTertiary} />
+                  <Text style={styles.subLabel}>SIGNED-UP STUDENTS</Text>
+                </View>
                 <View style={styles.grid}>
                   {filteredReal.map(s => <RealCard key={s.id} student={s} />)}
                 </View>
@@ -300,7 +326,10 @@ export default function DiscoverScreen() {
             {/* Seed students */}
             {filteredSeed.length > 0 && (
               <>
-                <Text style={styles.subLabel}>👥 SAMPLE PROFILES</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Users size={13} color={colors.textTertiary} />
+                  <Text style={styles.subLabel}>SAMPLE PROFILES</Text>
+                </View>
                 <View style={styles.grid}>
                   {filteredSeed.map(s => <SeedCard key={s.id} student={s} />)}
                 </View>
@@ -318,7 +347,10 @@ export default function DiscoverScreen() {
             {/* Clubs section — shown when query is active */}
             {showClubs && (
               <>
-                <Text style={[styles.subLabel, { marginTop: spacing.lg }]}>🏛️ CLUBS & TEAMS</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.lg }}>
+                  <Landmark size={13} color={colors.textTertiary} />
+                  <Text style={styles.subLabel}>CLUBS & TEAMS</Text>
+                </View>
                 {loadingClubs ? (
                   <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />
                 ) : allMatchedClubs.length === 0 ? (

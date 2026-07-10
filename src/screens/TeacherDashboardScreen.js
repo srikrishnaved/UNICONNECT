@@ -21,6 +21,7 @@ import RosterUploadModal from '../components/RosterUploadModal';
 import TakeAttendanceScreen from '../components/TakeAttendanceScreen';
 import AttendanceReportScreen from '../components/AttendanceReportScreen';
 import NAACScreen from '../components/NAACScreen';
+import { Sparkles, Pencil, Bell, GraduationCap, Landmark, CircleCheck, Calendar, ClipboardList, FileText, CalendarDays, Mail, Megaphone, BookOpen, BookMarked, Users, Search, X, BarChart2, Trash2, Check, Gift, Info, Sun, User, MessageCircle, Paperclip, Timer, Clock } from 'lucide-react-native';
 
 const ALL_COURSES = ['1BcomIAF', '3BcomIAF', '5BcomIAF', '1BcomIBA', '3BcomIBA', '1BcomF&A', '3BcomF&A(A)', '3BcomF&A(B)', '5BcomF&A(A)', '5BcomF&A(B)', '7BcomF&A'];
 // Classes that have HED reserved at TUE P2 (5th-year classes have real subjects there).
@@ -491,7 +492,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       user_id: chatStudentUUID,
       type: 'dm',
       title: `New message from ${effectiveProfile.name}`,
-      body: mediaUrl ? '📷 Sent a photo' : (text.length > 60 ? text.slice(0, 57) + '…' : text),
+      body: mediaUrl ? 'Sent a photo' : (text.length > 60 ? text.slice(0, 57) + '…' : text),
       read: false,
       meta: { person_key: teacherId, sender_name: effectiveProfile.name, role: 'teacher' },
     });
@@ -1406,7 +1407,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.logoMark}>
-            <Text style={styles.logoMarkIcon}>✦</Text>
+            <Sparkles size={18} color={tColors.accent} />
           </View>
           <View style={{ flex: 1 }}>
             <View style={styles.nameRow}>
@@ -1417,7 +1418,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   activeOpacity={0.7}
                   style={{ marginLeft: 6, padding: 2 }}
                 >
-                  <Text style={{ fontSize: 13, color: colors.textTertiary }}>✏️</Text>
+                  <Pencil size={13} color={colors.textTertiary} />
                 </TouchableOpacity>
               )}
               {effectiveProfile.isHOD === true && (
@@ -1430,7 +1431,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <TouchableOpacity onPress={() => { setShowTeacherNotifs(true); loadTeacherNotifs(); }} activeOpacity={0.7}>
             <View>
-              <Text style={{ fontSize: 20 }}>🔔</Text>
+              <Bell size={18} color={colors.textSecondary} />
               {teacherNotifsUnread > 0 && (
                 <View style={styles.bellBadge}>
                   <Text style={styles.bellBadgeText}>{teacherNotifsUnread > 9 ? '9+' : teacherNotifsUnread}</Text>
@@ -1453,24 +1454,30 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       {/* ── Tab Bar ─────────────────────────────────────────────────────────── */}
       <View style={styles.tabBar}>
         {[
-          { key: 'mentoring',  label: '🎓 Mentoring' },
-          { key: 'clubs',      label: '🏛️ Clubs' },
-          { key: 'attendance', label: '✅ Attendance' },
-          { key: 'timetable',  label: '📅 Timetable' },
-          { key: 'planner',    label: '📋 Planner' },
-          { key: 'docs',       label: '📄 Docs' },
-        ].map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
-            onPress={() => setActiveTab(tab.key)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.tabBtnText, activeTab === tab.key && styles.tabBtnTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+          { key: 'mentoring',  label: 'Mentoring',  Icon: GraduationCap },
+          { key: 'clubs',      label: 'Clubs',      Icon: Landmark },
+          { key: 'attendance', label: 'Attendance', Icon: CircleCheck },
+          { key: 'timetable',  label: 'Timetable',  Icon: Calendar },
+          { key: 'planner',    label: 'Planner',    Icon: ClipboardList },
+          { key: 'docs',       label: 'Docs',       Icon: FileText },
+        ].map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tabBtn, isActive && styles.tabBtnActive]}
+              onPress={() => setActiveTab(tab.key)}
+              activeOpacity={0.75}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <tab.Icon size={14} color={isActive ? colors.accent : colors.textTertiary} />
+                <Text style={[styles.tabBtnText, isActive && styles.tabBtnTextActive]}>
+                  {tab.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* ── Timetable tab — takes full remaining height ─────────────────────── */}
@@ -1491,7 +1498,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             onPress={() => setShowNAAC(true)}
             activeOpacity={0.8}
           >
-            <Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>🏛️ NAAC Docs</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Landmark size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>NAAC Docs</Text></View>
           </TouchableOpacity>
           <DocumentationScreen
             effectiveProfile={effectiveProfile}
@@ -1506,7 +1513,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
           {/* ══ MY SCHEDULE ═════════════════════════════════════════════════════ */}
           <View style={styles.section}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <Text style={styles.sectionLabel}>🗓️ MY SCHEDULE</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><CalendarDays size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY SCHEDULE</Text></View>
               <TouchableOpacity
                 onPress={() => setShowScheduleAbsence(true)}
                 activeOpacity={0.8}
@@ -1543,7 +1550,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />
             ) : scheduleSlots.length === 0 ? (
               <View style={styles.emptyCard}>
-                <Text style={styles.emptyIcon}>✅</Text>
+                <CircleCheck size={36} color={colors.success} />
                 <Text style={styles.emptyText}>No classes on {scheduleDay}</Text>
               </View>
             ) : (
@@ -1570,7 +1577,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                       onPress={() => setAttendanceSlot({ class_name: slot.class_name, course_name: slot.course_name, course_code: slot.course_code, period_name: slot.period_name, day: scheduleDay })}
                       activeOpacity={0.7}
                     >
-                      <Text style={{ fontSize: 11, color: tColors.faculty.primary, fontWeight: '600' }}>✓ Attendance</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:4}}><CircleCheck size={11} color={tColors.faculty.primary} /><Text style={{ fontSize: 11, color: tColors.faculty.primary, fontWeight: '600' }}>Attendance</Text></View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{ backgroundColor: colors.primary + '18', borderWidth: 1, borderColor: colors.primary, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}
@@ -1591,7 +1598,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Group Invites */}
               {(groupInvitesLoading || groupInvites.length > 0) && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionLabel}>📬 GROUP INVITES ({groupInvites.length})</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Mail size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>GROUP INVITES ({groupInvites.length})</Text></View>
                   {groupInvitesLoading ? (
                     <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />
                   ) : (
@@ -1627,10 +1634,10 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Mentor Group */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>
-                    🎓 MY MENTOR GROUP{assignment ? ` · ${assignment.course} Group ${assignment.group}` : ''}
-                    {allMentees.length > 0 ? ` (${allMentees.length})` : ''}
-                  </Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+                    <GraduationCap size={13} color={colors.textTertiary} />
+                    <Text style={styles.sectionLabel}>MY MENTOR GROUP{assignment ? ` · ${assignment.course} Group ${assignment.group}` : ''}{allMentees.length > 0 ? ` (${allMentees.length})` : ''}</Text>
+                  </View>
                   <TouchableOpacity
                     style={styles.createBtn}
                     onPress={() => { setShowAddMentee(true); setMenteeAddSearch(''); }}
@@ -1641,7 +1648,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                 </View>
                 {allMentees.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>👥</Text>
+                    <Users size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No mentees yet</Text>
                     <Text style={styles.emptyHint}>Tap "+ Add" to build your mentor group</Text>
                     <TouchableOpacity
@@ -1673,9 +1680,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
               {/* All Students */}
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>👥 ALL STUDENTS ({allStudents.length}{realProfiles.length > 0 ? ` · ${realProfiles.length} signed up` : ''})</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Users size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>ALL STUDENTS ({allStudents.length}{realProfiles.length > 0 ? ` · ${realProfiles.length} signed up` : ''})</Text></View>
                 <View style={styles.searchBar}>
-                  <Text style={styles.searchIcon}>🔍</Text>
+                  <Search size={18} color={colors.textSecondary} />
                   <TextInput
                     value={studentSearch}
                     onChangeText={setStudentSearch}
@@ -1685,13 +1692,13 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   />
                   {studentSearch.length > 0 && (
                     <TouchableOpacity onPress={() => setStudentSearch('')} activeOpacity={0.7}>
-                      <Text style={{ fontSize: 14, color: colors.textTertiary, paddingHorizontal: 4 }}>✕</Text>
+                      <X size={14} color={colors.textTertiary} />
                     </TouchableOpacity>
                   )}
                 </View>
                 {filteredStudents.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>🔍</Text>
+                    <Search size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No students match your search</Text>
                   </View>
                 ) : (
@@ -1714,7 +1721,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Announcements */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>📢 ANNOUNCEMENTS ({announcements.length})</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Megaphone size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>ANNOUNCEMENTS ({announcements.length})</Text></View>
                   <TouchableOpacity
                     style={styles.createBtn}
                     onPress={() => { setShowAnnounceModal(true); setAnnounceError(''); }}
@@ -1725,7 +1732,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                 </View>
                 {announcements.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>📢</Text>
+                    <Megaphone size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No announcements yet</Text>
                     <Text style={styles.emptyHint}>Post an update for your mentor group</Text>
                   </View>
@@ -1743,14 +1750,14 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {isEventApprover && (
                 <View style={styles.section}>
                   <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionLabel}>📅 EVENT APPROVALS ({pendingEventApprovals.length})</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>EVENT APPROVALS ({pendingEventApprovals.length})</Text></View>
                     <TouchableOpacity style={styles.createBtn} onPress={loadEventApprovals} activeOpacity={0.8}>
                       <Text style={styles.createBtnText}>↺ Refresh</Text>
                     </TouchableOpacity>
                   </View>
                   {pendingEventApprovals.length === 0 ? (
                     <View style={styles.emptyCard}>
-                      <Text style={styles.emptyIcon}>🎉</Text>
+                      <Gift size={36} color={colors.textTertiary} />
                       <Text style={styles.emptyText}>No pending event approvals</Text>
                     </View>
                   ) : pendingEventApprovals.map(ev => (
@@ -1814,8 +1821,8 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                 <View style={styles.modalOverlay}>
                   <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
                     <View style={styles.modalHeader}>
-                      <Text style={styles.modalTitle}>✏️ Edit Event</Text>
-                      <TouchableOpacity onPress={() => setEditingEvent(null)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Pencil size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Edit Event</Text></View>
+                      <TouchableOpacity onPress={() => setEditingEvent(null)}><X size={20} color={colors.textSecondary} /></TouchableOpacity>
                     </View>
                     <Text style={styles.fieldLabel}>EVENT NAME</Text>
                     <TextInput
@@ -1870,7 +1877,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {effectiveProfile.isSupabaseTeacher && (
                 <View style={styles.section}>
                   <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionLabel}>📖 MY SUBJECTS ({mySubjects.length})</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><BookOpen size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY SUBJECTS ({mySubjects.length})</Text></View>
                     <TouchableOpacity
                       style={styles.createBtn}
                       onPress={openAddSubjectModal}
@@ -1883,7 +1890,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                     <ActivityIndicator color={colors.primary} style={{ marginVertical: 12 }} />
                   ) : mySubjects.length === 0 ? (
                     <View style={styles.emptyCard}>
-                      <Text style={styles.emptyIcon}>📖</Text>
+                      <BookOpen size={36} color={colors.textTertiary} />
                       <Text style={styles.emptyText}>No subjects added yet</Text>
                       <Text style={styles.emptyHint}>Tap "+ Add Subject" to select the subjects you teach</Text>
                     </View>
@@ -1904,7 +1911,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                         >
                           {removingSubjectId === subject._recordId
                             ? <ActivityIndicator size="small" color={colors.red} />
-                            : <Text style={styles.subjectRemoveText}>✕</Text>}
+                            : <X size={16} color={colors.error} />}
                         </TouchableOpacity>
                       </View>
                     ))
@@ -1915,14 +1922,14 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Study Groups */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>📚 STUDY GROUPS ({myGroups.length})</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><BookMarked size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>STUDY GROUPS ({myGroups.length})</Text></View>
                   <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)} activeOpacity={0.8}>
                     <Text style={styles.createBtnText}>+ Create</Text>
                   </TouchableOpacity>
                 </View>
                 {myGroups.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>📚</Text>
+                    <BookMarked size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No groups created yet</Text>
                     <Text style={styles.emptyHint}>Create a group and choose which classes can see it</Text>
                   </View>
@@ -1934,7 +1941,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Club Admin */}
               {coordinatedClubs.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionLabel}>🏛️ CLUB & TEAM ADMIN ({coordinatedClubs.length})</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CLUB & TEAM ADMIN ({coordinatedClubs.length})</Text></View>
                   {coordinatedClubs.map(club => {
                     const isExpanded = expandedClub === club.id;
                     const requests = joinRequests[club.id] || [];
@@ -1947,7 +1954,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                             onPress={() => setDashboardClubId(club.id)}
                             activeOpacity={0.85}
                           >
-                            <Text style={styles.clubDashBtnIcon}>📊</Text>
+                            <BarChart2 size={18} color={colors.textPrimary} />
                             <Text style={styles.clubDashBtnText}>Open Dashboard</Text>
                             <Text style={styles.clubDashBtnArrow}>›</Text>
                           </TouchableOpacity>
@@ -1963,7 +1970,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                             )}
                             activeOpacity={0.8}
                           >
-                            <Text style={{ fontSize: 18 }}>🗑</Text>
+                            <Trash2 size={18} color={colors.error} />
                           </TouchableOpacity>
                         </View>
                         <TouchableOpacity style={styles.clubAdminHeader} onPress={() => toggleClub(club.id)} activeOpacity={0.8}>
@@ -2003,7 +2010,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                                     >
                                       {resolvingReq === req.id
                                         ? <ActivityIndicator size="small" color="#fff" />
-                                        : <Text style={styles.reqApproveText}>✓</Text>}
+                                        : <Check size={14} color={colors.success} />}
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                       style={styles.reqReject}
@@ -2011,7 +2018,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                                       disabled={resolvingReq === req.id}
                                       activeOpacity={0.8}
                                     >
-                                      <Text style={styles.reqRejectText}>✕</Text>
+                                      <X size={14} color={colors.textSecondary} />
                                     </TouchableOpacity>
                                   </View>
                                 </View>
@@ -2029,7 +2036,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {canApproveClubs && (
                 <View style={styles.section}>
                   <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionLabel}>🏛️ CLUB CREATION REQUESTS ({clubCreationReqs.length})</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CLUB CREATION REQUESTS ({clubCreationReqs.length})</Text></View>
                     <TouchableOpacity
                       style={styles.createBtn}
                       onPress={() => supabase.from('club_creation_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false }).then(({ data }) => { if (data) setClubCreationReqs(data); })}
@@ -2040,7 +2047,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   </View>
                   {clubCreationReqs.length === 0 ? (
                     <View style={styles.emptyCard}>
-                      <Text style={styles.emptyIcon}>🏛️</Text>
+                      <Landmark size={36} color={colors.textTertiary} />
                       <Text style={styles.emptyText}>No pending club requests</Text>
                     </View>
                   ) : clubCreationReqs.map(req => (
@@ -2064,7 +2071,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                         >
                           {resolvingClubReq === req.id
                             ? <ActivityIndicator size="small" color="#0F0F1A" />
-                            : <Text style={styles.resolveBtnApproveText}>✓ Approve</Text>
+                            : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.resolveBtnApproveText}>Approve</Text></View>
                           }
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -2073,7 +2080,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                           disabled={resolvingClubReq === req.id}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.resolveBtnRejectText}>✕ Reject</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><X size={13} color={colors.error} /><Text style={styles.resolveBtnRejectText}>Reject</Text></View>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -2084,7 +2091,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Faculty Coordinator */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>🏛️ CLUB COORDINATOR ACCESS</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>CLUB COORDINATOR ACCESS</Text></View>
                   <TouchableOpacity
                     style={styles.createBtn}
                     onPress={() => { setShowClubRequest(true); setClubRequestError(''); }}
@@ -2095,7 +2102,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                 </View>
                 {myRequests.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>🏛️</Text>
+                    <Landmark size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No coordinator requests yet</Text>
                     <Text style={styles.emptyHint}>Request admin access for a club or team you coordinate</Text>
                   </View>
@@ -2119,7 +2126,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* ── Request New Subject ──────────────────────────────────── */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>📖 SUBJECTS</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BookOpen size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>SUBJECTS</Text></View>
                   <TouchableOpacity
                     style={styles.createBtn}
                     onPress={() => { setShowSubjectModal(true); setSubjectError(''); }}
@@ -2129,7 +2136,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.emptyCard}>
-                  <Text style={styles.emptyIcon}>📖</Text>
+                  <BookOpen size={36} color={colors.textTertiary} />
                   <Text style={styles.emptyText}>Request a new subject</Text>
                   <Text style={styles.emptyHint}>Submit subject details for coordinator approval</Text>
                 </View>
@@ -2139,14 +2146,14 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {(isAppAdmin || effectiveProfile.id === 1) && (
                 <View style={styles.section}>
                   <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionLabel}>📋 SUBJECT REQUESTS ({subjectRequests.length})</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>SUBJECT REQUESTS ({subjectRequests.length})</Text></View>
                     <TouchableOpacity style={styles.createBtn} onPress={loadSubjectRequests} activeOpacity={0.8}>
                       <Text style={styles.createBtnText}>↺ Refresh</Text>
                     </TouchableOpacity>
                   </View>
                   {subjectRequests.length === 0 ? (
                     <View style={styles.emptyCard}>
-                      <Text style={styles.emptyIcon}>🎉</Text>
+                      <Gift size={36} color={colors.textTertiary} />
                       <Text style={styles.emptyText}>No pending subject requests</Text>
                     </View>
                   ) : subjectRequests.map(req => (
@@ -2192,7 +2199,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {/* Tasks */}
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionLabel}>📋 MY TASKS ({tasks.length})</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY TASKS ({tasks.length})</Text></View>
                   <TouchableOpacity
                     style={styles.createBtn}
                     onPress={() => { setShowTaskModal(true); setTaskFormError(''); }}
@@ -2205,7 +2212,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
                 ) : tasks.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyIcon}>📋</Text>
+                    <ClipboardList size={36} color={colors.textTertiary} />
                     <Text style={styles.emptyText}>No tasks yet</Text>
                     <Text style={styles.emptyHint}>Tap "+ Add" to create your first task</Text>
                   </View>
@@ -2213,7 +2220,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   ['pending', 'in_progress', 'done'].map(status => {
                     const group = tasks.filter(t => t.status === status);
                     if (group.length === 0) return null;
-                    const groupLabel = status === 'pending' ? '⏳ PENDING' : status === 'in_progress' ? '🔄 IN PROGRESS' : '✅ DONE';
+                    const groupLabel = status === 'pending' ? 'PENDING' : status === 'in_progress' ? 'IN PROGRESS' : 'DONE';
                     return (
                       <View key={status}>
                         <Text style={styles.taskGroupLabel}>{groupLabel} ({group.length})</Text>
@@ -2235,13 +2242,13 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
               {/* Free Period Suggestions */}
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>💡 YOUR FREE TIME</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Info size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>YOUR FREE TIME</Text></View>
                 <FreePeriodSuggestions tasks={tasks} />
               </View>
 
               {/* Appearance */}
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>🎨 APPEARANCE</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sun size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>APPEARANCE</Text></View>
                 <Text style={[styles.sectionHint, { marginBottom: spacing.md }]}>
                   Choose a theme — applies across the whole app and is saved in your browser.
                 </Text>
@@ -2261,7 +2268,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                           ))}
                         </View>
                         <Text style={[styles.themeLabel, active && styles.themeLabelActive]}>{t.label}</Text>
-                        <Text style={styles.themeDesc}>{active ? '✓ Active' : t.desc}</Text>
+                        <Text style={styles.themeDesc}>{active ? 'Active' : t.desc}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -2278,9 +2285,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📢 Post Announcement</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Megaphone size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Post Announcement</Text></View>
               <TouchableOpacity onPress={() => setShowAnnounceModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>TITLE</Text>
@@ -2323,9 +2330,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               return (
                 <>
                   <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>👤 Student Profile</Text>
+                    <View style={{flexDirection:'row',alignItems:'center',gap:6}}><User size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Student Profile</Text></View>
                     <TouchableOpacity onPress={() => setSelectedMentee(null)}>
-                      <Text style={styles.modalClose}>✕</Text>
+                      <X size={20} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
                   <View style={styles.profileHeader}>
@@ -2502,14 +2509,14 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                       onPress={() => { setSelectedMentee(null); openChat(selectedMentee); }}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.profileDmBtnText}>💬 Open Chat</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><MessageCircle size={14} color={colors.textPrimary} /><Text style={styles.profileDmBtnText}>Open Chat</Text></View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.profileVisitBtn}
                       onPress={() => { setSelectedMentee(null); openLogVisit(selectedMentee); }}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.profileVisitBtnText}>✓ Log Visit</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Check size={13} color={colors.textPrimary} /><Text style={styles.profileVisitBtnText}>Log Visit</Text></View>
                     </TouchableOpacity>
                   </View>
                 </>
@@ -2530,7 +2537,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   {logVisitModal && <Text style={styles.modalSubtitle}>{logVisitModal.name}</Text>}
                 </View>
                 <TouchableOpacity onPress={() => setLogVisitModal(null)}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.modalLabel}>WHAT WAS DISCUSSED? (optional)</Text>
@@ -2551,7 +2558,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               >
                 {loggingVisit
                   ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={styles.profileVisitBtnText}>✓ Log Visit</Text>}
+                  : <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Check size={13} color={colors.textPrimary} /><Text style={styles.profileVisitBtnText}>Log Visit</Text></View>}
               </TouchableOpacity>
             </View>
           </View>
@@ -2581,7 +2588,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   );
                 })()}
                 <TouchableOpacity onPress={() => { setChatMentee(null); setChatMessages([]); }} style={{ padding: 4 }}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
               {chatLoading ? (
@@ -2624,7 +2631,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   <TouchableOpacity onPress={pickTeacherChatMedia} style={styles.chatMediaBtn} disabled={uploadingChatMedia} activeOpacity={0.7}>
                     {uploadingChatMedia
                       ? <ActivityIndicator size="small" color={colors.primary} />
-                      : <Text style={{ fontSize: 18 }}>📎</Text>}
+                      : <Paperclip size={18} color={colors.textSecondary} />}
                   </TouchableOpacity>
                   <TextInput
                     value={chatText}
@@ -2655,9 +2662,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🏛️ Request Coordinator Access</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Request Coordinator Access</Text></View>
               <TouchableOpacity onPress={() => setShowClubRequest(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>SELECT CLUB / TEAM</Text>
@@ -2713,7 +2720,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setShowTeacherNotifs(false)} style={styles.notifCloseBtn} activeOpacity={0.7}>
-                  <Text style={styles.notifCloseText}>✕</Text>
+                  <X size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -2721,7 +2728,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               <ActivityIndicator color={colors.primary} style={{ marginVertical: 40 }} />
             ) : teacherNotifs.length === 0 ? (
               <View style={{ alignItems: 'center', paddingVertical: 48 }}>
-                <Text style={{ fontSize: 36, marginBottom: 10 }}>🔔</Text>
+                <Bell size={36} color={colors.textTertiary} style={{ marginBottom: 10 }} />
                 <Text style={{ fontSize: 15, ...font.bold, color: colors.textPrimary, marginBottom: 4 }}>All caught up</Text>
                 <Text style={{ fontSize: 13, color: colors.textSecondary }}>No notifications yet.</Text>
               </View>
@@ -2738,7 +2745,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                       disabled={!isDM}
                     >
                       <View style={[styles.notifIcon, !n.read && styles.notifIconUnread]}>
-                        <Text style={{ fontSize: 20 }}>{isDM ? '💬' : '🔔'}</Text>
+                        {isDM ? <MessageCircle size={20} color={colors.textSecondary} /> : <Bell size={20} color={colors.textSecondary} />}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.notifTitle, !n.read && styles.notifTitleUnread]} numberOfLines={2}>{n.title}</Text>
@@ -2763,9 +2770,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📚 Create Study Group</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BookMarked size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Create Study Group</Text></View>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>GROUP NAME</Text>
@@ -2811,7 +2818,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.checkbox, selected && styles.checkboxChecked]}>
-                      {selected && <Text style={styles.checkmark}>✓</Text>}
+                      {selected && <Check size={14} color={colors.success} />}
                     </View>
                     <Text style={[styles.courseCheckText, selected && styles.courseCheckTextActive]}>{c}</Text>
                   </TouchableOpacity>
@@ -2850,13 +2857,13 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <View style={[styles.modal, { paddingBottom: 0 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>👥 Add Mentee</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Users size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Add Mentee</Text></View>
               <TouchableOpacity onPress={() => setShowAddMentee(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <View style={[styles.searchBar, { marginBottom: spacing.sm }]}>
-              <Text style={styles.searchIcon}>🔍</Text>
+              <Search size={18} color={colors.textSecondary} />
               <TextInput
                 value={menteeAddSearch}
                 onChangeText={setMenteeAddSearch}
@@ -2867,7 +2874,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               />
               {menteeAddSearch.length > 0 && (
                 <TouchableOpacity onPress={() => setMenteeAddSearch('')} activeOpacity={0.7}>
-                  <Text style={{ fontSize: 14, color: colors.textTertiary, paddingHorizontal: 4 }}>✕</Text>
+                  <X size={14} color={colors.textTertiary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -2891,7 +2898,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                       </View>
                       {already ? (
                         <View style={styles.addMenteeAdded}>
-                          <Text style={styles.addMenteeAddedText}>✓ In group</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={12} color={colors.success} /><Text style={styles.addMenteeAddedText}>In group</Text></View>
                         </View>
                       ) : (
                         <TouchableOpacity
@@ -2928,9 +2935,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📋 Add Task</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Add Task</Text></View>
               <TouchableOpacity onPress={() => setShowTaskModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalLabel}>TITLE *</Text>
@@ -2976,9 +2983,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         <View style={styles.modalOverlay}>
           <View style={[styles.modal, { paddingBottom: 0 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📖 Add Subject</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BookOpen size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Add Subject</Text></View>
               <TouchableOpacity onPress={() => setShowAddSubjectModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={[styles.modalLabel, { marginTop: 0 }]}>
@@ -3037,9 +3044,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             <TouchableOpacity style={styles.modalBackdrop} onPress={() => setShowSubjectModal(false)} activeOpacity={1} />
             <View style={styles.modal}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>📖 Request New Subject</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BookOpen size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Request New Subject</Text></View>
                 <TouchableOpacity onPress={() => setShowSubjectModal(false)} activeOpacity={0.7}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -3077,7 +3084,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                         activeOpacity={0.75}
                       >
                         <Text style={[styles.classOptionText, active && styles.classOptionTextActive]}>{cls}</Text>
-                        {active && <Text style={{ color: colors.primary, fontSize: 14 }}>✓</Text>}
+                        {active && <Check size={14} color={colors.primary} />}
                       </TouchableOpacity>
                     );
                   })}
@@ -3116,7 +3123,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => setSubReqSlot(null)}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -3163,7 +3170,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Cancel Classes</Text>
                 <TouchableOpacity onPress={() => { setShowScheduleAbsence(false); setAbsenceDate(''); setAbsenceReason(''); }}>
-                  <Text style={styles.modalClose}>✕</Text>
+                  <X size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -3224,7 +3231,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Change Display Name</Text>
               <TouchableOpacity onPress={() => setShowRenameModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={[styles.modalLabel, { marginBottom: 4 }]}>
@@ -3413,7 +3420,7 @@ function AttendanceTab({ teacherClasses, teacherName, onOpen, onReport, onUpload
         activeOpacity={0.8}
         disabled={!canTakeAttendance}
       >
-        <Text style={{ color: '#fff', fontSize: 15, fontWeight: typography.bold }}>✅ Take Attendance</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CircleCheck size={15} color="#fff" /><Text style={{ color: '#fff', fontSize: 15, fontWeight: typography.bold }}>Take Attendance</Text></View>
       </TouchableOpacity>
       {!canTakeAttendance && (
         <Text style={{ fontSize: 12, color: tColors.textTertiary, textAlign: 'center', marginTop: tSpacing.sm }}>
@@ -3430,7 +3437,7 @@ function AttendanceTab({ teacherClasses, teacherName, onOpen, onReport, onUpload
         onPress={() => onReport(selectedClass)}
         activeOpacity={0.8}
       >
-        <Text style={{ color: tColors.faculty.primary, fontSize: 15, fontWeight: typography.bold }}>📋 View Report</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={15} color={tColors.faculty.primary} /><Text style={{ color: tColors.faculty.primary, fontSize: 15, fontWeight: typography.bold }}>View Report</Text></View>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -3442,7 +3449,7 @@ function AttendanceTab({ teacherClasses, teacherName, onOpen, onReport, onUpload
         onPress={() => onUploadRoster(selectedClass)}
         activeOpacity={0.8}
       >
-        <Text style={{ color: tColors.textSecondary, fontSize: 15, fontWeight: typography.bold }}>📊 Upload Roster</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BarChart2 size={15} color={tColors.textSecondary} /><Text style={{ color: tColors.textSecondary, fontSize: 15, fontWeight: typography.bold }}>Upload Roster</Text></View>
       </TouchableOpacity>
 
       {!teacherClasses?.length && (
@@ -3488,7 +3495,7 @@ function MenteeCard({ student, visitCount, loggingVisit, onLogVisit, onViewProfi
       </View>
       <View style={styles.menteeActions}>
         <TouchableOpacity style={styles.menteeActionBtn} onPress={(e) => { e.stopPropagation?.(); onOpenChat(); }} activeOpacity={0.7}>
-          <Text style={styles.menteeActionIcon}>💬</Text>
+          <MessageCircle size={18} color={colors.textPrimary} />
         </TouchableOpacity>
         {isDynamic && onRemove ? (
           <TouchableOpacity
@@ -3499,7 +3506,7 @@ function MenteeCard({ student, visitCount, loggingVisit, onLogVisit, onViewProfi
           >
             {removing
               ? <ActivityIndicator size="small" color={colors.red} />
-              : <Text style={styles.menteeRemoveText}>✕</Text>}
+              : <X size={16} color={colors.error} />}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -3540,7 +3547,7 @@ function StudentRow({ student, isMentee, isReal, onViewProfile, onOpenChat }) {
         onPress={(e) => { e.stopPropagation?.(); onOpenChat(); }}
         activeOpacity={0.7}
       >
-        <Text style={{ fontSize: 16 }}>💬</Text>
+        <MessageCircle size={16} color={colors.textSecondary} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -3579,7 +3586,7 @@ function TeacherGroupCard({ group }) {
       </View>
       <View style={styles.groupMeta}>
         {group.active && <View style={styles.activeDot} />}
-        <Text style={styles.groupMembers}>👥 {group.members}</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={13} color={colors.textSecondary} /><Text style={styles.groupMembers}>{group.members}</Text></View>
       </View>
     </View>
   );
@@ -3602,11 +3609,17 @@ function TaskCard({ task, updating, deleting, onUpdateStatus, onDelete }) {
           <Text style={[styles.taskTitle, isDone && styles.taskTitleDone]}>{task.title}</Text>
           <View style={styles.taskMeta}>
             {task.deadline ? (
-              <Text style={styles.taskMetaText}>
-                📅 {new Date(task.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                <Calendar size={12} color={tColors.textTertiary} />
+                <Text style={styles.taskMetaText}>{new Date(task.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+              </View>
             ) : null}
-            {task.duration_hours ? <Text style={styles.taskMetaText}>⏱ {task.duration_hours}h</Text> : null}
+            {task.duration_hours ? (
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}>
+                <Timer size={12} color={tColors.textTertiary} />
+                <Text style={styles.taskMetaText}>{task.duration_hours}h</Text>
+              </View>
+            ) : null}
           </View>
         </View>
         <TouchableOpacity
@@ -3617,7 +3630,7 @@ function TaskCard({ task, updating, deleting, onUpdateStatus, onDelete }) {
         >
           {deleting
             ? <ActivityIndicator size="small" color={colors.textTertiary} />
-            : <Text style={styles.taskDeleteText}>✕</Text>}
+            : <X size={16} color={colors.error} />}
         </TouchableOpacity>
       </View>
       {!isDone && (
@@ -3642,7 +3655,7 @@ function TaskCard({ task, updating, deleting, onUpdateStatus, onDelete }) {
           >
             {updating
               ? <ActivityIndicator size="small" color="#fff" />
-              : <Text style={styles.taskActionDoneText}>✓ Done</Text>}
+              : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.textPrimary} /><Text style={styles.taskActionDoneText}>Done</Text></View>}
           </TouchableOpacity>
         </View>
       )}
@@ -3659,7 +3672,7 @@ function FreePeriodSuggestions({ tasks }) {
   if (isWeekend) {
     return (
       <View style={styles.suggestionCard}>
-        <Text style={styles.suggestionEmoji}>🌅</Text>
+        <Sun size={20} color={colors.textSecondary} />
         <Text style={styles.suggestionTitle}>It's the weekend!</Text>
         <Text style={styles.suggestionBody}>Enjoy your break. Your tasks will be here on Monday.</Text>
       </View>
@@ -3669,7 +3682,7 @@ function FreePeriodSuggestions({ tasks }) {
   if (pending.length === 0) {
     return (
       <View style={styles.suggestionCard}>
-        <Text style={styles.suggestionEmoji}>🎉</Text>
+        <Gift size={20} color={colors.textSecondary} />
         <Text style={styles.suggestionTitle}>All caught up!</Text>
         <Text style={styles.suggestionBody}>No pending tasks. Enjoy your free periods today.</Text>
       </View>
@@ -3692,7 +3705,7 @@ function FreePeriodSuggestions({ tasks }) {
       {MOCK_FREE_PERIODS.map(p => (
         <View key={p.label} style={styles.suggestionCard}>
           <View style={styles.suggestionRow}>
-            <Text style={styles.suggestionEmoji}>🕐</Text>
+            <Clock size={20} color={colors.textSecondary} />
             <Text style={styles.suggestionPeriod}>Free period at {p.label} today</Text>
           </View>
           <Text style={styles.suggestionBody}>

@@ -14,7 +14,7 @@ import {
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import BunkmateModal from '../components/BunkmateModal';
-import { Star } from 'lucide-react-native';
+import { Star, ShieldCheck, X, Mail, Flame, Users, CircleDot, Calendar, CalendarDays, Landmark, Clock, MapPin } from 'lucide-react-native';
 
 const EMOJIS = ['🏛️','💼','📊','🎯','🎉','🎭','🔬','⚽','🤝','🎨','🎤','📝','💡','🚀','🌏','📚','🎵','📸'];
 const COLORS = ['#5A5FB8','#4A78C0','#3D9A72','#8050B4','#C05080','#C09030','#B04040','#3D9490','#7050C0','#B02048'];
@@ -139,7 +139,7 @@ export default function HubScreen() {
             onPress={() => navigation.navigate('AppAdmin')}
             activeOpacity={0.85}
           >
-            <Text style={styles.adminBtnIcon}>🛡️</Text>
+            <ShieldCheck size={16} color={colors.textPrimary} />
             <Text style={styles.adminBtnText}>App Admin</Text>
             {clubAdminRequests.length > 0 && (
               <View style={styles.adminBadge}>
@@ -157,12 +157,12 @@ export default function HubScreen() {
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Create a Club or Team</Text>
-              <TouchableOpacity onPress={() => { setShowCreate(false); setSubmitted(false); }}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => { setShowCreate(false); setSubmitted(false); }}><X size={20} color={colors.textSecondary} /></TouchableOpacity>
             </View>
 
             {submitted ? (
               <View style={styles.submittedBox}>
-                <Text style={styles.submittedIcon}>📬</Text>
+                <Mail size={28} color={colors.success} />
                 <Text style={styles.submittedTitle}>Request Submitted!</Text>
                 <Text style={styles.submittedSub}>Your club creation request has been sent to the department for approval. You'll be notified once it's reviewed.</Text>
                 <TouchableOpacity style={styles.submittedBtn} onPress={() => { setShowCreate(false); setSubmitted(false); }} activeOpacity={0.85}>
@@ -238,13 +238,13 @@ export default function HubScreen() {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('EventDetail', { event: featuredEvent })}
               >
-                <Text style={styles.featuredLabel}>🔥 FEATURED TODAY</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Flame size={13} color={colors.accent} /><Text style={styles.featuredLabel}>FEATURED TODAY</Text></View>
                 <Text style={styles.featuredTitle}>{featuredEvent.title}</Text>
                 <Text style={styles.featuredMeta}>
                   {featuredClub.name} · {featuredEvent.time} · {featuredEvent.venue}
                 </Text>
                 <View style={styles.featuredPill}>
-                  <Text style={styles.featuredPillText}>👥 {featuredEvent.interested} interested</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.featuredPillText}>{featuredEvent.interested} interested</Text></View>
                 </View>
               </TouchableOpacity>
             )}
@@ -252,7 +252,7 @@ export default function HubScreen() {
             {/* Today */}
             {today.length > 0 && (
               <>
-                <Text style={[styles.sectionLabel, { color: tColors.success }]}>🟢 TODAY</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CircleDot size={10} color={tColors.success} /><Text style={[styles.sectionLabel, { color: tColors.success }]}>TODAY</Text></View>
                 {today.map(e => (
                   <EventCard
                     key={e.id}
@@ -267,7 +267,7 @@ export default function HubScreen() {
             )}
 
             {/* This Week */}
-            <Text style={styles.sectionLabel}>📅 THIS WEEK</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>THIS WEEK</Text></View>
             {thisWeek.map(e => (
               <EventCard
                 key={e.id}
@@ -280,7 +280,7 @@ export default function HubScreen() {
             ))}
 
             {/* Upcoming */}
-            <Text style={styles.sectionLabel}>🗓️ UPCOMING</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CalendarDays size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>UPCOMING</Text></View>
             {upcoming.map(e => (
               <EventCard
                 key={e.id}
@@ -293,7 +293,7 @@ export default function HubScreen() {
             ))}
 
             {/* Clubs/Teams Directory */}
-            <Text style={[styles.sectionLabel, { marginTop: tSpacing.base }]}>🏛️ CLUBS · TEAMS</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={[styles.sectionLabel, { marginTop: tSpacing.base }]}>CLUBS · TEAMS</Text></View>
 
             <View style={styles.filterRow}>
               {TYPES.map(t => {
@@ -317,14 +317,14 @@ export default function HubScreen() {
                 <Text style={styles.pendingReqEmoji}>{r.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.pendingReqName}>{r.name}</Text>
-                  <Text style={styles.pendingReqSub}>⏳ Awaiting department approval</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={12} color={colors.textTertiary} /><Text style={styles.pendingReqSub}>Awaiting department approval</Text></View>
                 </View>
               </View>
             ))}
 
             {myClubs.length > 0 && (
               <>
-                <Text style={styles.subSectionLabel}>⭐ YOUR CLUBS & TEAMS</Text>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Star size={12} color={colors.textTertiary} /><Text style={styles.subSectionLabel}>YOUR CLUBS & TEAMS</Text></View>
                 {myClubs.map(c => {
                   const isAdmin = approvedClubAdmins?.has(c.id) || approvedClubAdmins?.has(String(c.id));
                   return (
@@ -345,7 +345,7 @@ export default function HubScreen() {
                     />
                   );
                 })}
-                {otherClubs.length > 0 && <Text style={styles.subSectionLabel}>🏛️ ALL CLUBS & TEAMS</Text>}
+                {otherClubs.length > 0 && <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={12} color={colors.textTertiary} /><Text style={styles.subSectionLabel}>ALL CLUBS & TEAMS</Text></View>}
               </>
             )}
             {otherClubs.map(c => (
@@ -400,22 +400,20 @@ function EventCard({ event, club, isInterested, onToggle, onPress }) {
             </View>
             <Text style={styles.eventTitle}>{event.title}</Text>
             <View style={styles.eventMetaRow}>
-              <Text style={styles.eventMeta}>📅 {event.time}</Text>
-              <Text style={styles.eventMeta}>📍 {event.venue}</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.time}</Text></View>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><MapPin size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.venue}</Text></View>
             </View>
           </View>
         </View>
         <View style={styles.eventFooter}>
-          <Text style={styles.interestedCount}>
-            👥 {event.interested + (isInterested ? 1 : 0)} interested
-          </Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.interestedCount}>{event.interested + (isInterested ? 1 : 0)} interested</Text></View>
           <TouchableOpacity
             onPress={(e) => { e.stopPropagation?.(); onToggle(); }}
             style={[styles.interestBtn, isInterested && styles.interestBtnActive]}
             activeOpacity={0.7}
           >
             <Text style={[styles.interestBtnText, isInterested && styles.interestBtnTextActive]}>
-              {isInterested ? '✓ Interested' : '+ Interested'}
+              {isInterested ? 'Interested' : '+ Interested'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -440,7 +438,7 @@ function ClubCard({ club, isFollowing, isMember, isClubAdmin, onToggle, onPress,
           <View style={[styles.typeBadge, { backgroundColor: `${club.color}33` }]}>
             <Text style={[styles.typeBadgeText, { color: club.color }]}>{club.type}</Text>
           </View>
-          <Text style={styles.clubMembers}>👥 {club.members}</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.clubMembers}>{club.members}</Text></View>
           {isClubAdmin && (
             <View style={styles.adminPill}>
               <Text style={styles.adminPillText}>ADMIN</Text>
@@ -472,7 +470,7 @@ function ClubCard({ club, isFollowing, isMember, isClubAdmin, onToggle, onPress,
           (isClubAdmin || isMember || showDashboard) && styles.manageBtnText,
           isFollowing && !isClubAdmin && !isMember && !showDashboard && styles.followBtnTextActive,
         ]}>
-          {isClubAdmin ? 'Manage' : isMember ? 'View' : showDashboard ? 'Dashboard' : isFollowing ? '✓ Following' : '+ Follow'}
+          {isClubAdmin ? 'Manage' : isMember ? 'View' : showDashboard ? 'Dashboard' : isFollowing ? 'Following' : '+ Follow'}
         </Text>
       </TouchableOpacity>
     </TouchableOpacity>

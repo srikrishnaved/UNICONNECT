@@ -18,6 +18,7 @@ import {
   spacing as tSpacing,
   radius as tRadius,
 } from '../theme/tokens';
+import { Lock, X, Check } from 'lucide-react-native';
 
 const STORAGE_KEY = 'bunkmate_subjects';
 
@@ -142,12 +143,12 @@ export default function BunkmateModal({ visible, onClose }) {
           {/* ── header ── */}
           <View style={s.header}>
             <View style={s.secretBadge}>
-              <Text style={s.secretBadgeText}>🔒 secret feature</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Lock size={12} color={tColors.textSecondary} /><Text style={s.secretBadgeText}>secret feature</Text></View>
             </View>
             <View style={s.headerRow}>
               <Text style={s.title}>bunkmate 🤫</Text>
               <TouchableOpacity onPress={handleClose} style={s.closeBtn} activeOpacity={0.7}>
-                <Text style={s.closeText}>✕</Text>
+                <X size={18} color={tColors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={s.subtitle}>type bubbles anywhere to open · keep this between us</Text>
@@ -280,7 +281,7 @@ export default function BunkmateModal({ visible, onClose }) {
                       onPress={() => attended(s_.id)}
                       activeOpacity={0.75}
                     >
-                      <Text style={[s.quickBtnText, { color: tColors.success }]}>✓ I attended</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={14} color={tColors.success} /><Text style={[s.quickBtnText, { color: tColors.success }]}>I attended</Text></View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[s.quickBtn, s.quickBunked]}

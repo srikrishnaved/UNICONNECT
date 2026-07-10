@@ -1,5 +1,6 @@
 -- ── New tables for attendance, NAAC docs, and university configuration ─────────
 -- Run in Supabase Dashboard → SQL Editor
+-- Safe to re-run: uses IF NOT EXISTS for tables and drops policies before recreating.
 
 -- ── 1. University setup / configuration ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS university_setup_progress (
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS university_setup_progress (
   created_at          timestamptz DEFAULT now()
 );
 ALTER TABLE university_setup_progress ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "usp_all" ON university_setup_progress;
 CREATE POLICY "usp_all" ON university_setup_progress FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 2. Period schedule per university ─────────────────────────────────────────
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS university_periods (
   UNIQUE(university_id, label)
 );
 ALTER TABLE university_periods ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "up_all" ON university_periods;
 CREATE POLICY "up_all" ON university_periods FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 3. Subjects list per university ──────────────────────────────────────────
@@ -46,6 +49,7 @@ CREATE TABLE IF NOT EXISTS university_subjects (
   created_at     timestamptz DEFAULT now()
 );
 ALTER TABLE university_subjects ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "us_all" ON university_subjects;
 CREATE POLICY "us_all" ON university_subjects FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 4. Class student roster ───────────────────────────────────────────────────
@@ -59,6 +63,7 @@ CREATE TABLE IF NOT EXISTS class_students (
   created_at  timestamptz DEFAULT now()
 );
 ALTER TABLE class_students ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "cs_all" ON class_students;
 CREATE POLICY "cs_all" ON class_students FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 5. Attendance sessions ────────────────────────────────────────────────────
@@ -73,6 +78,7 @@ CREATE TABLE IF NOT EXISTS attendance_sessions (
   created_at    timestamptz DEFAULT now()
 );
 ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "atts_all" ON attendance_sessions;
 CREATE POLICY "atts_all" ON attendance_sessions FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 6. Per-student attendance records ────────────────────────────────────────
@@ -85,6 +91,7 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   created_at  timestamptz DEFAULT now()
 );
 ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "attr_all" ON attendance_records;
 CREATE POLICY "attr_all" ON attendance_records FOR ALL USING (true) WITH CHECK (true);
 
 -- ── 7. NAAC SSR documentation submissions ────────────────────────────────────
@@ -102,4 +109,5 @@ CREATE TABLE IF NOT EXISTS naac_submissions (
   UNIQUE(university_id, metric)
 );
 ALTER TABLE naac_submissions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "ns_all" ON naac_submissions;
 CREATE POLICY "ns_all" ON naac_submissions FOR ALL USING (true) WITH CHECK (true);

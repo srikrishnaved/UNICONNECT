@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { Sparkles, Clock } from 'lucide-react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -109,7 +110,7 @@ function TeacherPendingView() {
         alignItems: 'center', justifyContent: 'center',
         marginBottom: 24,
       }}>
-        <Text style={{ fontSize: 38 }}>⏳</Text>
+        <Clock size={38} color={colors.amber} />
       </View>
       <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textPrimary, textAlign: 'center', marginBottom: 12 }}>
         Account Pending Approval
@@ -198,7 +199,7 @@ function AppShell() {
           backgroundColor: colors.primary,
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <Text style={{ color: '#fff', fontSize: 26, fontWeight: '700' }}>✦</Text>
+          <Sparkles size={22} color="#fff" />
         </View>
         <ActivityIndicator color={colors.primary} />
       </View>
@@ -274,7 +275,7 @@ function AppShell() {
               alignItems: 'center', justifyContent: 'center',
               marginBottom: 20, alignSelf: 'center',
             }}>
-              <Text style={{ fontSize: 30, color: '#fff', fontWeight: '700' }}>✦</Text>
+              <Sparkles size={26} color="#fff" />
             </View>
             <Text style={{
               fontSize: 24, fontWeight: '700',

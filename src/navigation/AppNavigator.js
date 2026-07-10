@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, TouchableOpacity, Modal } from 'react-native';
+import { Compass, CalendarDays, Landmark, Users, GraduationCap, BookOpen, Search, Bell, User, Zap, ClipboardList, Calendar } from 'lucide-react-native';
 import NotificationsPanel from '../screens/NotificationsPanel';
 import { useNavigation } from '@react-navigation/native';
 import DiscoverScreen from '../screens/DiscoverScreen';
@@ -16,12 +17,12 @@ import { myProfile } from '../data';
 const Tab = createBottomTabNavigator();
 
 const tabs = [
-  { name: 'Discover',   component: DiscoverScreen,    icon: '🧭' },
-  { name: 'Planner',    component: StudyPlannerScreen,  icon: '🗓️' },
-  { name: 'Hub',        component: HubScreen,          icon: '🏛️' },
-  { name: 'Groups',     component: GroupsScreen,       icon: '👥' },
-  { name: 'Mentors',    component: MentorsScreen,      icon: '🎓' },
-  { name: 'Teachers',   component: TeachersScreen,     icon: '📖' },
+  { name: 'Discover',   component: DiscoverScreen,    Icon: Compass },
+  { name: 'Planner',    component: StudyPlannerScreen,  Icon: CalendarDays },
+  { name: 'Hub',        component: HubScreen,          Icon: Landmark },
+  { name: 'Groups',     component: GroupsScreen,       Icon: Users },
+  { name: 'Mentors',    component: MentorsScreen,      Icon: GraduationCap },
+  { name: 'Teachers',   component: TeachersScreen,     Icon: BookOpen },
 ];
 
 const TIMETABLE_TEAM = ['Shruthi', 'Bhoomika', 'Thirupat'];
@@ -43,13 +44,13 @@ function HeaderRight() {
     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, gap: 12 }}>
       {/* Search */}
       <TouchableOpacity onPress={() => navigation.navigate('Search')} activeOpacity={0.7}>
-        <Text style={{ fontSize: 18 }}>🔍</Text>
+        <Search size={18} color={colors.textSecondary} />
       </TouchableOpacity>
 
       {/* Notifications */}
       <TouchableOpacity onPress={() => setShowNotifs(true)} activeOpacity={0.7}>
         <View>
-          <Text style={{ fontSize: 18 }}>🔔</Text>
+          <Bell size={18} color={colors.textSecondary} />
           {unreadCount > 0 && (
             <View style={{
               position: 'absolute', top: -4, right: -4,
@@ -117,7 +118,7 @@ function HeaderRight() {
               activeOpacity={0.7}
               onPress={() => { setShowMenu(false); navigation.navigate('MyProfile'); }}
             >
-              <Text style={{ fontSize: 16 }}>👤</Text>
+              <User size={16} color={colors.textSecondary} />
               <Text style={{ fontSize: 14, color: colors.textPrimary, fontWeight: '500' }}>My Profile</Text>
             </TouchableOpacity>
 
@@ -132,7 +133,7 @@ function HeaderRight() {
                   activeOpacity={0.7}
                   onPress={() => { setShowMenu(false); navigation.navigate('SuperAdmin'); }}
                 >
-                  <Text style={{ fontSize: 16 }}>⚡</Text>
+                  <Zap size={16} color={colors.accent} />
                   <Text style={{ fontSize: 14, color: colors.primary, fontWeight: '600' }}>Super Admin</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -140,7 +141,7 @@ function HeaderRight() {
                   activeOpacity={0.7}
                   onPress={() => { setShowMenu(false); navigation.navigate('TeacherDashboard'); }}
                 >
-                  <Text style={{ fontSize: 16 }}>📋</Text>
+                  <ClipboardList size={16} color={colors.accent} />
                   <Text style={{ fontSize: 14, color: colors.primary, fontWeight: '600' }}>Teacher Dashboard</Text>
                 </TouchableOpacity>
               </>
@@ -156,7 +157,7 @@ function HeaderRight() {
                 activeOpacity={0.7}
                 onPress={() => { setShowMenu(false); navigation.navigate('TeacherDashboard'); }}
               >
-                <Text style={{ fontSize: 16 }}>📅</Text>
+                <Calendar size={16} color={colors.accent} />
                 <Text style={{ fontSize: 14, color: colors.primary, fontWeight: '600' }}>Timetable Planner</Text>
               </TouchableOpacity>
             )}
@@ -173,10 +174,13 @@ export default function AppNavigator() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => {
           const tab = tabs.find(t => t.name === route.name);
+          const TabIcon = tab?.Icon;
+          if (!TabIcon) return null;
           return (
-            <Text style={{ fontSize: focused ? 22 : 20, opacity: focused ? 1 : 0.5 }}>
-              {tab?.icon}
-            </Text>
+            <TabIcon
+              size={focused ? 22 : 20}
+              color={focused ? colors.accent : colors.textTertiary}
+            />
           );
         },
         tabBarLabel: ({ focused }) => (

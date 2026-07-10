@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius } from '../theme/tokens';
+import { ClipboardList, Mail, Trash2, X, Check } from 'lucide-react-native';
 import { ALL_CLASSES } from '../lib/subjectUtils';
 
 export default function AttendanceReportScreen({ visible, onClose, mode, defaultClass, userProfile }) {
@@ -145,9 +146,9 @@ export default function AttendanceReportScreen({ visible, onClose, mode, default
   const presentTotal = records.filter(r => r.status === 'present').length;
   const absentTotal  = records.filter(r => r.status === 'absent').length;
 
-  const title = mode === 'teacher' ? '📋 My Attendance Records'
-    : mode === 'admin' ? '📋 Attendance Reports'
-    : '📋 My Attendance';
+  const titleText = mode === 'teacher' ? 'My Attendance Records'
+    : mode === 'admin' ? 'Attendance Reports'
+    : 'My Attendance';
 
   const cumBadgeColor = (p) =>
     p >= 85 ? tColors.success : p >= 75 ? tColors.warning : tColors.error;
@@ -195,13 +196,13 @@ export default function AttendanceReportScreen({ visible, onClose, mode, default
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{title}</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ClipboardList size={18} color={tColors.textPrimary} /><Text style={styles.title}>{titleText}</Text></View>
               {userProfile?.name && mode !== 'admin' && (
                 <Text style={styles.subtitle}>{userProfile.name}</Text>
               )}
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <X size={20} color={tColors.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -269,7 +270,7 @@ export default function AttendanceReportScreen({ visible, onClose, mode, default
             </View>
           ) : sessions.length === 0 ? (
             <View style={styles.centeredBody}>
-              <Text style={{ fontSize: 36, marginBottom: 12 }}>📭</Text>
+              <Mail size={36} color={tColors.textTertiary} />
               <Text style={styles.emptyText}>No records found</Text>
               <Text style={styles.emptySubtext}>
                 {mode === 'student'
@@ -368,7 +369,7 @@ export default function AttendanceReportScreen({ visible, onClose, mode, default
                           onPress={() => setConfirmingId(si)}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.deleteFooterBtnText}>🗑 Delete session</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Trash2 size={14} color={tColors.error} /><Text style={styles.deleteFooterBtnText}>Delete session</Text></View>
                         </TouchableOpacity>
                       )
                     )}
@@ -380,7 +381,10 @@ export default function AttendanceReportScreen({ visible, onClose, mode, default
           )}
           {!!toastMsg && (
             <View style={[styles.toast, toastError && { backgroundColor: tColors.error }]} pointerEvents="none">
-              <Text style={styles.toastText}>{toastError ? '✕' : '✓'} {toastMsg}</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+                {toastError ? <X size={14} color="#fff" /> : <Check size={14} color="#fff" />}
+                <Text style={styles.toastText}>{toastMsg}</Text>
+              </View>
             </View>
           )}
         </View>

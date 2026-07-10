@@ -8,7 +8,7 @@ import {
 } from '../data';
 import { colors, spacing, radius, font, avatarColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { Heart } from 'lucide-react-native';
+import { Heart, User, ClipboardList, X, Check } from 'lucide-react-native';
 
 const REQUIRED_VISITS = 5;
 const MY_ID = 0; // Srikrishna
@@ -36,7 +36,7 @@ function VisitDots({ done, total = REQUIRED_VISITS, size = 11 }) {
 
 function VisitStatusText({ done }) {
   const remaining = REQUIRED_VISITS - done;
-  if (done >= REQUIRED_VISITS) return <Text style={[styles.visitNote, { color: colors.green }]}>All required visits complete ✓</Text>;
+  if (done >= REQUIRED_VISITS) return <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Text style={[styles.visitNote, { color: colors.green }]}>All required visits complete</Text><Check size={13} color={colors.success} /></View>;
   return <Text style={styles.visitNote}>{remaining} visit{remaining > 1 ? 's' : ''} remaining this semester</Text>;
 }
 
@@ -73,7 +73,7 @@ export default function MentorsScreen() {
         )}
         {myMentor && myMentorTeacher && (
           <>
-            <Text style={styles.sectionLabel}>👤 MY MENTOR</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><User size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY MENTOR</Text></View>
             <TouchableOpacity style={styles.myCard} onPress={() => setSelected(myMentor)} activeOpacity={0.85}>
               <View style={styles.myCardTop}>
                 <View style={[styles.avatarLg, { backgroundColor: myMentorAv.bg }]}>
@@ -101,7 +101,6 @@ export default function MentorsScreen() {
                     myVisits >= REQUIRED_VISITS ? { color: colors.green } : { color: colors.primary },
                   ]}>
                     {myVisits} / {REQUIRED_VISITS}
-                    {myVisits >= REQUIRED_VISITS ? ' ✓' : ''}
                   </Text>
                 </View>
                 <VisitDots done={myVisits} size={14} />
@@ -127,7 +126,7 @@ export default function MentorsScreen() {
         )}
 
         {/* All other mentors */}
-        <Text style={styles.sectionLabel}>📋 ALL MENTORS ({enriched.length})</Text>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>ALL MENTORS ({enriched.length})</Text></View>
         {otherMentors.map(m => {
           const av = avatarColor(m.teacher?.name || '');
           // avg visits across their group
@@ -184,7 +183,7 @@ function DetailSheet({ mentor, onClose }) {
       {/* Header */}
       <View style={styles.sheetHeader}>
         <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-          <Text style={styles.closeText}>✕</Text>
+          <X size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -285,7 +284,6 @@ function MyMentorDetail({ mentor }) {
                   visits >= REQUIRED_VISITS && { color: colors.green },
                 ]}>
                   {visits}/{REQUIRED_VISITS}
-                  {visits >= REQUIRED_VISITS ? ' ✓' : ''}
                 </Text>
               </View>
             </View>
@@ -313,7 +311,7 @@ function OtherMentorDetail({ mentor }) {
               <VisitDots done={visits} size={9} />
             </View>
             <Text style={[styles.menteeCount, done && { color: colors.green }]}>
-              {visits}/{REQUIRED_VISITS}{done ? ' ✓' : ''}
+              {visits}/{REQUIRED_VISITS}
             </Text>
           </View>
         );

@@ -9,11 +9,12 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import DocumentationScreen from './DocumentationScreen';
+import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check } from 'lucide-react-native';
 
 const STATUS_COLOR = {
-  pending:  { bg: colors.amberLight,   border: colors.amber,       text: colors.amber,       label: '⏳ Pending' },
-  accepted: { bg: colors.greenLight,   border: colors.greenBorder, text: colors.green,       label: '✓ Confirmed' },
-  declined: { bg: '#FEF2F2',           border: '#FECACA',          text: '#DC2626',          label: '✗ Declined' },
+  pending:  { bg: colors.amberLight,   border: colors.amber,       text: colors.amber,       label: 'Pending' },
+  accepted: { bg: colors.greenLight,   border: colors.greenBorder, text: colors.green,       label: 'Confirmed' },
+  declined: { bg: '#FEF2F2',           border: '#FECACA',          text: '#DC2626',          label: 'Declined' },
 };
 
 export default function TeamDashboardScreen({ route, navigation }) {
@@ -167,7 +168,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
           {/* My Assignments — only shown to members */}
           {(isMember || isEffectiveAdmin) && myAssignments.length > 0 && (
             <>
-              <Text style={styles.sectionLabel}>🎯 MY ASSIGNMENTS</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Target size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MY ASSIGNMENTS</Text></View>
               {myAssignments.map(a => {
                 const event = events.find(e => String(e.id) === String(a.event_id));
                 if (!event) return null;
@@ -179,12 +180,12 @@ export default function TeamDashboardScreen({ route, navigation }) {
                       {club && <Text style={[styles.assignClubName, { color: club.color }]}>{club.emoji} {club.name}</Text>}
                       <Text style={styles.assignEventTitle}>{event.title}</Text>
                       <View style={styles.assignMeta}>
-                        <Text style={styles.assignMetaText}>📅 {event.time}</Text>
-                        <Text style={styles.assignMetaText}>📍 {event.venue}</Text>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.assignMetaText}>{event.time}</Text></View>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.assignMetaText}>{event.venue}</Text></View>
                       </View>
                       <View style={styles.myAssignFooter}>
                         <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                          <Text style={[styles.statusBadgeText, { color: colors.primary }]}>✓ Assigned</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Check size={11} color={colors.primary} /><Text style={[styles.statusBadgeText, { color: colors.primary }]}>Assigned</Text></View>
                         </View>
                       </View>
                     </View>
@@ -197,13 +198,13 @@ export default function TeamDashboardScreen({ route, navigation }) {
           {/* Admin Actions */}
           {isEffectiveAdmin && (
             <>
-              <Text style={styles.sectionLabel}>⚡ ADMIN ACTIONS</Text>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Zap size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>ADMIN ACTIONS</Text></View>
               <TouchableOpacity
                 style={styles.adminActionBtn}
                 onPress={() => setShowDocsModal(true)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.adminActionIcon}>📄</Text>
+                <FileText size={20} color={colors.textSecondary} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.adminActionTitle}>Documents</Text>
                   <Text style={styles.adminActionDesc}>Submit NFAs &amp; Activity Reports</Text>
@@ -214,10 +215,10 @@ export default function TeamDashboardScreen({ route, navigation }) {
           )}
 
           {/* All Event Assignments */}
-          <Text style={styles.sectionLabel}>📋 EVENT ASSIGNMENTS ({events.length})</Text>
+          <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>EVENT ASSIGNMENTS ({events.length})</Text></View>
           {events.length === 0 ? (
             <View style={styles.emptyBox}>
-              <Text style={styles.emptyIcon}>📭</Text>
+              <Mail size={36} color={colors.textTertiary} />
               <Text style={styles.emptyText}>No events assigned yet.</Text>
               <Text style={styles.emptySubText}>When a club selects {team.name} for an event, it will appear here.</Text>
             </View>
@@ -240,8 +241,8 @@ export default function TeamDashboardScreen({ route, navigation }) {
                     </View>
                     <Text style={styles.eventTitle}>{event.title}</Text>
                     <View style={styles.eventMetaRow}>
-                      <Text style={styles.eventMeta}>📅 {event.time}</Text>
-                      <Text style={styles.eventMeta}>📍 {event.venue}</Text>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.time}</Text></View>
+                      <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.venue}</Text></View>
                     </View>
 
                     {/* Assigned members */}
@@ -267,7 +268,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
                                   style={styles.removeAssignBtn}
                                   activeOpacity={0.7}
                                 >
-                                  <Text style={styles.removeAssignBtnText}>✕</Text>
+                                  <X size={16} color={colors.error} />
                                 </TouchableOpacity>
                               )}
                             </View>
@@ -300,9 +301,9 @@ export default function TeamDashboardScreen({ route, navigation }) {
       <Modal visible={showDocsModal} animationType="slide" transparent={false} onRequestClose={() => setShowDocsModal(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>📄 Documents</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:8}}><FileText size={16} color={colors.textPrimary} /><Text style={{ fontSize: 16, ...font.bold, color: colors.textPrimary }}>Documents</Text></View>
             <TouchableOpacity onPress={() => setShowDocsModal(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={{ fontSize: 22, color: colors.textSecondary, lineHeight: 26 }}>✕</Text>
+              <X size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <DocumentationScreen
@@ -333,7 +334,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
                 {assignModal && <Text style={styles.modalSub} numberOfLines={1}>{assignModal.title}</Text>}
               </View>
               <TouchableOpacity onPress={() => setAssignModal(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -356,7 +357,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
                       </View>
                       {assigned ? (
                         <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                          <Text style={[styles.statusBadgeText, { color: colors.primary }]}>✓ Assigned</Text>
+                          <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Check size={11} color={colors.primary} /><Text style={[styles.statusBadgeText, { color: colors.primary }]}>Assigned</Text></View>
                         </View>
                       ) : (
                         <TouchableOpacity
