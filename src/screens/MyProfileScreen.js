@@ -117,16 +117,23 @@ export default function MyProfileScreen() {
     return unsubscribe;
   }, [navigation, showEdit]);
 
+  const [myClubsHours, setMyClubsHours] = useState({});
+
   useEffect(() => {
     if (!userProfile?.id) return;
     Promise.all([
       supabase.from('saps_applications').select('status').eq('applicant_id', userProfile.id).order('created_at', { ascending: false }).limit(1),
       supabase.from('saps_members').select('role').eq('profile_id', userProfile.id).maybeSingle(),
       supabase.from('saps_members').select('role'),
-    ]).then(([appRes, myRes, allRes]) => {
+      supabase.from('club_member_hours').select('club_id, total_hours').eq('user_id', userProfile.id),
+    ]).then(([appRes, myRes, allRes, hoursRes]) => {
       if (appRes.data?.[0]) setSapsAppStatus(appRes.data[0].status);
       setSapsMyRole(myRes.data?.role || null);
       setSapsFilledRoles((allRes.data || []).map(r => r.role));
+      
+      const hoursMap = {};
+      (hoursRes?.data || []).forEach(r => { hoursMap[r.club_id] = Number(r.total_hours) || 0; });
+      setMyClubsHours(hoursMap);
     });
   }, [userProfile?.id]);
 
@@ -346,16 +353,46 @@ export default function MyProfileScreen() {
         </Section>
 
 
-        {/* Clubs */}
+        {/* Clubs & Hours Tracker */}
         {myClubs.length > 0 && (
-          <Section label="CLUBS">
-            <View style={styles.clubsRow}>
-              {myClubs.map(club => (
-                <View key={club.id} style={[styles.clubChip, { borderColor: club.color, backgroundColor: `${club.color}18` }]}>
-                  <Text style={styles.clubChipEmoji}>{club.emoji}</Text>
-                  <Text style={[styles.clubChipName, { color: club.color }]}>{club.name}</Text>
-                </View>
-              ))}
+          <Section label="CLUBS & HOURS TRACKER">
+            <View style={styles.hoursTrackerBox}>
+              <View style={styles.hoursTrackerHeader}>
+                <Clock size={16} color={tColors.accent} />
+                <Text style={styles.hoursTrackerHeaderTitle}>Total Contribution</Text>
+                <Text style={styles.hoursTrackerHeaderValue}>
+                  {Object.values(myClubsHours).reduce((a, b) => a + b, 0)}h
+                </Text>
+              </View>
+              
+              {myClubs.map(club => {
+                const hrs = myClubsHours[club.id] || 0;
+                const target = 30; // 30 hours threshold
+                const progress = Math.min(hrs / target, 1);
+                return (
+                  <View key={club.id} style={styles.hoursTrackerRow}>
+                    <View style={styles.hoursTrackerClubInfo}>
+                      <View style={[styles.hoursTrackerEmojiBox, { backgroundColor: `${club.color}15` }]}>
+                        <Text style={{ fontSize: 16 }}>{club.emoji}</Text>
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 8 }}>
+                        <Text style={styles.hoursTrackerClubName}>{club.name}</Text>
+                        <Text style={styles.hoursTrackerProgressText}>
+                          {hrs} of {target} hours completed
+                        </Text>
+                      </View>
+                      <View style={[styles.hoursTrackerBadge, { backgroundColor: `${club.color}15`, borderColor: club.color }]}>
+                        <Text style={[styles.hoursTrackerBadgeText, { color: club.color }]}>{hrs}h</Text>
+                      </View>
+                    </View>
+                    
+                    {/* Progress track */}
+                    <View style={styles.hoursTrackerProgressTrack}>
+                      <View style={[styles.hoursTrackerProgressFill, { width: `${progress * 100}%`, backgroundColor: club.color }]} />
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           </Section>
         )}
@@ -1393,4 +1430,79 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: tColors.border,
   },
   pickerProviderName: { fontSize: typography.sm, color: tColors.textPrimary, fontWeight: typography.medium },
+
+  hoursTrackerBox: {
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    width: '100%',
+  },
+  hoursTrackerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: tColors.border,
+    paddingBottom: tSpacing.sm,
+    marginBottom: tSpacing.md,
+  },
+  hoursTrackerHeaderTitle: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+    flex: 1,
+    marginLeft: 8,
+  },
+  hoursTrackerHeaderValue: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
+    color: tColors.accent,
+  },
+  hoursTrackerRow: {
+    marginBottom: tSpacing.md,
+  },
+  hoursTrackerClubInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  hoursTrackerEmojiBox: {
+    width: 32,
+    height: 32,
+    borderRadius: tRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hoursTrackerClubName: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+  },
+  hoursTrackerProgressText: {
+    fontSize: 10,
+    color: tColors.textTertiary,
+    marginTop: 1,
+  },
+  hoursTrackerBadge: {
+    borderWidth: 1,
+    borderRadius: tRadius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  hoursTrackerBadgeText: {
+    fontSize: 10,
+    fontWeight: typography.bold,
+  },
+  hoursTrackerProgressTrack: {
+    height: 4,
+    backgroundColor: tColors.borderSubtle,
+    borderRadius: tRadius.full,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  hoursTrackerProgressFill: {
+    height: '100%',
+    borderRadius: tRadius.full,
+  },
 });

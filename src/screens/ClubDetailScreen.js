@@ -132,6 +132,7 @@ export default function ClubDetailScreen({ route, navigation }) {
   const [hoursSubmitting, setHoursSubmitting] = useState(false);
   const [hoursError, setHoursError] = useState('');
   const [myClubHours, setMyClubHours] = useState(null);
+  const [myAdjustments, setMyAdjustments] = useState([]);
 
   // Social link
   const [showSocialModal, setShowSocialModal] = useState(false);
@@ -188,6 +189,11 @@ export default function ClubDetailScreen({ route, navigation }) {
       supabase.from('club_member_hours').select('total_hours')
         .eq('user_id', userProfile.id).eq('club_id', String(rawId)).maybeSingle()
         .then(({ data }) => setMyClubHours(Number(data?.total_hours) || 0));
+
+      supabase.from('hour_adjustments').select('id, hours_delta, reason, status, created_at')
+        .eq('user_id', userProfile.id).eq('club_id', String(rawId))
+        .order('created_at', { ascending: false })
+        .then(({ data }) => { if (data) setMyAdjustments(data); });
     }
     // Fetch real member count so the header never shows the stale seed value.
     supabase.from('club_memberships').select('user_id', { count: 'exact', head: true })
@@ -224,6 +230,12 @@ export default function ClubDetailScreen({ route, navigation }) {
     setShowHoursRequest(false);
     setHoursForm({ reason: '', hours: '' });
     Alert.alert('Submitted', 'Your hours request has been sent to the coordinator for review.');
+
+    // Refetch adjustments history
+    supabase.from('hour_adjustments').select('id, hours_delta, reason, status, created_at')
+      .eq('user_id', userProfile.id).eq('club_id', String(rawId))
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setMyAdjustments(data); });
   };
 
   // ─── Notify club followers ─────────────────────────────────────────────────
@@ -689,21 +701,70 @@ export default function ClubDetailScreen({ route, navigation }) {
 
         {/* My Contribution — visible to members who are not admins */}
         {isMember && !isEffectiveAdmin && (
-          <Section label="MY CONTRIBUTION">
-            <TouchableOpacity
-              style={styles.adminActionBtn}
-              activeOpacity={0.85}
-              onPress={() => { setShowHoursRequest(true); setHoursError(''); }}
-            >
-              <Timer size={14} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.adminActionTitle}>Request contribution hours</Text>
-                <Text style={styles.adminActionDesc}>
-                  {myClubHours !== null ? `Your total: ${myClubHours}h · ` : ''}Submit for coordinator review
-                </Text>
+          <Section label="MY CONTRIBUTION & HOURS TRACKER">
+            <View style={styles.myHoursTrackerBox}>
+              <View style={styles.myHoursTrackerMain}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.myHoursTitle}>Total Hours Contributed</Text>
+                  <Text style={styles.myHoursValue}>{myClubHours ?? 0}h</Text>
+                  <Text style={styles.myHoursProgressSub}>Target: 30h</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.logHoursBtn}
+                  onPress={() => { setShowHoursRequest(true); setHoursError(''); }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.logHoursBtnText}>+ Log Hours</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.adminActionArrow}>›</Text>
-            </TouchableOpacity>
+
+              {/* Progress Bar */}
+              <View style={styles.myHoursProgressTrack}>
+                <View style={[styles.myHoursProgressFill, { width: `${Math.min(((myClubHours ?? 0) / 30) * 100, 100)}%`, backgroundColor: club.color }]} />
+              </View>
+
+              {/* History list */}
+              {myAdjustments.length > 0 && (
+                <View style={styles.historySection}>
+                  <Text style={styles.historyLabel}>REQUEST HISTORY</Text>
+                  {myAdjustments.map(adj => {
+                    const isPending = adj.status === 'pending';
+                    const isApproved = adj.status === 'approved';
+                    const isRejected = adj.status === 'rejected';
+                    
+                    const statusColor = isApproved 
+                      ? colors.green 
+                      : isRejected 
+                      ? colors.red 
+                      : colors.amber;
+                    const statusBg = isApproved 
+                      ? colors.greenLight 
+                      : isRejected 
+                      ? colors.redLight 
+                      : colors.amberLight;
+
+                    return (
+                      <View key={adj.id} style={styles.historyRow}>
+                        <View style={{ flex: 1, paddingRight: 8 }}>
+                          <Text style={styles.historyReason} numberOfLines={1}>{adj.reason || 'Hours Log Request'}</Text>
+                          <Text style={styles.historyDate}>{new Date(adj.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                          <Text style={[styles.historyDelta, { color: adj.hours_delta >= 0 ? colors.green : colors.red }]}>
+                            {adj.hours_delta >= 0 ? '+' : ''}{adj.hours_delta}h
+                          </Text>
+                          <View style={[styles.historyStatusBadge, { backgroundColor: statusBg, borderColor: statusColor }]}>
+                            <Text style={[styles.historyStatusText, { color: statusColor }]}>
+                              {adj.status.toUpperCase()}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
           </Section>
         )}
 
@@ -1800,4 +1861,104 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.sm, paddingVertical: 8, alignItems: 'center',
   },
   joinReqApproveText: { fontSize: 12, fontWeight: typography.semibold, color: '#fff' },
+
+  myHoursTrackerBox: {
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    width: '100%',
+  },
+  myHoursTrackerMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: tSpacing.sm,
+  },
+  myHoursTitle: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    color: tColors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  myHoursValue: {
+    fontSize: typography.xxl,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+    marginTop: 2,
+  },
+  myHoursProgressSub: {
+    fontSize: 10,
+    color: tColors.textTertiary,
+    marginTop: 2,
+  },
+  logHoursBtn: {
+    backgroundColor: tColors.student.primary,
+    borderRadius: tRadius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  logHoursBtnText: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    color: '#fff',
+  },
+  myHoursProgressTrack: {
+    height: 6,
+    backgroundColor: tColors.borderSubtle,
+    borderRadius: tRadius.full,
+    overflow: 'hidden',
+    marginBottom: tSpacing.md,
+    marginTop: 4,
+  },
+  myHoursProgressFill: {
+    height: '100%',
+    borderRadius: tRadius.full,
+  },
+  historySection: {
+    borderTopWidth: 1,
+    borderTopColor: tColors.border,
+    paddingTop: tSpacing.md,
+  },
+  historyLabel: {
+    fontSize: 9,
+    fontWeight: typography.bold,
+    color: tColors.textTertiary,
+    letterSpacing: 0.8,
+    marginBottom: tSpacing.sm,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: tColors.borderSubtle,
+  },
+  historyReason: {
+    fontSize: typography.xs,
+    fontWeight: typography.semibold,
+    color: tColors.textPrimary,
+  },
+  historyDate: {
+    fontSize: 10,
+    color: tColors.textTertiary,
+    marginTop: 2,
+  },
+  historyDelta: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+  },
+  historyStatusBadge: {
+    borderWidth: 0.5,
+    borderRadius: tRadius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  historyStatusText: {
+    fontSize: 8,
+    fontWeight: typography.bold,
+  },
 });
