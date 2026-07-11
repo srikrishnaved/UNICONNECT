@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  Modal, ActivityIndicator, RefreshControl, Alert,
+  Modal, ActivityIndicator, RefreshControl, Alert, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { hubClubs } from '../data';
@@ -9,7 +9,7 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import DocumentationScreen from './DocumentationScreen';
-import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check } from 'lucide-react-native';
+import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check, Clock } from 'lucide-react-native';
 
 const STATUS_COLOR = {
   pending:  { bg: colors.amberLight,   border: colors.amber,       text: colors.amber,       label: 'Pending' },
@@ -40,6 +40,13 @@ export default function TeamDashboardScreen({ route, navigation }) {
   const [saving, setSaving] = useState(false);
   const [showDocsModal, setShowDocsModal] = useState(false);
 
+  // Contribution Hours — member request
+  const [myAdjustments, setMyAdjustments] = useState([]);
+  const [showHoursRequest, setShowHoursRequest] = useState(false);
+  const [hoursForm, setHoursForm] = useState({ reason: '', hours: '' });
+  const [hoursSubmitting, setHoursSubmitting] = useState(false);
+  const [hoursError, setHoursError] = useState('');
+
   const loadAll = useCallback(async () => {
     const { data: eventsData } = await supabase
       .from('hub_events')
@@ -52,12 +59,15 @@ export default function TeamDashboardScreen({ route, navigation }) {
 
     const eventIds = eventsList.map(e => String(e.id));
 
-    const [assignmentsRes, memberRowsRes, hoursRes] = await Promise.all([
+    const [assignmentsRes, memberRowsRes, hoursRes, adjRes] = await Promise.all([
       eventIds.length
         ? supabase.from('event_member_assignments').select('*').eq('team_id', teamId).in('event_id', eventIds)
         : Promise.resolve({ data: [] }),
       supabase.from('club_memberships').select('user_id').eq('club_id', teamId),
       supabase.from('club_member_hours').select('user_id, total_hours').eq('club_id', teamId),
+      userProfile?.id
+        ? supabase.from('hour_adjustments').select('id, hours_delta, reason, status, created_at').eq('user_id', userProfile.id).eq('club_id', teamId).order('created_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
     ]);
 
     const assignmentsList = assignmentsRes.data || [];
@@ -66,6 +76,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
     const hoursMap = {};
     (hoursRes.data || []).forEach(r => { hoursMap[r.user_id] = Number(r.total_hours) || 0; });
     setMemberHours(hoursMap);
+    setMyAdjustments(adjRes.data || []);
 
     const memberIds = (memberRowsRes.data || []).map(r => r.user_id);
     const assignedIds = assignmentsList.map(a => a.user_id);
@@ -79,7 +90,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
       setProfiles(map);
       setTeamMembers(memberIds.map(id => map[id]).filter(Boolean));
     }
-  }, [teamId]);
+  }, [teamId, userProfile?.id]);
 
   useEffect(() => {
     loadAll().finally(() => setLoading(false));
@@ -151,6 +162,37 @@ export default function TeamDashboardScreen({ route, navigation }) {
     if (vals.length === 0) return 0;
     return vals.reduce((a, b) => a + b, 0) / vals.length;
   }, [memberHours]);
+
+  const handleRequestHours = async () => {
+    setHoursError('');
+    const hrs = Number(hoursForm.hours);
+    if (!hoursForm.reason.trim()) { setHoursError('Describe what you contributed.'); return; }
+    if (!hoursForm.hours.trim() || isNaN(hrs) || hrs <= 0) { setHoursError('Enter a valid number of hours (e.g. 3 or 1.5).'); return; }
+    setHoursSubmitting(true);
+    const { error } = await supabase.from('hour_adjustments').insert({
+      user_id: userProfile.id,
+      club_id: teamId,
+      hours_delta: hrs,
+      reason: hoursForm.reason.trim(),
+      source: 'self_requested',
+      status: 'pending',
+      created_by: userProfile.id,
+    });
+    setHoursSubmitting(false);
+    if (error) { setHoursError('Could not submit: ' + error.message); return; }
+    setShowHoursRequest(false);
+    setHoursForm({ reason: '', hours: '' });
+    Alert.alert('Submitted', 'Your hours request has been sent to the coordinator for review.');
+
+    // Refetch adjustments
+    const { data: adjData } = await supabase
+      .from('hour_adjustments')
+      .select('id, hours_delta, reason, status, created_at')
+      .eq('user_id', userProfile.id)
+      .eq('club_id', teamId)
+      .order('created_at', { ascending: false });
+    setMyAdjustments(adjData || []);
+  };
 
   // Sort team members for the modal: unassigned first, then sorted by hours ascending (lowest hours first)
   const sortedMembersForModal = useMemo(() => {
@@ -257,6 +299,82 @@ export default function TeamDashboardScreen({ route, navigation }) {
           contentContainerStyle={{ padding: spacing.md, paddingBottom: 40 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         >
+          {/* MY CONTRIBUTION & HOURS TRACKER */}
+          {isMember && (
+            <View style={{ marginBottom: spacing.md }}>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:spacing.sm}}>
+                <Clock size={13} color={colors.textTertiary} />
+                <Text style={styles.sectionLabel}>MY CONTRIBUTION & HOURS TRACKER</Text>
+              </View>
+              
+              <View style={styles.myHoursTrackerBox}>
+                <View style={styles.myHoursTrackerMain}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.myHoursTitle}>Total Hours Contributed</Text>
+                    <Text style={styles.myHoursValue}>{memberHours[userProfile.id] || 0}h</Text>
+                    <Text style={styles.myHoursProgressSub}>Target: 30h</Text>
+                  </View>
+                  {!isEffectiveAdmin && (
+                    <TouchableOpacity
+                      style={styles.logHoursBtn}
+                      onPress={() => { setShowHoursRequest(true); setHoursError(''); }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.logHoursBtnText}>+ Log Hours</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Progress Bar */}
+                <View style={styles.myHoursProgressTrack}>
+                  <View style={[styles.myHoursProgressFill, { width: `${Math.min(((memberHours[userProfile.id] || 0) / 30) * 100, 100)}%`, backgroundColor: team.color }]} />
+                </View>
+
+                {/* History list */}
+                {myAdjustments.length > 0 && (
+                  <View style={styles.historySection}>
+                    <Text style={styles.historyLabel}>REQUEST HISTORY</Text>
+                    {myAdjustments.map(adj => {
+                      const isPending = adj.status === 'pending';
+                      const isApproved = adj.status === 'approved';
+                      const isRejected = adj.status === 'rejected';
+                      
+                      const statusColor = isApproved 
+                        ? colors.green 
+                        : isRejected 
+                        ? colors.red 
+                        : colors.amber;
+                      const statusBg = isApproved 
+                        ? colors.greenLight 
+                        : isRejected 
+                        ? colors.redLight 
+                        : colors.amberLight;
+
+                      return (
+                        <View key={adj.id} style={styles.historyRow}>
+                          <View style={{ flex: 1, paddingRight: 8 }}>
+                            <Text style={styles.historyReason} numberOfLines={1}>{adj.reason || 'Hours Log Request'}</Text>
+                            <Text style={styles.historyDate}>{new Date(adj.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</Text>
+                          </View>
+                          <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                            <Text style={[styles.historyDelta, { color: adj.hours_delta >= 0 ? colors.green : colors.red }]}>
+                              {adj.hours_delta >= 0 ? '+' : ''}{adj.hours_delta}h
+                            </Text>
+                            <View style={[styles.historyStatusBadge, { backgroundColor: statusBg, borderColor: statusColor }]}>
+                              <Text style={[styles.historyStatusText, { color: statusColor }]}>
+                                {adj.status.toUpperCase()}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
           {/* My Assignments — only shown to members */}
           {(isMember || isEffectiveAdmin) && myAssignments.length > 0 && (
             <>
@@ -502,6 +620,57 @@ export default function TeamDashboardScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* Request Contribution Hours Modal */}
+      <Modal visible={showHoursRequest} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Request Hours</Text>
+              <TouchableOpacity onPress={() => { setShowHoursRequest(false); setHoursError(''); }}>
+                <X size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>CONTRIBUTION DESCRIPTION *</Text>
+            <TextInput
+              value={hoursForm.reason}
+              onChangeText={t => setHoursForm(f => ({ ...f, reason: t }))}
+              placeholder="e.g. Assisted with event lighting setup"
+              placeholderTextColor={colors.textTertiary}
+              style={[styles.modalInput, { height: 80, textAlignVertical: 'top' }]}
+              multiline
+            />
+
+            <Text style={styles.modalLabel}>HOURS *</Text>
+            <TextInput
+              value={hoursForm.hours}
+              onChangeText={t => setHoursForm(f => ({ ...f, hours: t }))}
+              placeholder="e.g. 2.5"
+              placeholderTextColor={colors.textTertiary}
+              style={styles.modalInput}
+              keyboardType="decimal-pad"
+            />
+
+            {hoursError ? (
+              <Text style={{ color: colors.red, fontSize: 12, marginTop: 6, marginBottom: 12 }}>{hoursError}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.submitBtn, hoursSubmitting && { opacity: 0.5 }, { marginTop: spacing.sm }]}
+              onPress={handleRequestHours}
+              disabled={hoursSubmitting}
+              activeOpacity={0.8}
+            >
+              {hoursSubmitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Submit Request</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -662,5 +831,133 @@ const styles = StyleSheet.create({
     ...font.bold,
     color: colors.amber,
     textTransform: 'uppercase',
+  },
+
+  myHoursTrackerBox: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    width: '100%',
+    marginBottom: spacing.sm,
+  },
+  myHoursTrackerMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  myHoursTitle: {
+    fontSize: 10,
+    ...font.bold,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  myHoursValue: {
+    fontSize: 22,
+    ...font.bold,
+    color: colors.textPrimary,
+    marginTop: 2,
+  },
+  myHoursProgressSub: {
+    fontSize: 10,
+    color: colors.textTertiary,
+    marginTop: 2,
+  },
+  logHoursBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  logHoursBtnText: {
+    fontSize: 12,
+    ...font.bold,
+    color: '#fff',
+  },
+  myHoursProgressTrack: {
+    height: 6,
+    backgroundColor: colors.borderSubtle || 'rgba(0,0,0,0.05)',
+    borderRadius: radius.full,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+    marginTop: 4,
+  },
+  myHoursProgressFill: {
+    height: '100%',
+    borderRadius: radius.full,
+  },
+  historySection: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+  historyLabel: {
+    fontSize: 9,
+    ...font.bold,
+    color: colors.textTertiary,
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle || 'rgba(0,0,0,0.05)',
+  },
+  historyReason: {
+    fontSize: 12,
+    ...font.semibold,
+    color: colors.textPrimary,
+  },
+  historyDate: {
+    fontSize: 10,
+    color: colors.textTertiary,
+    marginTop: 2,
+  },
+  historyDelta: {
+    fontSize: 12,
+    ...font.bold,
+  },
+  historyStatusBadge: {
+    borderWidth: 0.5,
+    borderRadius: radius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  historyStatusText: {
+    fontSize: 8,
+    ...font.bold,
+  },
+  modalLabel: {
+    fontSize: 10,
+    ...font.bold,
+    color: colors.textSecondary,
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 10,
+    fontSize: 14,
+    color: colors.textPrimary,
+    backgroundColor: colors.bg,
+  },
+  submitBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  submitBtnText: {
+    fontSize: 14,
+    ...font.bold,
+    color: '#fff',
   },
 });
