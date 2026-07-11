@@ -11,7 +11,6 @@ import { Compass, CalendarDays, Landmark, Users, GraduationCap, BookOpen, Search
 import NotificationsPanel from '../screens/NotificationsPanel';
 import { useNavigation } from '@react-navigation/native';
 import DiscoverScreen from '../screens/DiscoverScreen';
-import GroupsScreen from '../screens/GroupsScreen';
 import HubScreen from '../screens/HubScreen';
 import MentorsScreen from '../screens/MentorsScreen';
 import TeachersScreen from '../screens/TeachersScreen';
@@ -26,7 +25,6 @@ const tabs = [
   { name: 'Discover',   component: DiscoverScreen,    Icon: Compass },
   { name: 'Planner',    component: StudyPlannerScreen,  Icon: CalendarDays },
   { name: 'Hub',        component: HubScreen,          Icon: Landmark },
-  { name: 'Groups',     component: GroupsScreen,       Icon: Users },
   { name: 'Mentors',    component: MentorsScreen,      Icon: GraduationCap },
   { name: 'Teachers',   component: TeachersScreen,     Icon: BookOpen },
 ];
