@@ -224,6 +224,7 @@ export default function ClubDashboardScreen({
   const [setHoursTarget, setSetHoursTarget] = useState(null);
   const [setHoursInput, setSetHoursInput] = useState('');
   const [setHoursSaving, setSetHoursSaving] = useState(false);
+  const [hoursMode, setHoursMode] = useState('set'); // 'set' or 'adjust'
 
   // Logo upload
   const [logoUrl, setLogoUrl] = useState(club?.logo_url || null);
@@ -543,29 +544,56 @@ export default function ClubDashboardScreen({
 
   const handleSetHours = async () => {
     if (!setHoursTarget || !setHoursInput.trim()) return;
-    const newTotal = Number(setHoursInput);
-    if (isNaN(newTotal) || newTotal < 0) { Alert.alert('Invalid', 'Enter a valid number.'); return; }
+    const inputVal = Number(setHoursInput);
+    if (isNaN(inputVal)) { Alert.alert('Invalid', 'Please enter a valid number.'); return; }
+    
+    const currentHours = memberHours[setHoursTarget.userId] || 0;
+    let newTotal = currentHours;
+    let delta = 0;
+
+    if (hoursMode === 'adjust') {
+      delta = inputVal;
+      newTotal = currentHours + delta;
+    } else {
+      newTotal = inputVal;
+      delta = newTotal - currentHours;
+    }
+
+    if (newTotal < 0) {
+      Alert.alert('Invalid', 'Total hours cannot be negative.');
+      return;
+    }
+
     setSetHoursSaving(true);
     const cid = String(clubId);
-    const currentHours = memberHours[setHoursTarget.userId] || 0;
-    const delta = newTotal - currentHours;
-    const coordinatorId = userProfile?.id || null;
+    const actorId = userProfile?.id || null;
+    const actorRole = isCoordinator ? 'coordinator' : 'admin';
+    const reasonText = hoursMode === 'adjust'
+      ? `Manual adjustment (${delta > 0 ? '+' : ''}${delta}h) set by ${actorRole}`
+      : `Manual baseline set by ${actorRole}`;
+
     const [adjRes, upsertRes] = await Promise.all([
       supabase.from('hour_adjustments').insert({
         user_id: setHoursTarget.userId, club_id: cid,
-        hours_delta: delta, reason: 'Manual baseline set by coordinator',
-        source: 'manual_baseline', status: 'approved', created_by: coordinatorId,
+        hours_delta: delta, reason: reasonText,
+        source: 'manual_baseline', status: 'approved', created_by: actorId,
       }),
       supabase.from('club_member_hours').upsert(
         { user_id: setHoursTarget.userId, club_id: cid, total_hours: newTotal, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,club_id' }
       ),
     ]);
+
     if (!adjRes.error && !upsertRes.error) {
       setMemberHours(prev => ({ ...prev, [setHoursTarget.userId]: newTotal }));
       setShowSetHoursModal(false);
       setSetHoursTarget(null);
       setSetHoursInput('');
+      setHoursMode('set');
+      createNotification(
+        setHoursTarget.userId, 'info', 'Hours Updated',
+        `Your hours have been manually updated to ${newTotal}h by a club ${actorRole}.`
+      );
     } else {
       Alert.alert('Error', adjRes.error?.message || upsertRes.error?.message || 'Could not update hours.');
     }
@@ -1654,28 +1682,69 @@ export default function ClubDashboardScreen({
       {/* ── Set Hours Modal ── */}
       <Modal visible={showSetHoursModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modal, { maxHeight: 340 }]}>
+          <View style={[styles.modal, { maxHeight: 400 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Set Hours</Text>
-              <TouchableOpacity onPress={() => { setShowSetHoursModal(false); setSetHoursTarget(null); }}>
+              <Text style={styles.modalTitle}>Alter Hours</Text>
+              <TouchableOpacity onPress={() => { setShowSetHoursModal(false); setSetHoursTarget(null); setHoursMode('set'); }}>
                 <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.memberRowName}>{setHoursTarget?.name}</Text>
-            <Text style={[styles.memberRowMeta, { marginBottom: spacing.md }]}>
+            <Text style={[styles.memberRowMeta, { marginBottom: spacing.sm }]}>
               Current total: {setHoursTarget?.currentHours ?? 0}h
             </Text>
-            <Text style={styles.modalLabel}>NEW TOTAL HOURS</Text>
+
+            {/* Mode selection tabs */}
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: spacing.md }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  borderColor: hoursMode === 'set' ? colors.primary : colors.border,
+                  backgroundColor: hoursMode === 'set' ? colors.primaryLight : colors.bg,
+                }}
+                onPress={() => { setHoursMode('set'); setSetHoursInput(''); }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 11, color: hoursMode === 'set' ? colors.primary : colors.textSecondary, ...font.bold }}>
+                  Set Total
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  borderColor: hoursMode === 'adjust' ? colors.primary : colors.border,
+                  backgroundColor: hoursMode === 'adjust' ? colors.primaryLight : colors.bg,
+                }}
+                onPress={() => { setHoursMode('adjust'); setSetHoursInput(''); }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 11, color: hoursMode === 'adjust' ? colors.primary : colors.textSecondary, ...font.bold }}>
+                  Adjust (+/-)
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>
+              {hoursMode === 'set' ? 'NEW TOTAL HOURS' : 'ADJUST BY HOURS (e.g. +3.5 or -2)'}
+            </Text>
             <TextInput
               value={setHoursInput}
               onChangeText={setSetHoursInput}
-              placeholder="e.g. 12.5"
+              placeholder={hoursMode === 'set' ? "e.g. 12.5" : "e.g. +5 or -2.5"}
               placeholderTextColor={colors.textTertiary}
               style={styles.modalInput}
-              keyboardType="decimal-pad"
+              keyboardType="numbers-and-punctuation"
             />
             <TouchableOpacity
-              style={[styles.submitBtn, setHoursSaving && { opacity: 0.5 }]}
+              style={[styles.submitBtn, setHoursSaving && { opacity: 0.5 }, { marginTop: spacing.sm }]}
               onPress={handleSetHours}
               disabled={setHoursSaving}
               activeOpacity={0.85}

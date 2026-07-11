@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  Modal, ActivityIndicator, RefreshControl,
+  Modal, ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { hubClubs } from '../data';
@@ -30,6 +30,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [memberHours, setMemberHours] = useState({});
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,15 +52,20 @@ export default function TeamDashboardScreen({ route, navigation }) {
 
     const eventIds = eventsList.map(e => String(e.id));
 
-    const [assignmentsRes, memberRowsRes] = await Promise.all([
+    const [assignmentsRes, memberRowsRes, hoursRes] = await Promise.all([
       eventIds.length
         ? supabase.from('event_member_assignments').select('*').eq('team_id', teamId).in('event_id', eventIds)
         : Promise.resolve({ data: [] }),
       supabase.from('club_memberships').select('user_id').eq('club_id', teamId),
+      supabase.from('club_member_hours').select('user_id, total_hours').eq('club_id', teamId),
     ]);
 
     const assignmentsList = assignmentsRes.data || [];
     setAssignments(assignmentsList);
+
+    const hoursMap = {};
+    (hoursRes.data || []).forEach(r => { hoursMap[r.user_id] = Number(r.total_hours) || 0; });
+    setMemberHours(hoursMap);
 
     const memberIds = (memberRowsRes.data || []).map(r => r.user_id);
     const assignedIds = assignmentsList.map(a => a.user_id);
@@ -138,6 +144,92 @@ export default function TeamDashboardScreen({ route, navigation }) {
     assignments.find(a => String(a.event_id) === String(eventId) && String(a.user_id) === String(userId));
 
   const clubFor = (clubId) => hubClubs.find(c => c.id === clubId);
+
+  // Compute average working hours of loaded team members
+  const averageHours = useMemo(() => {
+    const vals = Object.values(memberHours);
+    if (vals.length === 0) return 0;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, [memberHours]);
+
+  // Sort team members for the modal: unassigned first, then sorted by hours ascending (lowest hours first)
+  const sortedMembersForModal = useMemo(() => {
+    if (!assignModal) return [];
+    return [...teamMembers].sort((a, b) => {
+      const assignedA = isAssignedToEvent(a.id, assignModal.id);
+      const assignedB = isAssignedToEvent(b.id, assignModal.id);
+      
+      if (assignedA && !assignedB) return 1;
+      if (!assignedA && assignedB) return -1;
+      
+      const hrsA = memberHours[a.id] || 0;
+      const hrsB = memberHours[b.id] || 0;
+      return hrsA - hrsB;
+    });
+  }, [teamMembers, memberHours, assignModal, assignments]);
+
+  // Automate staffing by picking the unassigned members with the lowest working hours
+  const runAutoAssign = async (count) => {
+    if (!assignModal) return;
+    setSaving(true);
+    
+    const unassigned = teamMembers.filter(m => !isAssignedToEvent(m.id, assignModal.id));
+    const sorted = [...unassigned].sort((a, b) => (memberHours[a.id] || 0) - (memberHours[b.id] || 0));
+    const toAssign = sorted.slice(0, count);
+    
+    if (toAssign.length === 0) {
+      Alert.alert('Info', 'All team members have already been assigned to this event.');
+      setSaving(false);
+      return;
+    }
+
+    const event = events.find(e => String(e.id) === String(assignModal.id));
+    
+    const promises = toAssign.map(async (member) => {
+      const { data: row, error } = await supabase
+        .from('event_member_assignments')
+        .upsert(
+          { event_id: String(assignModal.id), team_id: teamId, user_id: String(member.id), assigned_by: userProfile.id, status: 'pending' },
+          { onConflict: 'event_id,team_id,user_id' },
+        )
+        .select()
+        .single();
+      
+      if (!error && row) {
+        createNotification(
+          String(member.id), 'assignment',
+          `You've been assigned to "${event?.title}"`,
+          `${team.name} has assigned you · ${event?.time || ''}`,
+          { assignment_id: row.id, event_id: String(assignModal.id), team_id: teamId, team_name: team.name, event_title: event?.title },
+        );
+        return row;
+      }
+      return null;
+    });
+
+    const results = await Promise.all(promises);
+    const successfulRows = results.filter(Boolean);
+
+    if (successfulRows.length > 0) {
+      setAssignments(prev => {
+        let updated = [...prev];
+        successfulRows.forEach(row => {
+          const idx = updated.findIndex(a => String(a.event_id) === String(row.event_id) && a.user_id === row.user_id);
+          if (idx >= 0) {
+            updated[idx] = row;
+          } else {
+            updated.push(row);
+          }
+        });
+        return updated;
+      });
+      Alert.alert('Auto-Assigned', `Successfully auto-assigned ${successfulRows.length} member(s) with the fewest working hours!`);
+    } else {
+      Alert.alert('Error', 'Failed to auto-assign members.');
+    }
+    
+    setSaving(false);
+  };
 
   if (!team) return null;
 
@@ -338,14 +430,34 @@ export default function TeamDashboardScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 480 }}>
+            {/* Auto Assign controls */}
+            {isEffectiveAdmin && teamMembers.length > 0 && (
+              <View style={styles.autoAssignContainer}>
+                <Text style={styles.autoAssignLabel}>AUTO-STAFF (lowest hours candidate first):</Text>
+                <View style={styles.autoAssignBtnGroup}>
+                  <TouchableOpacity style={styles.autoAssignBtn} onPress={() => runAutoAssign(1)} disabled={saving} activeOpacity={0.8}>
+                    <Text style={styles.autoAssignBtnText}>1 Member</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.autoAssignBtn} onPress={() => runAutoAssign(2)} disabled={saving} activeOpacity={0.8}>
+                    <Text style={styles.autoAssignBtnText}>2 Members</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.autoAssignBtn} onPress={() => runAutoAssign(3)} disabled={saving} activeOpacity={0.8}>
+                    <Text style={styles.autoAssignBtnText}>3 Members</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
               {teamMembers.length === 0 ? (
                 <Text style={styles.noMembersText}>No team members yet. Add members from the Team page first.</Text>
               ) : (
-                teamMembers.map(member => {
+                sortedMembersForModal.map(member => {
                   const assigned = assignModal ? isAssignedToEvent(member.id, assignModal.id) : false;
                   const a = assignModal ? getAssignment(member.id, assignModal.id) : null;
                   const av = avatarColor(member.name);
+                  const hrs = memberHours[member.id] || 0;
+                  const isLowHours = hrs < averageHours;
                   return (
                     <View key={member.id} style={styles.memberRow}>
                       <View style={[styles.memberAvatar, { backgroundColor: av.bg }]}>
@@ -354,6 +466,16 @@ export default function TeamDashboardScreen({ route, navigation }) {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.memberName}>{member.name}</Text>
                         <Text style={styles.memberMeta}>{member.course} · {member.year}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                          <Text style={[styles.hoursWorkedText, hrs === 0 && { color: colors.red }]}>
+                            {hrs}h worked
+                          </Text>
+                          {isLowHours && (
+                            <View style={styles.lowHoursBadge}>
+                              <Text style={styles.lowHoursBadgeText}>Needs Hours</Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                       {assigned ? (
                         <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
@@ -488,4 +610,57 @@ const styles = StyleSheet.create({
   adminActionTitle: { fontSize: 14, ...font.semibold, color: colors.textPrimary },
   adminActionDesc: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
   adminActionArrow: { fontSize: 22, color: colors.textTertiary, lineHeight: 24 },
+
+  autoAssignContainer: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  autoAssignLabel: {
+    fontSize: 9,
+    ...font.bold,
+    color: colors.textSecondary,
+    letterSpacing: 0.6,
+    marginBottom: 8,
+  },
+  autoAssignBtnGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  autoAssignBtn: {
+    flex: 1,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  autoAssignBtnText: {
+    fontSize: 11,
+    ...font.bold,
+    color: colors.primary,
+  },
+  hoursWorkedText: {
+    fontSize: 10,
+    ...font.semibold,
+    color: colors.textSecondary,
+  },
+  lowHoursBadge: {
+    backgroundColor: colors.amberLight,
+    borderColor: colors.amber,
+    borderWidth: 0.5,
+    borderRadius: radius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  lowHoursBadgeText: {
+    fontSize: 8,
+    ...font.bold,
+    color: colors.amber,
+    textTransform: 'uppercase',
+  },
 });
