@@ -300,7 +300,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         >
           {/* MY CONTRIBUTION & HOURS TRACKER */}
-          {isMember && (
+          {(isMember || isEffectiveAdmin) && (
             <View style={{ marginBottom: spacing.md }}>
               <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:spacing.sm}}>
                 <Clock size={13} color={colors.textTertiary} />

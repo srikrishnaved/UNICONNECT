@@ -320,7 +320,7 @@ export default function TeamDetailScreen({ route, navigation }) {
         )}
 
         {/* My Contribution */}
-        {isMember && (
+        {(isMember || isEffectiveAdmin) && (
           <Section label="MY CONTRIBUTION & HOURS TRACKER">
             <View style={styles.myHoursTrackerBox}>
               <View style={styles.myHoursTrackerMain}>
