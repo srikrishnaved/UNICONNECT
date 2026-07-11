@@ -388,7 +388,7 @@ export default function AppAdminScreen() {
                 activeOpacity={0.7}
               >
                 {resolvingClub === req.id
-                  ? <ActivityIndicator size="small" color="#0F0F1A" />
+                  ? <ActivityIndicator size="small" color={colors.textPrimary} />
                   : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 }
               </TouchableOpacity>
@@ -447,7 +447,7 @@ export default function AppAdminScreen() {
                 activeOpacity={0.7}
               >
                 {resolvingCR === req.id
-                  ? <ActivityIndicator size="small" color="#0F0F1A" />
+                  ? <ActivityIndicator size="small" color={colors.textPrimary} />
                   : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.approveBtnText}>Approve</Text></View>
                 }
               </TouchableOpacity>
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11, alignItems: 'center',
   },
   approveBtn: { backgroundColor: colors.green },
-  approveBtnText: { fontSize: 13, ...font.bold, color: '#0F0F1A' },
+  approveBtnText: { fontSize: 13, ...font.bold, color: colors.textPrimary },
   rejectBtn: {
     backgroundColor: 'transparent',
     borderWidth: 1, borderColor: colors.red,
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.amber, borderRadius: radius.md,
     paddingVertical: 14, alignItems: 'center', marginTop: spacing.lg,
   },
-  createConfirmBtnText: { fontSize: 15, color: '#1A1A00', ...font.bold },
+  createConfirmBtnText: { fontSize: 15, color: colors.textPrimary, ...font.bold },
 
   crAvatar: {
     width: 38, height: 38, borderRadius: 19,
@@ -642,8 +642,8 @@ const styles = StyleSheet.create({
   },
   crAvatarText: { fontSize: 16, ...font.bold, color: colors.primary },
   crPendingPill: {
-    backgroundColor: '#FEF3C7', borderRadius: radius.full,
+    backgroundColor: colors.amberLight, borderRadius: radius.full,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  crPendingPillText: { fontSize: 10, ...font.bold, color: '#92400E' },
+  crPendingPillText: { fontSize: 10, ...font.bold, color: colors.amber },
 });

@@ -17,6 +17,7 @@ import {
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import { Calendar as CalendarIcon, Users, Check, BarChart2, Gift, ShieldCheck, GraduationCap, Megaphone, MapPin, Trash2, Image as ImageIcon, Timer, Camera, Briefcase, MessageCircle, Link, X, UserPlus } from 'lucide-react-native';
+import { ClubLucideIcon } from './HubScreen';
 
 // Lazy-load image picker so web bundler never tries to parse native-only APIs
 let ImagePicker = null;
@@ -322,7 +323,7 @@ export default function ClubDetailScreen({ route, navigation }) {
     }
     const title = `${club.name} — Recruiting: ${recruitForm.role.trim()}`;
     const timeStr = recruitForm.applyBy.trim() ? `Apply by ${recruitForm.applyBy.trim()}` : 'Open applications';
-    const venue = recruitForm.contact.trim() || 'DM on ChristConnect';
+    const venue = recruitForm.contact.trim() || 'DM on UniConnect';
     const desc = recruitForm.requirements.trim() || `${club.name} is looking for ${recruitForm.role.trim()}. Reach out to apply!`;
 
     const { data, error } = await supabase.from('hub_events').insert({
@@ -511,10 +512,10 @@ export default function ClubDetailScreen({ route, navigation }) {
         {/* Cover */}
         <View style={[styles.cover, { backgroundColor: club.color }]}>
           <View style={styles.coverInner}>
-            <View style={[styles.emojiBox, { backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' }]}>
+            <View style={[styles.emojiBox, { backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }]}>
               {club.logo_url
                 ? <Image source={{ uri: club.logo_url }} style={{ width: 76, height: 76, borderRadius: 20 }} />
-                : <Text style={styles.emoji}>{club.emoji}</Text>
+                : <ClubLucideIcon emoji={club.emoji} size={48} color="#fff" />
               }
             </View>
             <View style={styles.typeBadgeWrap}>
@@ -1468,8 +1469,8 @@ const styles = StyleSheet.create({
   memberBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.success },
   pendingBtn: { backgroundColor: tColors.warningDim, borderWidth: 1, borderColor: tColors.warning },
   pendingBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.textSecondary },
-  leaveBtn: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
-  leaveBtnText: { fontSize: 13, fontWeight: typography.bold, color: '#DC2626' },
+  leaveBtn: { backgroundColor: tColors.errorDim, borderWidth: 1, borderColor: tColors.error },
+  leaveBtnText: { fontSize: 13, fontWeight: typography.bold, color: tColors.error },
   limitBtn: { backgroundColor: tColors.errorDim, borderWidth: 1, borderColor: tColors.error },
   limitBtnText: { fontSize: 12, fontWeight: typography.bold, color: tColors.error },
   manageBtn: { backgroundColor: tColors.student.primary, flex: 1 },

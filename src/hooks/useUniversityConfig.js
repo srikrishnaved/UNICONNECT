@@ -9,6 +9,21 @@ const FALLBACK_PERIODS = ['M1', 'M2', 'P1', 'P2', 'P3', 'P4'].map(label => ({
   is_break: false,
 }));
 
+const getSubdomain = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const uniParam = searchParams.get('uni');
+    if (uniParam) return uniParam;
+
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'dist-psi-ten-59') {
+      return parts[0];
+    }
+  }
+  return null;
+};
+
 export function useUniversityConfig() {
   const [classes, setClasses] = useState(ALL_CLASSES);
   const [periods, setPeriods] = useState(FALLBACK_PERIODS);
@@ -33,24 +48,46 @@ export function useUniversityConfig() {
           isSuperAdmin = !!profile?.is_super_admin;
         }
 
-        // Super admin: their own setup row. Everyone else: the completed row
-        // (single-tenant — only one university will ever have is_setup_complete = true).
-        let progress, progressError;
-        if (isSuperAdmin) {
-          ({ data: progress, error: progressError } = await supabase
-            .from('university_setup_progress')
-            .select('enabled_classes, university_id')
-            .eq('university_id', user.id)
-            .maybeSingle());
-        } else {
+        let progress = null;
+        let progressError = null;
+
+        const subdomain = getSubdomain();
+        console.log('[useUniversityConfig] Detected subdomain:', subdomain);
+
+        if (subdomain) {
           const { data: rows, error } = await supabase
             .from('university_setup_progress')
             .select('enabled_classes, university_id')
             .eq('is_setup_complete', true)
-            .order('updated_at', { ascending: false })
+            .ilike('university_website', `%${subdomain}%`)
             .limit(1);
-          progress = rows?.[0] ?? null;
+          
+          if (rows?.length) {
+            progress = rows[0];
+          } else {
+            console.log('[useUniversityConfig] No workspace config found for subdomain:', subdomain);
+          }
           progressError = error;
+        }
+
+        // Fallback to super admin session or latest completed registration if no subdomain matches
+        if (!progress) {
+          if (isSuperAdmin) {
+            ({ data: progress, error: progressError } = await supabase
+              .from('university_setup_progress')
+              .select('enabled_classes, university_id')
+              .eq('university_id', user.id)
+              .maybeSingle());
+          } else {
+            const { data: rows, error } = await supabase
+              .from('university_setup_progress')
+              .select('enabled_classes, university_id')
+              .eq('is_setup_complete', true)
+              .order('updated_at', { ascending: false })
+              .limit(1);
+            progress = rows?.[0] ?? null;
+            progressError = error;
+          }
         }
 
         console.log('[useUniversityConfig] progress:', progress, 'progressError:', progressError);

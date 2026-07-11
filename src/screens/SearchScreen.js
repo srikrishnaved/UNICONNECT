@@ -6,7 +6,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
-import { Search, Users, Star, X, User, Landmark } from 'lucide-react-native';
+import { Search, Compass, Users, Star, Landmark } from 'lucide-react-native';
+import { ClubLucideIcon } from './HubScreen';
 import { supabase } from '../lib/supabase';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
@@ -147,10 +148,10 @@ export default function SearchScreen({ navigation }) {
                   onPress={() => navigation.navigate('ClubDetail', { clubId: c.id })}
                   activeOpacity={0.75}
                 >
-                  <View style={[styles.emojiBox, { backgroundColor: (c.color || colors.primary) + '25', overflow: 'hidden' }]}>
+                  <View style={[styles.emojiBox, { backgroundColor: (c.color || colors.primary) + '25', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }]}>
                     {c.logo_url
                       ? <Image source={{ uri: c.logo_url }} style={styles.clubLogo} />
-                      : <Text style={{ fontSize: 20 }}>{c.emoji}</Text>
+                      : <ClubLucideIcon emoji={c.emoji} size={20} color={c.color || colors.primary} />
                     }
                   </View>
                   <View style={{ flex: 1 }}>

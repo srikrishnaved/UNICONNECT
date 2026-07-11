@@ -361,6 +361,13 @@ INSERT INTO timetable_slots (class_name, day, period_name, course_code, course_n
 INSERT INTO timetable_slots (class_name, day, period_name, course_code, course_name, faculty_name) VALUES ('5BcomIAF', 'SAT', 'M2', NULL, 'Corporate Governance, Risk & Ethics', 'CS Monika Agarwal') ON CONFLICT (class_name, day, period_name) DO UPDATE SET course_name = EXCLUDED.course_name, faculty_name = EXCLUDED.faculty_name, updated_at = now();
 INSERT INTO timetable_slots (class_name, day, period_name, course_code, course_name, faculty_name) VALUES ('5BcomIAF', 'SAT', 'P1', NULL, 'Corporate Governance, Risk & Ethics', 'CS Monika Agarwal') ON CONFLICT (class_name, day, period_name) DO UPDATE SET course_name = EXCLUDED.course_name, faculty_name = EXCLUDED.faculty_name, updated_at = now();
 INSERT INTO timetable_slots (class_name, day, period_name, course_code, course_name, faculty_name) VALUES ('5BcomIAF', 'SAT', 'P2', NULL, NULL, NULL) ON CONFLICT (class_name, day, period_name) DO UPDATE SET course_name = EXCLUDED.course_name, faculty_name = EXCLUDED.faculty_name, updated_at = now();
+
+-- Automatically flag external / language / common course slots
+UPDATE timetable_slots 
+SET is_external = true 
+WHERE faculty_name ILIKE 'External%' 
+   OR course_name IN ('Language', 'English', 'ENG', 'ENG ', 'Foundation Kannada', 'Kannada', 'Yoga', 'MDC', 'PECF', 'CAPS', 'EVS');
+
 $func$;
 
 GRANT EXECUTE ON FUNCTION reset_timetable_slots() TO anon, authenticated;

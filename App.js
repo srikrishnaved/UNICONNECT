@@ -47,7 +47,7 @@ const navTheme = {
 const Stack = createNativeStackNavigator();
 
 const linking = {
-  prefixes: ['https://christconnect.expo.app', 'christconnect://'],
+  prefixes: ['https://uniconnect-platform-gamma.vercel.app', 'https://christconnect.expo.app', 'uniconnect://', 'christconnect://'],
   config: {
     screens: {
       Main: {
@@ -361,7 +361,7 @@ export default function App() {
     'IBMPlexMono-Medium': IBMPlexMono_500Medium,
   });
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && Platform.OS !== 'web') {
     return <View style={{ flex: 1, backgroundColor: '#14120f' }} />;
   }
 

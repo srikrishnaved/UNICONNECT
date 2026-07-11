@@ -20,6 +20,8 @@ import { Timer, Sparkles, BookOpen, FilePen, Trash2, Calendar, Cpu, Check, File,
 
 const DAYS_OF_WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
+const C_SAGE = '#7C3AED'; // SAGE AI brand colour — violet, intentionally distinct from app theme
+
 const EXAM_COLORS = [
   { bg: 'rgba(59,130,246,0.18)',  text: '#60A5FA', border: 'rgba(59,130,246,0.4)' },
   { bg: 'rgba(168,85,247,0.18)',  text: '#C084FC', border: 'rgba(168,85,247,0.4)' },
@@ -1267,7 +1269,7 @@ const styles = StyleSheet.create({
     paddingBottom: tSpacing.md,
   },
   generateBtn: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: C_SAGE,
     borderRadius: tRadius.full,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1309,7 +1311,7 @@ const styles = StyleSheet.create({
   progressLeft: { fontSize: 10, color: tColors.textTertiary, marginBottom: tSpacing.sm },
   progressBarBg: {
     height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
     marginBottom: 6, overflow: 'hidden',
   },
   progressBarFill: { height: 4, borderRadius: 2 },
@@ -1395,7 +1397,7 @@ const styles = StyleSheet.create({
   calTopicCardSelected: { borderWidth: 2 },
   calCheckbox: {
     width: 20, height: 20, borderRadius: 10,
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 2, borderColor: 'rgba(0,0,0,0.2)',
     alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },

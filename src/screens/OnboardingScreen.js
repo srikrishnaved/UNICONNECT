@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
-  ActivityIndicator, Modal,
+  ActivityIndicator, Modal, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font } from '../theme';
@@ -19,45 +19,22 @@ import { supabase } from '../lib/supabase';
 import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
+import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
 
-const COURSES = [
-  {
-    key: 'BCom IAF',
-    full: 'BCom International Accounting & Finance',
-    sub: 'Integrated with ACCA',
-    color: tColors.info,
-    bg: tColors.infoDim,
-  },
-  {
-    key: 'BCom IBA',
-    full: 'BCom International Business & Accounting',
-    sub: 'Integrated with CPA Australia',
-    color: tColors.accent,
-    bg: tColors.accentDim,
-  },
-  {
-    key: 'BCom F&A',
-    full: 'BCom Finance & Accountancy',
-    sub: null,
-    color: tColors.success,
-    bg: tColors.successDim,
-  },
-];
+const COURSES = APP_CONFIG.courses;
 
-const YEARS = ['1st Year', '2nd Year', '3rd Year'];
+const YEARS = APP_CONFIG.years;
 
-export const INTERESTS = [
-  'Finance', 'Accounting', 'Taxation', 'Auditing', 'Economics',
-  'Marketing', 'Entrepreneurship', 'Management', 'Banking & Investment',
-  'Business Law', 'International Business', 'Strategy',
-  'Photography', 'Videography', 'Graphic Design', 'Content Creation',
-  'Social Media', 'Public Speaking', 'Leadership', 'Volunteering',
-  'Event Management', 'Music', 'Dance', 'Theatre & Drama',
-  'Sports & Fitness', 'Research & Writing', 'Technology', 'AI & Data',
-];
+export const INTERESTS = APP_CONFIG.interests;
+
+const splitAppName = (appName) => {
+  const match = appName.match(/^([A-Z][a-z]+)([A-Z].*)$/);
+  return match ? [match[1], match[2]] : [appName, ''];
+};
 
 export default function OnboardingScreen() {
   const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
+  const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
 
   // 'roleSelect' | 'signup' | 'signin' | 'picker' | 'interests' | 'allset' | 'teacherSignup' | 'teacherIdentity' | 'teacherSubjects'
   const [step, setStep] = useState('signin');
@@ -143,9 +120,9 @@ export default function OnboardingScreen() {
     if (!teacherName.trim()) { setTeacherSignUpError('Please enter your full name.'); return; }
     const emailDomain = teacherEmail.trim().toLowerCase().split('@')[1] ?? '';
     // TEMPORARY: uniconnect.test allowed for QA — revert before production
-    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in') || emailDomain === 'uniconnect.test';
+    const validDomain = isEmailDomainValid(teacherEmail);
     if (!teacherEmail.trim() || !validDomain) {
-      setTeacherSignUpError('Only christuniversity.in emails are accepted.');
+      setTeacherSignUpError('Please enter a valid email address.');
       return;
     }
     if (!isValidPassword(teacherPassword)) {
@@ -261,9 +238,9 @@ export default function OnboardingScreen() {
     }
     const emailDomain = email.trim().toLowerCase().split('@')[1] ?? '';
     // TEMPORARY: uniconnect.test allowed for QA — revert before production
-    const validDomain = emailDomain === 'christuniversity.in' || emailDomain.endsWith('.christuniversity.in') || emailDomain === 'uniconnect.test';
+    const validDomain = isEmailDomainValid(email);
     if (!email.trim() || !validDomain) {
-      setSignUpError('Only christuniversity.in emails are accepted.');
+      setSignUpError('Please enter a valid email address.');
       return;
     }
     if (!isValidPassword(password)) {
@@ -318,7 +295,7 @@ export default function OnboardingScreen() {
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.logoRow}>
             <View style={styles.logoBox}><Sparkles size={18} color="#fff" /></View>
-            <Text style={styles.logoText}>Christ<Text style={{ color: colors.primary }}>Connect</Text></Text>
+            <Text style={styles.logoText}>{logoFirst}<Text style={{ color: colors.primary }}>{logoSecond}</Text></Text>
           </View>
 
           <Text style={styles.heading}>Welcome</Text>
@@ -404,14 +381,14 @@ export default function OnboardingScreen() {
             <TextInput
               value={teacherEmail}
               onChangeText={v => { setTeacherEmail(v); setTeacherSignUpError(''); }}
-              placeholder="yourname@christuniversity.in"
+              placeholder="yourname@email.com"
               placeholderTextColor={colors.textTertiary}
               style={styles.input}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <Text style={styles.hint}>Only christuniversity.in emails are accepted.</Text>
+            <Text style={styles.hint}>Please enter a valid email address.</Text>
 
             <Text style={styles.label}>PASSWORD</Text>
             <TextInput
@@ -479,7 +456,7 @@ export default function OnboardingScreen() {
             </TouchableOpacity>
 
             <Text style={styles.consentNote}>
-              Your account will be reviewed by the department administrator before you can access ChristConnect.
+              Your account will be reviewed by the department administrator before you can access {APP_CONFIG.appName}.
             </Text>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -724,7 +701,7 @@ export default function OnboardingScreen() {
                 <TextInput
                   value={signInEmail}
                   onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
-                  placeholder="yourname@christuniversity.in"
+                  placeholder="yourname@email.com"
                   placeholderTextColor={tColors.textSecondary}
                   style={siStyles.input}
                   keyboardType="email-address"
@@ -771,11 +748,11 @@ export default function OnboardingScreen() {
                     </Text>
                   ) : (
                     <>
-                      <Text style={siStyles.forgotLabel}>Enter your university email and we'll send a reset link.</Text>
+                      <Text style={siStyles.forgotLabel}>Enter your email address and we'll send a reset link.</Text>
                       <TextInput
                         value={forgotEmail}
                         onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
-                        placeholder="yourname@christuniversity.in"
+                        placeholder="yourname@email.com"
                         placeholderTextColor={tColors.textSecondary}
                         style={siStyles.standaloneInput}
                         keyboardType="email-address"
@@ -828,6 +805,24 @@ export default function OnboardingScreen() {
               <Text style={styles.switchLink}>Create an account</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity 
+              onPress={() => {
+                const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+                const url = isDev ? 'http://localhost:5173' : 'https://uni-registration.vercel.app';
+                if (Platform.OS === 'web') {
+                  window.open(url, '_blank');
+                } else {
+                  Linking.openURL(url).catch(() => {
+                    Alert.alert('Workspace Onboarding', `Visit the university registration portal at ${url} on your desktop browser.`);
+                  });
+                }
+              }} 
+              activeOpacity={0.7} 
+              style={[styles.switchRow, { marginTop: 10 }]}
+            >
+              <Text style={[styles.switchLink, { color: colors.primary }]}>Register a New University Workspace</Text>
+            </TouchableOpacity>
+
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -847,11 +842,11 @@ export default function OnboardingScreen() {
             </View>
             <View style={styles.logoRow}>
               <View style={styles.logoBox}><Sparkles size={18} color="#fff" /></View>
-              <Text style={styles.logoText}>Christ<Text style={{ color: colors.primary }}>Connect</Text></Text>
+              <Text style={styles.logoText}>{logoFirst}<Text style={{ color: colors.primary }}>{logoSecond}</Text></Text>
             </View>
 
             <Text style={styles.heading}>Let's get you set up</Text>
-            <Text style={styles.subheading}>Sign up with your Christ University email.</Text>
+            <Text style={styles.subheading}>Sign up with your {APP_CONFIG.legalName || 'university'} email.</Text>
 
             <Text style={styles.label}>YOUR NAME</Text>
             <TextInput
@@ -863,18 +858,18 @@ export default function OnboardingScreen() {
               autoCapitalize="words"
             />
 
-            <Text style={styles.label}>UNIVERSITY EMAIL</Text>
+            <Text style={styles.label}>EMAIL ADDRESS</Text>
             <TextInput
               value={email}
               onChangeText={v => { setEmail(v); setSignUpError(''); }}
-              placeholder="yourname@christuniversity.in"
+              placeholder="yourname@email.com"
               placeholderTextColor={colors.textTertiary}
               style={styles.input}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <Text style={styles.hint}>Only christuniversity.in emails are accepted.</Text>
+            <Text style={styles.hint}>Please enter a valid email address.</Text>
 
             <Text style={styles.label}>PASSWORD</Text>
             <TextInput
@@ -1132,7 +1127,7 @@ export default function OnboardingScreen() {
 
         <Text style={styles.allsetTitle}>You're all set, {name.split(' ')[0]}!</Text>
         <Text style={styles.allsetSub}>
-          Welcome to ChristConnect — your space to find classmates, join study groups, discover clubs, and connect with teachers.
+          Welcome to {APP_CONFIG.appName} — your space to find classmates, join study groups, discover clubs, and connect with teachers.
         </Text>
 
         <View style={styles.detailsCard}>

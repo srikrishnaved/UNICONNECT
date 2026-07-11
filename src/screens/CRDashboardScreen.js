@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { APP_CONFIG } from '../config/appConfig';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Modal, ActivityIndicator, Platform, KeyboardAvoidingView, Clipboard, Alert,
@@ -59,7 +60,7 @@ Thank you for your time and support.
 Warm regards,
 ${name}
 Class Representative — ${course}
-Christ University, Yeshwanthpur`,
+${APP_CONFIG.legalName || 'CHRIST University'}, ${APP_CONFIG.campusName || 'Yeshwanthpur'}`,
   },
   {
     id: 'class_announcement',
@@ -361,18 +362,7 @@ Don't leave it last minute! Reach out if you need help.
 ];
 
 // ── Register-number bases per class (full reg = base + roll_number) ───────────
-const CLASS_REG_BASES = {
-  '1BcomF&A':   2614600,
-  '1BcomIAF':   2622400,
-  '1BcomIBA':   2614500,
-  '3BcomF&A A': 2514600,
-  '3BcomF&A B': 2514600,
-  '3BcomIAF':   2522400,
-  '3BcomIBA':   2514500,
-  '5BcomF&A A': 2414600,
-  '5BcomF&A B': 2414500,
-  '5BcomIAF':   2422300,
-};
+const CLASS_REG_BASES = APP_CONFIG.classRegBases;
 
 // ── Class-name mapping (course + year + section → cr_class_rolls.class_name[]) ─
 // year prefix: 1st Year→1, 2nd Year→3, 3rd Year→5  (semester numbering)
@@ -529,6 +519,66 @@ export default function CRDashboardScreen({ onClose }) {
   const [attLogs, setAttLogs] = useState([]);
   const [expandedLog, setExpandedLog] = useState(null);
 
+  const [subjects, setSubjects] = useState([]);
+  const [selSubjectCode, setSelSubjectCode] = useState('');
+  const [selSubjectName, setSelSubjectName] = useState('');
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+
+  const loadClassSubjects = useCallback(async () => {
+    const classNames = getClassNames(course, year, section || null);
+    if (!classNames) return;
+    setLoadingSubjects(true);
+    const { data } = await supabase
+      .from('subjects')
+      .select('name, code')
+      .in('class', classNames)
+      .eq('status', 'active')
+      .order('code', { ascending: true });
+    if (data) {
+      setSubjects(data);
+    }
+    setLoadingSubjects(false);
+  }, [course, year, section]);
+
+  useEffect(() => {
+    loadClassSubjects();
+  }, [loadClassSubjects]);
+
+  const autoDetectSubject = useCallback(async (dateStr, periodId) => {
+    if (!dateStr || !periodId) return;
+    const classNames = getClassNames(course, year, section || null);
+    if (!classNames) return;
+
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return;
+    const dayName = days[d.getDay()];
+    if (dayName === 'SUN') return;
+
+    const period = allPeriods.find(p => p.id === periodId);
+    if (!period) return;
+
+    const { data } = await supabase
+      .from('timetable_slots')
+      .select('course_code, course_name')
+      .in('class_name', classNames)
+      .eq('day', dayName)
+      .eq('period_name', period.id)
+      .limit(1);
+
+    if (data && data.length > 0 && data[0].course_code) {
+      setSelSubjectCode(data[0].course_code);
+      setSelSubjectName(data[0].course_name || '');
+    } else {
+      setSelSubjectCode('');
+      setSelSubjectName('');
+    }
+  }, [course, year, section, allPeriods]);
+
+  useEffect(() => {
+    autoDetectSubject(attDate, selPeriod);
+  }, [attDate, selPeriod, autoDetectSubject]);
+
   // ── Take Attendance (checklist) mode ────────────────────────────────────────
   const [takeAttMode, setTakeAttMode] = useState(false);
   const [classRolls, setClassRolls] = useState([]);
@@ -640,7 +690,11 @@ export default function CRDashboardScreen({ onClose }) {
     const dateStr = fmtDate(attDate);
     const period  = allPeriods.find(p => p.id === selPeriod);
 
-    const msg = `📋 *Attendance Update*\n\n📅 Date: ${dateStr}\n🕐 ${period.id} (${period.time})\n\n❌ *Absentees (${absentNums.length}):*\n${regNos.join('\n')}\n\n— ${name}, Class Representative\n${course}`;
+    const subjectLine = selSubjectCode
+      ? `📚 Subject: ${selSubjectCode}${selSubjectName ? ` (${selSubjectName})` : ''}\n`
+      : '';
+
+    const msg = `📋 *Attendance Update*\n\n📅 Date: ${dateStr}\n🕐 ${period.id} (${period.time})\n${subjectLine}\n❌ *Absentees (${absentNums.length}):*\n${regNos.join('\n')}\n\n— ${name}, Class Representative\n${course}`;
 
     setTemplateText(msg);
     setTemplateModal(`Attendance — ${period.id} · ${dateStr}`);
@@ -668,7 +722,7 @@ export default function CRDashboardScreen({ onClose }) {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <View style={{flexDirection:'row',alignItems:'center',gap:8}}><ClipboardList size={16} color={colors.textPrimary} /><Text style={styles.headerTitle}>CR Dashboard</Text></View>
-          <Text style={styles.headerSub}>{course} · Christ University, Yeshwanthpur</Text>
+          <Text style={styles.headerSub}>{course} · {APP_CONFIG.legalName || 'CHRIST University'}, {APP_CONFIG.campusName || 'Yeshwanthpur'}</Text>
         </View>
         <View style={[styles.crBadge, { backgroundColor: av.bg }]}>
           <Text style={styles.crBadgeText}>CR</Text>
@@ -950,6 +1004,83 @@ export default function CRDashboardScreen({ onClose }) {
                   </View>
                 )}
 
+                {/* Subject Code Selector */}
+                <Text style={styles.fieldLabel}>SELECT SUBJECT</Text>
+                {loadingSubjects ? (
+                  <ActivityIndicator color={colors.primary} size="small" style={{ alignSelf: 'flex-start', marginVertical: 8 }} />
+                ) : subjects.length > 0 ? (
+                  Platform.OS === 'web' ? (
+                    <select
+                      value={selSubjectCode}
+                      onChange={e => {
+                        setSelSubjectCode(e.target.value);
+                        const matched = subjects.find(sub => sub.code === e.target.value);
+                        setSelSubjectName(matched ? matched.name : '');
+                      }}
+                      style={{
+                        fontSize: 14, padding: '8px 10px',
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: 8, backgroundColor: colors.bg,
+                        color: colors.textPrimary, width: '100%',
+                        marginBottom: 12, fontFamily: 'inherit',
+                      }}
+                    >
+                      <option value="">-- Select Subject --</option>
+                      {subjects.map(sub => (
+                        <option key={sub.code} value={sub.code}>
+                          {sub.code} - {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        {subjects.map(sub => {
+                          const active = selSubjectCode === sub.code;
+                          return (
+                            <TouchableOpacity
+                              key={sub.code}
+                              style={[
+                                {
+                                  paddingHorizontal: 12, paddingVertical: 8,
+                                  borderRadius: 8, borderWidth: 1,
+                                  borderColor: active ? colors.primary : colors.border,
+                                  backgroundColor: active ? colors.primaryLight : colors.card,
+                                  minWidth: 100,
+                                }
+                              ]}
+                              onPress={() => {
+                                setSelSubjectCode(sub.code);
+                                setSelSubjectName(sub.name);
+                              }}
+                              activeOpacity={0.8}
+                            >
+                              <Text style={[
+                                { fontSize: 13, fontWeight: '700', color: active ? colors.primary : colors.textPrimary }
+                              ]}>
+                                {sub.code}
+                              </Text>
+                              <Text style={[
+                                { fontSize: 10, color: active ? colors.primary : colors.textSecondary, marginTop: 2 }
+                              ]} numberOfLines={1}>
+                                {sub.name}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+                  )
+                ) : (
+                  <TextInput
+                    value={selSubjectCode}
+                    onChangeText={setSelSubjectCode}
+                    placeholder="Enter Subject Code (e.g. MAT144)"
+                    placeholderTextColor={colors.textTertiary}
+                    style={[styles.rollInput, { marginBottom: 12 }]}
+                  />
+                )}
+
                 {/* Roll checklist */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                   <Text style={[styles.fieldLabel, { marginBottom: 0 }]}>
@@ -1009,7 +1140,12 @@ export default function CRDashboardScreen({ onClose }) {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.clearBtn}
-                    onPress={() => { setTakeAttMode(false); setCheckedRolls(new Set()); }}
+                    onPress={() => {
+                      setTakeAttMode(false);
+                      setCheckedRolls(new Set());
+                      setSelSubjectCode('');
+                      setSelSubjectName('');
+                    }}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.clearBtnText}>Cancel</Text>
@@ -1047,6 +1183,17 @@ export default function CRDashboardScreen({ onClose }) {
                       </View>
                     </View>
                     <Text style={styles.logItemMeta}>{log.period_time}</Text>
+                    {(() => {
+                      const match = log.message?.match(/📚 Subject:\s*([^\n]+)/);
+                      if (match) {
+                        return (
+                          <Text style={{ fontSize: 11, color: colors.primary, fontWeight: '600', marginTop: 2 }}>
+                            {match[1]}
+                          </Text>
+                        );
+                      }
+                      return null;
+                    })()}
                     {expandedLog === (log.id ?? i) && (
                       <Text style={styles.logItemRegs} selectable>
                         {(log.absentees || []).join(', ')}

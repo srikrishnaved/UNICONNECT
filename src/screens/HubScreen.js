@@ -1,47 +1,152 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList, Modal, TextInput, ActivityIndicator, Image, Linking, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Image,
+  Linking,
+  Platform,
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
-import { colors, spacing, radius, font } from '../theme';
 import {
   colors as tColors,
   typography,
   spacing as tSpacing,
   radius as tRadius,
   shadows,
-  presets,
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import BunkmateModal from '../components/BunkmateModal';
-import { Star, ShieldCheck, X, Mail, Flame, Users, CircleDot, Calendar, CalendarDays, Landmark, Clock, MapPin } from 'lucide-react-native';
+import {
+  Star,
+  ShieldCheck,
+  X,
+  Mail,
+  Flame,
+  Users,
+  CircleDot,
+  Calendar,
+  Landmark,
+  Clock,
+  MapPin,
+  ChevronRight,
+  Plus,
+  Check,
+  Sliders,
+  Sparkles,
+  ArrowRight,
+  Info,
+  // Mapped Lucide icons for clubs
+  Briefcase,
+  BarChart3,
+  Globe,
+  PartyPopper,
+  Drama,
+  FlaskConical,
+  Trophy,
+  Handshake,
+  ClipboardList,
+  Clapperboard,
+  Cpu,
+  Mic,
+  FileText,
+  Palette,
+  Music,
+  Megaphone,
+  Target,
+  Lightbulb,
+  Rocket,
+  BookOpen,
+  Camera,
+} from 'lucide-react-native';
 
-const EMOJIS = ['🏛️','💼','📊','🎯','🎉','🎭','🔬','⚽','🤝','🎨','🎤','📝','💡','🚀','🌏','📚','🎵','📸'];
-const COLORS = ['#5A5FB8','#4A78C0','#3D9A72','#8050B4','#C05080','#C09030','#B04040','#3D9490','#7050C0','#B02048'];
+const EMOJIS = ['🏛️', '💼', '📊', '🎯', '🎉', '🎭', '🔬', '⚽', '🤝', '🎨', '🎤', '📝', '💡', '🚀', '🌏', '📚', '🎵', '📸'];
+const COLORS = ['#5A5FB8', '#4A78C0', '#3D9A72', '#8050B4', '#C05080', '#C09030', '#B04040', '#3D9490', '#7050C0', '#B02048'];
 
-const TYPES = ['All', 'Clubs', 'Teams'];
+const TYPES = ['All Showroom', 'Clubs', 'Teams'];
+
+// Maps the stored emoji code/character to a clean, premium Lucide icon component
+const EMOJI_TO_LUCIDE = {
+  '💼': Briefcase,
+  '📊': BarChart3,
+  '🌏': Globe,
+  '🎉': PartyPopper,
+  '🎭': Drama,
+  '🔬': FlaskConical,
+  '⚽': Trophy,
+  '🤝': Handshake,
+  '📋': ClipboardList,
+  '🎬': Clapperboard,
+  '✦': Cpu,
+  '🎤': Mic,
+  '📝': FileText,
+  '🎨': Palette,
+  '💃': Sparkles,
+  '🎶': Music,
+  '📣': Megaphone,
+  '🏛️': Landmark,
+  '🎯': Target,
+  '💡': Lightbulb,
+  '🚀': Rocket,
+  '📚': BookOpen,
+  '🎵': Music,
+  '📸': Camera,
+};
+
+export function ClubLucideIcon({ emoji, size = 18, color = tColors.textPrimary }) {
+  const IconComp = EMOJI_TO_LUCIDE[emoji] || Landmark;
+  return <IconComp size={size} color={color} />;}
 
 export default function HubScreen() {
   const navigation = useNavigation();
-  const { events: hubEvents, clubAdminRequests, loadClubAdminRequests, isAppAdmin, isSapsCore, interestedEventIds, toggleEventInterest, followingClubIds, toggleClubFollow, clubMemberships, approvedClubAdmins, userCreatedClubs, myClubRequests, submitClubCreationRequest, hiddenClubIds } = useApp();
-  const [filter, setFilter] = useState('All');
+  const {
+    events: hubEvents,
+    clubAdminRequests,
+    loadClubAdminRequests,
+    isAppAdmin,
+    isSapsCore,
+    interestedEventIds,
+    toggleEventInterest,
+    followingClubIds,
+    toggleClubFollow,
+    clubMemberships,
+    approvedClubAdmins,
+    userCreatedClubs,
+    myClubRequests,
+    submitClubCreationRequest,
+    hiddenClubIds,
+  } = useApp();
 
-  useFocusEffect(useCallback(() => {
-    if (isAppAdmin) loadClubAdminRequests();
-  }, [isAppAdmin, loadClubAdminRequests]));
+  const [filter, setFilter] = useState('All Showroom');
 
-  // Create club modal state
+  useFocusEffect(
+    useCallback(() => {
+      if (isAppAdmin) loadClubAdminRequests();
+    }, [isAppAdmin, loadClubAdminRequests])
+  );
+
+  // Configurator / Creation states
   const [showCreate, setShowCreate] = useState(false);
+  const [configStep, setConfigStep] = useState(1); // Steps: 1 (Type), 2 (Emblem), 3 (Color), 4 (Specs)
+  
   const [cName, setCName] = useState('');
   const [cFullName, setCFullName] = useState('');
   const [cDesc, setCDesc] = useState('');
   const [cEmoji, setCEmoji] = useState('🏛️');
   const [cColor, setCColor] = useState(tColors.accent);
   const [cType, setCType] = useState('Club');
+  
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
-
   const [submitted, setSubmitted] = useState(false);
+  
   const [showBunkmate, setShowBunkmate] = useState(false);
 
   const eggHandler = (setter) => (val) => {
@@ -66,12 +171,28 @@ export default function HubScreen() {
   };
 
   const handleCreate = async () => {
-    if (!cName.trim()) { setCreateError('Club name is required.'); return; }
+    if (!cName.trim()) {
+      setCreateError('Model designation name is required.');
+      return;
+    }
     setCreating(true);
     setCreateError('');
     try {
-      await submitClubCreationRequest({ name: cName.trim(), fullName: cFullName.trim() || cName.trim(), description: cDesc.trim(), emoji: cEmoji, color: cColor, type: cType });
-      setCName(''); setCFullName(''); setCDesc(''); setCEmoji('🏛️'); setCColor(tColors.accent); setCType('Club');
+      await submitClubCreationRequest({
+        name: cName.trim(),
+        fullName: cFullName.trim() || cName.trim(),
+        description: cDesc.trim(),
+        emoji: cEmoji,
+        color: cColor,
+        type: cType,
+      });
+      setCName('');
+      setCFullName('');
+      setCDesc('');
+      setCEmoji('🏛️');
+      setCColor(tColors.accent);
+      setCType('Club');
+      setConfigStep(1);
       setSubmitted(true);
     } catch (e) {
       setCreateError(e.message || 'Could not submit request.');
@@ -80,41 +201,49 @@ export default function HubScreen() {
     }
   };
 
-  const allClubs = useMemo(() =>
-    [...hubClubs, ...(userCreatedClubs || [])].filter(c => !hiddenClubIds?.has(String(c.id))),
-    [userCreatedClubs, hiddenClubIds],
+  const allClubs = useMemo(
+    () => [...hubClubs, ...(userCreatedClubs || [])].filter((c) => !hiddenClubIds?.has(String(c.id))),
+    [userCreatedClubs, hiddenClubIds]
   );
 
   const { myClubs, otherClubs } = useMemo(() => {
-    const base = filter === 'All' ? allClubs : allClubs.filter(c => filter === 'Clubs' ? c.type === 'Club' : c.type === 'Team');
+    const base =
+      filter === 'All Showroom'
+        ? allClubs
+        : allClubs.filter((c) => (filter === 'Clubs' ? c.type === 'Club' : c.type === 'Team'));
     const isMine = (c) => {
       const n = Number(c.id);
-      return (clubMemberships?.has(n) || clubMemberships?.has(String(c.id))) ||
-             (approvedClubAdmins?.has(n) || approvedClubAdmins?.has(String(c.id)));
+      return (
+        clubMemberships?.has(n) ||
+        clubMemberships?.has(String(c.id)) ||
+        approvedClubAdmins?.has(n) ||
+        approvedClubAdmins?.has(String(c.id))
+      );
     };
     const mine = base.filter(isMine);
-    const others = base.filter(c => !isMine(c));
+    const others = base.filter((c) => !isMine(c));
     return { myClubs: mine, otherClubs: others };
-  }, [filter, clubMemberships, approvedClubAdmins]);
+  }, [filter, allClubs, clubMemberships, approvedClubAdmins]);
 
   const { today, thisWeek, upcoming } = useMemo(() => {
     const d = new Date();
-    const pad = n => String(n).padStart(2, '0');
+    const pad = (n) => String(n).padStart(2, '0');
     const todayStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const d7 = new Date(d);
     d7.setDate(d7.getDate() + 7);
     const weekStr = `${d7.getFullYear()}-${pad(d7.getMonth() + 1)}-${pad(d7.getDate())}`;
 
-    const t = [], w = [], u = [];
+    const t = [],
+      w = [],
+      u = [];
     for (const e of hubEvents) {
       const date = e.event_date;
       if (date) {
-        if (date < todayStr) continue;          // past — exclude
+        if (date < todayStr) continue; // past
         if (date === todayStr) t.push(e);
         else if (date <= weekStr) w.push(e);
         else u.push(e);
       } else {
-        // No event_date: fall back to static when field
         if (e.when === 'today') t.push(e);
         else if (e.when === 'thisWeek') w.push(e);
         else u.push(e);
@@ -123,297 +252,851 @@ export default function HubScreen() {
     return { today: t, thisWeek: w, upcoming: u };
   }, [hubEvents]);
 
+  // Featured Event or Fallback Featured Club
   const featuredEvent = today[0] || thisWeek[0];
-  const featuredClub = allClubs.find(c => c.id === featuredEvent?.clubId);
+  const featuredClub = allClubs.find((c) => c.id === featuredEvent?.clubId);
+
+  // Fallback showcase (like FLC or Junoon) when no active event
+  const fallbackShowcaseClub = useMemo(() => {
+    if (featuredClub) return null;
+    return allClubs.find((c) => c.name === 'FLC') || allClubs[0];
+  }, [featuredClub, allClubs]);
+
+  const openConfigurator = () => {
+    setSubmitted(false);
+    setConfigStep(1);
+    setShowCreate(true);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Top action bar */}
-      <View style={styles.topActions}>
-        <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)} activeOpacity={0.85}>
-          <Text style={styles.createBtnText}>＋ Create Club</Text>
-        </TouchableOpacity>
-        {isAppAdmin && (
-          <TouchableOpacity
-            style={styles.adminBtn}
-            onPress={() => navigation.navigate('AppAdmin')}
-            activeOpacity={0.85}
-          >
-            <ShieldCheck size={16} color={colors.textPrimary} />
-            <Text style={styles.adminBtnText}>App Admin</Text>
-            {clubAdminRequests.length > 0 && (
-              <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>{clubAdminRequests.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        
+        {/* Apple/VW Styled Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.headerTopRow}>
+            <View>
+              <Text style={styles.headerTitle}>The Hub</Text>
+              <Text style={styles.headerTagline}>Discover the lineup. Configure. Connect.</Text>
+            </View>
+            
+            {/* Top Config & Admin Buttons */}
+            <View style={styles.topUtilityRow}>
+              {isAppAdmin && (
+                <TouchableOpacity
+                  style={styles.adminUtilityBtn}
+                  onPress={() => navigation.navigate('AppAdmin')}
+                  activeOpacity={0.8}
+                >
+                  <ShieldCheck size={16} color={tColors.warning} />
+                  {clubAdminRequests.length > 0 && (
+                    <View style={styles.adminUtilityBadge}>
+                      <Text style={styles.adminUtilityBadgeText}>{clubAdminRequests.length}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity style={styles.configureMainBtn} onPress={openConfigurator} activeOpacity={0.85}>
+                <Sliders size={14} color={tColors.textPrimary} />
+                <Text style={styles.configureMainBtnText}>Configure</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
 
-      {/* Create Club Modal */}
-      <Modal visible={showCreate} transparent animationType="slide" onRequestClose={() => { setShowCreate(false); setSubmitted(false); }}>
+        {/* Billboard Hero Section (Apple Marquee / VW Main Stage) */}
+        {featuredEvent && featuredClub ? (
+          <TouchableOpacity
+            style={[styles.billboard, { borderColor: `${featuredClub.color}66` }]}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('EventDetail', { event: featuredEvent })}
+          >
+            <View style={[styles.billboardGradientOverlay, { backgroundColor: `${featuredClub.color}0D` }]} />
+            <View style={styles.billboardContent}>
+              <View style={styles.billboardBadgeContainer}>
+                <Flame size={12} color={tColors.accent} />
+                <Text style={styles.billboardBadgeText}>TODAY'S SPOTLIGHT</Text>
+              </View>
+              
+              <Text style={styles.billboardTitle} numberOfLines={2}>
+                {featuredEvent.title}
+              </Text>
+              
+              <Text style={styles.billboardSub}>
+                Presented by <Text style={{ color: featuredClub.color, fontWeight: typography.bold }}>{featuredClub.fullName}</Text>
+              </Text>
+
+              {/* Specs Panel */}
+              <View style={styles.billboardSpecs}>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>VENUE</Text>
+                  <Text style={styles.billboardSpecValue} numberOfLines={1}>{featuredEvent.venue}</Text>
+                </View>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>TIME</Text>
+                  <Text style={styles.billboardSpecValue} numberOfLines={1}>{featuredEvent.time}</Text>
+                </View>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>INTEREST</Text>
+                  <Text style={styles.billboardSpecValue} numberOfLines={1}>{featuredEvent.interested} Attending</Text>
+                </View>
+              </View>
+
+              {/* CTAs */}
+              <View style={styles.billboardActions}>
+                <TouchableOpacity
+                  style={[styles.billboardPrimaryBtn, { backgroundColor: featuredClub.color }]}
+                  onPress={() => navigation.navigate('EventDetail', { event: featuredEvent })}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.billboardPrimaryText}>Explore Model Details</Text>
+                  <ChevronRight size={14} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.billboardSecondaryBtn,
+                    interestedEventIds.has(String(featuredEvent.id)) && styles.billboardSecondaryBtnActive,
+                  ]}
+                  onPress={() => toggleEventInterest(featuredEvent.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.billboardSecondaryText,
+                      interestedEventIds.has(String(featuredEvent.id)) && styles.billboardSecondaryTextActive,
+                    ]}
+                  >
+                    {interestedEventIds.has(String(featuredEvent.id)) ? 'Interested ✓' : '+ Add Interest'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : fallbackShowcaseClub ? (
+          /* Fallback Showcase Card if no featured event */
+          <TouchableOpacity
+            style={[styles.billboard, { borderColor: `${fallbackShowcaseClub.color}66` }]}
+            activeOpacity={0.9}
+            onPress={() =>
+              navigation.navigate(
+                fallbackShowcaseClub.type === 'Team' ? 'TeamDetail' : 'ClubDetail',
+                { clubId: fallbackShowcaseClub.id }
+              )
+            }
+          >
+            <View style={[styles.billboardGradientOverlay, { backgroundColor: `${fallbackShowcaseClub.color}0D` }]} />
+            <View style={styles.billboardContent}>
+              <View style={styles.billboardBadgeContainer}>
+                <Sparkles size={12} color={tColors.accent} />
+                <Text style={styles.billboardBadgeText}>FEATURED CELL</Text>
+              </View>
+              
+              <Text style={styles.billboardTitle} numberOfLines={2}>
+                {fallbackShowcaseClub.fullName}
+              </Text>
+              
+              <Text style={styles.billboardSub} numberOfLines={2}>
+                {fallbackShowcaseClub.desc}
+              </Text>
+
+              {/* Specs Panel */}
+              <View style={styles.billboardSpecs}>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>CHASSIS</Text>
+                  <Text style={[styles.billboardSpecValue, { color: fallbackShowcaseClub.color }]}>
+                    {fallbackShowcaseClub.type.toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>COORDINATOR</Text>
+                  <Text style={styles.billboardSpecValue} numberOfLines={1}>
+                    {fallbackShowcaseClub.coordinator || 'Faculty Lead'}
+                  </Text>
+                </View>
+                <View style={styles.billboardSpecItem}>
+                  <Text style={styles.billboardSpecLabel}>CREW</Text>
+                  <Text style={styles.billboardSpecValue} numberOfLines={1}>
+                    {fallbackShowcaseClub.members} Members
+                  </Text>
+                </View>
+              </View>
+
+              {/* CTAs */}
+              <View style={styles.billboardActions}>
+                <TouchableOpacity
+                  style={[styles.billboardPrimaryBtn, { backgroundColor: fallbackShowcaseClub.color }]}
+                  onPress={() =>
+                    navigation.navigate(
+                      fallbackShowcaseClub.type === 'Team' ? 'TeamDetail' : 'ClubDetail',
+                      { clubId: fallbackShowcaseClub.id }
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.billboardPrimaryText}>Explore Showroom</Text>
+                  <ChevronRight size={14} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.billboardSecondaryBtn,
+                    followingClubIds.has(String(fallbackShowcaseClub.id)) && styles.billboardSecondaryBtnActive,
+                  ]}
+                  onPress={() => toggleClubFollow(fallbackShowcaseClub.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.billboardSecondaryText,
+                      followingClubIds.has(String(fallbackShowcaseClub.id)) && styles.billboardSecondaryBtnActive,
+                    ]}
+                  >
+                    {followingClubIds.has(String(fallbackShowcaseClub.id)) ? 'Following ✓' : '+ Follow'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        {/* Apple Segmented Showroom Menu (Filters) */}
+        <View style={styles.filterMenuContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterMenu}>
+            {TYPES.map((t) => {
+              const active = filter === t;
+              return (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.filterMenuItem, active && styles.filterMenuItemActive]}
+                  onPress={() => setFilter(t)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.filterMenuItemText, active && styles.filterMenuItemTextActive]}>
+                    {t.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* Awaiting Approvals shelf (If any) */}
+        {(myClubRequests || []).filter((r) => r.status === 'pending').length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeadingRow}>
+              <Clock size={14} color={tColors.warning} />
+              <Text style={[styles.sectionHeading, { color: tColors.warning }]}>PENDING CONFIGURATIONS</Text>
+            </View>
+            {(myClubRequests || [])
+              .filter((r) => r.status === 'pending')
+              .map((r) => (
+                <View key={r.id} style={styles.pendingCard}>
+                  <View style={[styles.pendingEmojiContainer, { backgroundColor: `${r.color || tColors.accent}22` }]}>
+                    <ClubLucideIcon emoji={r.emoji} size={20} color={r.color || tColors.accent} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.pendingName}>{r.name}</Text>
+                    <Text style={styles.pendingStatusText}>Awaiting department blueprint verification</Text>
+                  </View>
+                  <View style={styles.pendingBadge}>
+                    <Text style={styles.pendingBadgeText}>UNDER REVIEW</Text>
+                  </View>
+                </View>
+              ))}
+          </View>
+        )}
+
+        {/* Live Timeline / Event Lineup Section (Apple TV+ Horizontal Slider) */}
+        {(today.length > 0 || thisWeek.length > 0 || upcoming.length > 0) && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeadingRow}>
+              <CircleDot size={14} color={tColors.accent} />
+              <Text style={styles.sectionHeading}>UPCOMING SESSIONS & EVENTS</Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.eventsCarousel}
+            >
+              {today.map((e) => (
+                <EventProductCard
+                  key={e.id}
+                  event={e}
+                  club={allClubs.find((c) => c.id === e.clubId)}
+                  isInterested={interestedEventIds.has(String(e.id))}
+                  onToggle={() => toggleEventInterest(e.id)}
+                  onPress={() => navigation.navigate('EventDetail', { event: e })}
+                  tag="TODAY"
+                />
+              ))}
+              {thisWeek.map((e) => (
+                <EventProductCard
+                  key={e.id}
+                  event={e}
+                  club={allClubs.find((c) => c.id === e.clubId)}
+                  isInterested={interestedEventIds.has(String(e.id))}
+                  onToggle={() => toggleEventInterest(e.id)}
+                  onPress={() => navigation.navigate('EventDetail', { event: e })}
+                  tag="THIS WEEK"
+                />
+              ))}
+              {upcoming.map((e) => (
+                <EventProductCard
+                  key={e.id}
+                  event={e}
+                  club={allClubs.find((c) => c.id === e.clubId)}
+                  isInterested={interestedEventIds.has(String(e.id))}
+                  onToggle={() => toggleEventInterest(e.id)}
+                  onPress={() => navigation.navigate('EventDetail', { event: e })}
+                  tag="UPCOMING"
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Your Garage / Memberships (Subscribed Models) */}
+        {myClubs.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeadingRow}>
+              <Star size={14} color={tColors.accent} />
+              <Text style={styles.sectionHeading}>YOUR ACTIVE VEHICLES</Text>
+            </View>
+            <View style={styles.showroomGrid}>
+              {myClubs.map((c) => {
+                const isAdmin = approvedClubAdmins?.has(c.id) || approvedClubAdmins?.has(String(c.id));
+                return (
+                  <ShowroomClubCard
+                    key={c.id}
+                    club={c}
+                    isFollowing={followingClubIds.has(String(c.id))}
+                    isMember={clubMemberships?.has(c.id) || clubMemberships?.has(String(c.id))}
+                    isClubAdmin={isAdmin}
+                    onToggle={() => toggleClubFollow(c.id)}
+                    onPress={() =>
+                      isAdmin
+                        ? navigation.navigate('ClubDashboard', { clubId: c.id })
+                        : navigation.navigate(c.type === 'Team' ? 'TeamDetail' : 'ClubDetail', { clubId: c.id })
+                    }
+                    onSapsDashboard={
+                      isSapsCore && !isAdmin
+                        ? () =>
+                            navigation.navigate(c.type === 'Team' ? 'TeamDashboard' : 'ClubDashboard', {
+                              clubId: c.id,
+                            })
+                        : undefined
+                    }
+                  />
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* All Showcase Models (All Clubs/Teams directory) */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeadingRow}>
+            <Landmark size={14} color={tColors.textSecondary} />
+            <Text style={styles.sectionHeading}>EXPLORE ALL SHOWROOM MODELS</Text>
+          </View>
+
+          {otherClubs.length > 0 ? (
+            <View style={styles.showroomGrid}>
+              {otherClubs.map((c) => (
+                <ShowroomClubCard
+                  key={c.id}
+                  club={c}
+                  isFollowing={followingClubIds.has(String(c.id))}
+                  isMember={false}
+                  isClubAdmin={false}
+                  onToggle={() => toggleClubFollow(c.id)}
+                  onPress={() =>
+                    navigation.navigate(c.type === 'Team' ? 'TeamDetail' : 'ClubDetail', { clubId: c.id })
+                  }
+                  onSapsDashboard={
+                    isSapsCore
+                      ? () =>
+                          navigation.navigate(c.type === 'Team' ? 'TeamDashboard' : 'ClubDashboard', {
+                            clubId: c.id,
+                          })
+                      : undefined
+                  }
+                />
+              ))}
+            </View>
+          ) : myClubs.length === 0 ? (
+            <EmptyState
+              icon={Star}
+              heading="Showroom empty"
+              subtext="Be the first to configure and register a cell for your department."
+            />
+          ) : (
+            <Text style={styles.allManagedText}>You are currently participating in all active configurations.</Text>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Easter Egg Bunkmate Modal */}
+      <BunkmateModal visible={showBunkmate} onClose={() => setShowBunkmate(false)} />
+
+      {/* Volkswagen Configurator Modal ("Create Club/Team") */}
+      <Modal
+        visible={showCreate}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowCreate(false);
+          setSubmitted(false);
+        }}
+      >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setShowCreate(false)} />
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowCreate(false)}
+          />
           <View style={styles.modalSheet}>
+            {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create a Club or Team</Text>
-              <TouchableOpacity onPress={() => { setShowCreate(false); setSubmitted(false); }}><X size={20} color={colors.textSecondary} /></TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Sliders size={18} color={tColors.accent} />
+                <Text style={styles.modalTitle}>Club Configurator</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCreate(false);
+                  setSubmitted(false);
+                }}
+              >
+                <X size={20} color={tColors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             {submitted ? (
+              /* Success Panel */
               <View style={styles.submittedBox}>
-                <Mail size={28} color={colors.success} />
-                <Text style={styles.submittedTitle}>Request Submitted!</Text>
-                <Text style={styles.submittedSub}>Your club creation request has been sent to the department for approval. You'll be notified once it's reviewed.</Text>
-                <TouchableOpacity style={styles.submittedBtn} onPress={() => { setShowCreate(false); setSubmitted(false); }} activeOpacity={0.85}>
+                <View style={styles.submittedBadge}>
+                  <Check size={28} color={tColors.success} />
+                </View>
+                <Text style={styles.submittedTitle}>Configuration Locked!</Text>
+                <Text style={styles.submittedSub}>
+                  The blueprint for <Text style={{ fontWeight: typography.bold, color: tColors.textPrimary }}>{cName}</Text> has been submitted for review. HOD verification pending.
+                </Text>
+                <TouchableOpacity
+                  style={styles.submittedBtn}
+                  onPress={() => {
+                    setShowCreate(false);
+                    setSubmitted(false);
+                  }}
+                  activeOpacity={0.85}
+                >
                   <Text style={styles.submittedBtnText}>Done</Text>
                 </TouchableOpacity>
               </View>
             ) : (
+              /* Configurator Multi-Step Flow */
               <>
-            {/* Emoji picker */}
-            <Text style={styles.modalLabel}>PICK AN EMOJI</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tSpacing.md }}>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {EMOJIS.map(e => (
-                  <TouchableOpacity key={e} style={[styles.emojiBtn, cEmoji === e && styles.emojiBtnActive]} onPress={() => setCEmoji(e)} activeOpacity={0.7}>
-                    <Text style={{ fontSize: 22 }}>{e}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+                {/* Step indicator */}
+                <View style={styles.stepIndicatorRow}>
+                  {[1, 2, 3, 4].map((stepNum) => (
+                    <View
+                      key={stepNum}
+                      style={[
+                        styles.stepIndicatorLine,
+                        configStep >= stepNum && styles.stepIndicatorLineActive,
+                        configStep === stepNum && { backgroundColor: tColors.accent },
+                      ]}
+                    />
+                  ))}
+                </View>
 
-            {/* Color picker */}
-            <Text style={styles.modalLabel}>COLOUR</Text>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: tSpacing.md }}>
-              {COLORS.map(col => (
-                <TouchableOpacity key={col} style={[styles.colorSwatch, { backgroundColor: col }, cColor === col && styles.colorSwatchActive]} onPress={() => setCColor(col)} activeOpacity={0.8} />
-              ))}
-            </View>
+                {configStep === 1 && (
+                  /* Step 1: Chassis type */
+                  <View style={styles.stepContent}>
+                    <Text style={styles.stepTitle}>Step 1: Choose Chassis Platform</Text>
+                    <Text style={styles.stepSub}>Define the foundational architecture of your cell.</Text>
+                    
+                    <View style={styles.chassisContainer}>
+                      <TouchableOpacity
+                        style={[styles.chassisCard, cType === 'Club' && styles.chassisCardActive]}
+                        onPress={() => setCType('Club')}
+                        activeOpacity={0.85}
+                      >
+                        <Landmark size={28} color={cType === 'Club' ? tColors.accent : tColors.textSecondary} />
+                        <Text style={[styles.chassisTitle, cType === 'Club' && styles.chassisTitleActive]}>Club / Cell</Text>
+                        <Text style={styles.chassisDesc}>For academic forums, professional chapters, and open interest cells.</Text>
+                      </TouchableOpacity>
 
-            {/* Type */}
-            <Text style={styles.modalLabel}>TYPE</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: tSpacing.md }}>
-              {['Club', 'Team'].map(t => (
-                <TouchableOpacity key={t} style={[styles.typePill, cType === t && styles.typePillActive]} onPress={() => setCType(t)} activeOpacity={0.8}>
-                  <Text style={[styles.typePillText, cType === t && styles.typePillTextActive]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                      <TouchableOpacity
+                        style={[styles.chassisCard, cType === 'Team' && styles.chassisCardActive]}
+                        onPress={() => setCType('Team')}
+                        activeOpacity={0.85}
+                      >
+                        <Users size={28} color={cType === 'Team' ? tColors.accent : tColors.textSecondary} />
+                        <Text style={[styles.chassisTitle, cType === 'Team' && styles.chassisTitleActive]}>Operational Team</Text>
+                        <Text style={styles.chassisDesc}>For dedicated wings: logistics, design, AV setups, or cultural groups.</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
 
-            <Text style={styles.modalLabel}>NAME *</Text>
-            <TextInput value={cName} onChangeText={eggHandler(setCName)} placeholder="e.g. Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
+                {configStep === 2 && (
+                  /* Step 2: Emblem Icon */
+                  <View style={styles.stepContent}>
+                    <Text style={styles.stepTitle}>Step 2: Assign Emblem Symbol</Text>
+                    <Text style={styles.stepSub}>Select the signature badge to be displayed on directories.</Text>
+                    
+                    <View style={styles.emblemPreview}>
+                      <View style={[styles.emblemBubble, { borderColor: cColor, justifyContent: 'center', alignItems: 'center' }]}>
+                        <ClubLucideIcon emoji={cEmoji} size={32} color={cColor} />
+                      </View>
+                      <Text style={styles.emblemPreviewLabel}>ACTIVE BLUEPRINT BADGE</Text>
+                    </View>
 
-            <Text style={styles.modalLabel}>FULL NAME (optional)</Text>
-            <TextInput value={cFullName} onChangeText={eggHandler(setCFullName)} placeholder="e.g. Christ Photography Club" placeholderTextColor={colors.textTertiary} style={styles.modalInput} />
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.emojisScroll}
+                    >
+                      <View style={styles.emojisGrid}>
+                        {EMOJIS.map((e) => {
+                          const active = cEmoji === e;
+                          return (
+                            <TouchableOpacity
+                              key={e}
+                              style={[styles.emojiBtn, active && styles.emojiBtnActive]}
+                              onPress={() => setCEmoji(e)}
+                              activeOpacity={0.7}
+                            >
+                              <ClubLucideIcon emoji={e} size={20} color={active ? tColors.accent : tColors.textSecondary} />
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+                  </View>
+                )}
 
-            <Text style={styles.modalLabel}>DESCRIPTION</Text>
-            <TextInput value={cDesc} onChangeText={eggHandler(setCDesc)} placeholder="What does your club do?" placeholderTextColor={colors.textTertiary} style={[styles.modalInput, { height: 72, textAlignVertical: 'top' }]} multiline />
+                {configStep === 3 && (
+                  /* Step 3: Livery / Color */
+                  <View style={styles.stepContent}>
+                    <Text style={styles.stepTitle}>Step 3: Signature Brand Livery</Text>
+                    <Text style={styles.stepSub}>Apply the primary color code that defines your brand styling.</Text>
 
-            {createError ? <Text style={styles.createErrText}>{createError}</Text> : null}
+                    {/* Mini live preview card */}
+                    <View style={styles.liveCardPreviewContainer}>
+                      <Text style={styles.previewLabel}>LIVE BRAND PREVIEW</Text>
+                      <View style={[styles.livePreviewCard, { borderColor: `${cColor}55` }]}>
+                        <View style={[styles.livePreviewEmoji, { backgroundColor: `${cColor}22`, justifyContent: 'center', alignItems: 'center' }]}>
+                          <ClubLucideIcon emoji={cEmoji} size={18} color={cColor} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.livePreviewName, { color: cColor }]}>
+                            {cName.trim() || 'Configuration Name'}
+                          </Text>
+                          <Text style={styles.livePreviewType}>{cType.toUpperCase()}</Text>
+                        </View>
+                      </View>
+                    </View>
 
-            <TouchableOpacity style={[styles.createConfirmBtn, { backgroundColor: cColor }]} onPress={handleCreate} disabled={creating} activeOpacity={0.85}>
-              {creating ? <ActivityIndicator color="#fff" /> : <Text style={styles.createConfirmBtnText}>Submit Request</Text>}
-            </TouchableOpacity>
-            </>
+                    <Text style={styles.modalLabel}>SELECT COLOR SYSTEM</Text>
+                    <View style={styles.colorSwatchRow}>
+                      {COLORS.map((col) => (
+                        <TouchableOpacity
+                          key={col}
+                          style={[
+                            styles.colorSwatch,
+                            { backgroundColor: col },
+                            cColor === col && styles.colorSwatchActive,
+                          ]}
+                          onPress={() => setCColor(col)}
+                          activeOpacity={0.8}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {configStep === 4 && (
+                  /* Step 4: Technical specifications */
+                  <View style={styles.stepContent}>
+                    <Text style={styles.stepTitle}>Step 4: Technical Specifications</Text>
+                    <Text style={styles.stepSub}>Input the official designation, full name, and mission details.</Text>
+
+                    <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 220 }}>
+                      <Text style={styles.modalLabel}>DESIGNATION NAME *</Text>
+                      <TextInput
+                        value={cName}
+                        onChangeText={eggHandler(setCName)}
+                        placeholder="e.g. FLC or Tech Team"
+                        placeholderTextColor={tColors.textTertiary}
+                        style={styles.modalInput}
+                      />
+
+                      <Text style={styles.modalLabel}>FULL CELL TITLE</Text>
+                      <TextInput
+                        value={cFullName}
+                        onChangeText={eggHandler(setCFullName)}
+                        placeholder="e.g. Finance & Leadership Cell"
+                        placeholderTextColor={tColors.textTertiary}
+                        style={styles.modalInput}
+                      />
+
+                      <Text style={styles.modalLabel}>MISSION STATEMENT / DESCRIPTION</Text>
+                      <TextInput
+                        value={cDesc}
+                        onChangeText={eggHandler(setCDesc)}
+                        placeholder="Summarize the core activities and value proposition..."
+                        placeholderTextColor={tColors.textTertiary}
+                        style={[styles.modalInput, { height: 60, textAlignVertical: 'top' }]}
+                        multiline
+                      />
+                    </ScrollView>
+
+                    {createError ? <Text style={styles.createErrText}>{createError}</Text> : null}
+                  </View>
+                )}
+
+                {/* Footer Navigation Buttons */}
+                <View style={styles.configuratorNavigation}>
+                  {configStep > 1 ? (
+                    <TouchableOpacity
+                      style={styles.configBackBtn}
+                      onPress={() => setConfigStep((prev) => prev - 1)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.configBackText}>Back</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View />
+                  )}
+
+                  {configStep < 4 ? (
+                    <TouchableOpacity
+                      style={styles.configNextBtn}
+                      onPress={() => {
+                        if (configStep === 1 && !cType) return;
+                        setConfigStep((prev) => prev + 1);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.configNextText}>Next Step</Text>
+                      <ArrowRight size={14} color="#fff" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.configSubmitBtn, { backgroundColor: cColor }]}
+                      onPress={handleCreate}
+                      disabled={creating}
+                      activeOpacity={0.85}
+                    >
+                      {creating ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <>
+                          <Text style={styles.configSubmitText}>Submit Spec Blueprint</Text>
+                          <Check size={14} color="#fff" />
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
             )}
           </View>
         </View>
       </Modal>
-
-      <BunkmateModal visible={showBunkmate} onClose={() => setShowBunkmate(false)} />
-
-      <FlatList
-        data={[]}
-        keyExtractor={() => 'x'}
-        renderItem={null}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
-        ListHeaderComponent={
-          <>
-            {/* Featured banner */}
-            {featuredEvent && featuredClub && (
-              <TouchableOpacity
-                style={[styles.featured, { backgroundColor: featuredClub.color }]}
-                activeOpacity={0.9}
-                onPress={() => navigation.navigate('EventDetail', { event: featuredEvent })}
-              >
-                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Flame size={13} color={colors.accent} /><Text style={styles.featuredLabel}>FEATURED TODAY</Text></View>
-                <Text style={styles.featuredTitle}>{featuredEvent.title}</Text>
-                <Text style={styles.featuredMeta}>
-                  {featuredClub.name} · {featuredEvent.time} · {featuredEvent.venue}
-                </Text>
-                <View style={styles.featuredPill}>
-                  <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.featuredPillText}>{featuredEvent.interested} interested</Text></View>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {/* Today */}
-            {today.length > 0 && (
-              <>
-                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CircleDot size={10} color={tColors.success} /><Text style={[styles.sectionLabel, { color: tColors.success }]}>TODAY</Text></View>
-                {today.map(e => (
-                  <EventCard
-                    key={e.id}
-                    event={e}
-                    club={allClubs.find(c => c.id === e.clubId)}
-                    isInterested={interestedEventIds.has(String(e.id))}
-                    onToggle={() => toggleEventInterest(e.id)}
-                    onPress={() => navigation.navigate('EventDetail', { event: e })}
-                  />
-                ))}
-              </>
-            )}
-
-            {/* This Week */}
-            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Calendar size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>THIS WEEK</Text></View>
-            {thisWeek.map(e => (
-              <EventCard
-                key={e.id}
-                event={e}
-                club={allClubs.find(c => c.id === e.clubId)}
-                isInterested={interestedEventIds.has(String(e.id))}
-                onToggle={() => toggleEventInterest(e.id)}
-                onPress={() => navigation.navigate('EventDetail', { event: e })}
-              />
-            ))}
-
-            {/* Upcoming */}
-            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><CalendarDays size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>UPCOMING</Text></View>
-            {upcoming.map(e => (
-              <EventCard
-                key={e.id}
-                event={e}
-                club={allClubs.find(c => c.id === e.clubId)}
-                isInterested={interestedEventIds.has(String(e.id))}
-                onToggle={() => toggleEventInterest(e.id)}
-                onPress={() => navigation.navigate('EventDetail', { event: e })}
-              />
-            ))}
-
-            {/* Clubs/Teams Directory */}
-            <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={[styles.sectionLabel, { marginTop: tSpacing.base }]}>CLUBS · TEAMS</Text></View>
-
-            <View style={styles.filterRow}>
-              {TYPES.map(t => {
-                const active = filter === t;
-                return (
-                  <TouchableOpacity
-                    key={t}
-                    style={[styles.pill, active && styles.pillActive]}
-                    onPress={() => setFilter(t)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.pillText, active && styles.pillTextActive]}>{t}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Pending club creation requests */}
-            {(myClubRequests || []).filter(r => r.status === 'pending').map(r => (
-              <View key={r.id} style={styles.pendingReqCard}>
-                <Text style={styles.pendingReqEmoji}>{r.emoji}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.pendingReqName}>{r.name}</Text>
-                  <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Clock size={12} color={colors.textTertiary} /><Text style={styles.pendingReqSub}>Awaiting department approval</Text></View>
-                </View>
-              </View>
-            ))}
-
-            {myClubs.length > 0 && (
-              <>
-                <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Star size={12} color={colors.textTertiary} /><Text style={styles.subSectionLabel}>YOUR CLUBS & TEAMS</Text></View>
-                {myClubs.map(c => {
-                  const isAdmin = approvedClubAdmins?.has(c.id) || approvedClubAdmins?.has(String(c.id));
-                  return (
-                    <ClubCard
-                      key={c.id}
-                      club={c}
-                      isFollowing={followingClubIds.has(String(c.id))}
-                      isMember={clubMemberships?.has(c.id) || clubMemberships?.has(String(c.id))}
-                      isClubAdmin={isAdmin}
-                      onToggle={() => toggleClubFollow(c.id)}
-                      onPress={() => isAdmin
-                        ? navigation.navigate('ClubDashboard', { clubId: c.id })
-                        : navigation.navigate(c.type === 'Team' ? 'TeamDetail' : 'ClubDetail', { clubId: c.id })
-                      }
-                      onSapsDashboard={isSapsCore && !isAdmin
-                        ? () => navigation.navigate(c.type === 'Team' ? 'TeamDashboard' : 'ClubDashboard', { clubId: c.id })
-                        : undefined}
-                    />
-                  );
-                })}
-                {otherClubs.length > 0 && <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={12} color={colors.textTertiary} /><Text style={styles.subSectionLabel}>ALL CLUBS & TEAMS</Text></View>}
-              </>
-            )}
-            {otherClubs.map(c => (
-              <ClubCard
-                key={c.id}
-                club={c}
-                isFollowing={followingClubIds.has(String(c.id))}
-                isMember={false}
-                isClubAdmin={false}
-                onToggle={() => toggleClubFollow(c.id)}
-                onPress={() => navigation.navigate(c.type === 'Team' ? 'TeamDetail' : 'ClubDetail', { clubId: c.id })}
-                onSapsDashboard={isSapsCore
-                  ? () => navigation.navigate(c.type === 'Team' ? 'TeamDashboard' : 'ClubDashboard', { clubId: c.id })
-                  : undefined}
-              />
-            ))}
-            {allClubs.length === 0 && (
-              <EmptyState
-                icon={Star}
-                heading="No clubs yet"
-                subtext="Be the first to create a club for your department"
-              />
-            )}
-          </>
-        }
-      />
     </View>
   );
 }
 
-function EventCard({ event, club, isInterested, onToggle, onPress }) {
+/* Sub-component: Event Product Card (Apple TV / VW spec list style) */
+function EventProductCard({ event, club, isInterested, onToggle, onPress, tag }) {
   if (!club) return null;
   return (
-    <TouchableOpacity style={styles.eventCard} activeOpacity={0.85} onPress={onPress}>
-      <View style={[styles.eventStripe, { backgroundColor: club.color }]} />
-      <View style={styles.eventBody}>
-        <View style={styles.eventTop}>
-          <View style={[styles.eventEmoji, { backgroundColor: `${club.color}33` }]}>
-            {club.logo_url
-              ? <Image source={{ uri: club.logo_url }} style={styles.eventLogoImg} />
-              : <Text style={styles.eventEmojiText}>{club.emoji}</Text>
-            }
+    <TouchableOpacity style={styles.eventProductCard} activeOpacity={0.85} onPress={onPress}>
+      <View style={[styles.eventTagBadge, { backgroundColor: `${club.color}22` }]}>
+        <Text style={[styles.eventTagText, { color: club.color }]}>{tag}</Text>
+      </View>
+
+      <Text style={styles.eventProductTitle} numberOfLines={2}>
+        {event.title}
+      </Text>
+
+      <View style={styles.eventProductClubRow}>
+        <View style={[styles.eventProductClubDot, { backgroundColor: club.color }]} />
+        <Text style={styles.eventProductClubName}>{club.name}</Text>
+        {event.isMine && (
+          <View style={styles.eventMineBadge}>
+            <Text style={styles.eventMineBadgeText}>YOUR WING</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <View style={styles.eventClubRow}>
-              <Text style={[styles.eventClubName, { color: club.color }]}>{club.name}</Text>
-              {event.isMine && (
-                <View style={styles.mineBadge}>
-                  <Text style={styles.mineBadgeText}>YOUR TEAM</Text>
-                </View>
-              )}
+        )}
+      </View>
+
+      {/* Specifications list */}
+      <View style={styles.eventProductSpecs}>
+        <View style={styles.eventProductSpecRow}>
+          <Clock size={11} color={tColors.textTertiary} />
+          <Text style={styles.eventProductSpecText} numberOfLines={1}>
+            {event.time}
+          </Text>
+        </View>
+        <View style={styles.eventProductSpecRow}>
+          <MapPin size={11} color={tColors.textTertiary} />
+          <Text style={styles.eventProductSpecText} numberOfLines={1}>
+            {event.venue}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.eventProductFooter}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Users size={11} color={tColors.textSecondary} />
+          <Text style={styles.eventProductCount}>
+            {event.interested + (isInterested ? 1 : 0)} attending
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onToggle();
+          }}
+          style={[styles.eventInterestBtn, isInterested && styles.eventInterestBtnActive]}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.eventInterestBtnText, isInterested && styles.eventInterestBtnTextActive]}>
+            {isInterested ? 'Attending ✓' : '+ Join'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/* Sub-component: Showroom Club Card (VW specification sheet style) */
+function ShowroomClubCard({
+  club,
+  isFollowing,
+  isMember,
+  isClubAdmin,
+  onToggle,
+  onPress,
+  onSapsDashboard,
+}) {
+  const showDashboard = !!onSapsDashboard && !isClubAdmin;
+  return (
+    <TouchableOpacity
+      style={[
+        styles.showroomClubCard,
+        (isMember || isClubAdmin) && styles.showroomClubCardHighlight,
+      ]}
+      activeOpacity={0.85}
+      onPress={onPress}
+    >
+      {/* Top Banner Stripe */}
+      <View style={[styles.showroomCardStripe, { backgroundColor: club.color }]} />
+
+      <View style={styles.showroomCardBody}>
+        {/* Emblem & Title Row */}
+        <View style={styles.showroomCardTop}>
+          <View style={[styles.showroomCardLogo, { backgroundColor: `${club.color}15` }]}>
+            {club.logo_url ? (
+              <Image source={{ uri: club.logo_url }} style={styles.showroomCardLogoImg} />
+            ) : (
+              <ClubLucideIcon emoji={club.emoji} size={20} color={club.color} />
+            )}
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <View style={styles.showroomNameRow}>
+              <Text style={styles.showroomCardName} numberOfLines={1}>
+                {club.name}
+              </Text>
+              <View style={[styles.showroomTypeTag, { borderColor: `${club.color}44` }]}>
+                <Text style={[styles.showroomTypeTagText, { color: club.color }]}>
+                  {club.type.toUpperCase()}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.eventTitle}>{event.title}</Text>
-            <View style={styles.eventMetaRow}>
-              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Calendar size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.time}</Text></View>
-              <View style={{flexDirection:'row',alignItems:'center',gap:4}}><MapPin size={12} color={colors.textSecondary} /><Text style={styles.eventMeta}>{event.venue}</Text></View>
-            </View>
+            <Text style={styles.showroomCardFullName} numberOfLines={1}>
+              {club.fullName}
+            </Text>
           </View>
         </View>
-        <View style={styles.eventFooter}>
-          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.interestedCount}>{event.interested + (isInterested ? 1 : 0)} interested</Text></View>
+
+        {/* Short Description */}
+        <Text style={styles.showroomCardDesc} numberOfLines={2}>
+          {club.desc}
+        </Text>
+
+        {/* Detailed Specs list (VW-style) */}
+        <View style={styles.showroomCardSpecs}>
+          <View style={styles.showroomCardSpecItem}>
+            <Text style={styles.showroomCardSpecLabel}>MEMBER BASE</Text>
+            <Text style={styles.showroomCardSpecValue}>{club.members} students</Text>
+          </View>
+          <View style={styles.showroomCardSpecItem}>
+            <Text style={styles.showroomCardSpecLabel}>COORDINATOR</Text>
+            <Text style={styles.showroomCardSpecValue} numberOfLines={1}>
+              {club.coordinator || 'Student-run'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Footer Actions */}
+        <View style={styles.showroomCardFooter}>
+          {isClubAdmin ? (
+            <View style={styles.statusBadgeAdmin}>
+              <Text style={styles.statusBadgeTextAdmin}>ADMIN MODE</Text>
+            </View>
+          ) : isMember ? (
+            <View style={styles.statusBadgeMember}>
+              <Text style={styles.statusBadgeTextMember}>MEMBER</Text>
+            </View>
+          ) : (
+            <View />
+          )}
+
           <TouchableOpacity
-            onPress={(e) => { e.stopPropagation?.(); onToggle(); }}
-            style={[styles.interestBtn, isInterested && styles.interestBtnActive]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              if (isClubAdmin || isMember) onPress();
+              else if (showDashboard) onSapsDashboard();
+              else onToggle();
+            }}
+            style={[
+              styles.showroomCardBtn,
+              (isClubAdmin || isMember || showDashboard) && styles.showroomCardBtnManage,
+              isFollowing &&
+                !isClubAdmin &&
+                !isMember &&
+                !showDashboard &&
+                styles.showroomCardBtnFollowing,
+            ]}
             activeOpacity={0.7}
           >
-            <Text style={[styles.interestBtnText, isInterested && styles.interestBtnTextActive]}>
-              {isInterested ? 'Interested' : '+ Interested'}
+            <Text
+              style={[
+                styles.showroomCardBtnText,
+                (isClubAdmin || isMember || showDashboard) && styles.showroomCardBtnManageText,
+                isFollowing &&
+                  !isClubAdmin &&
+                  !isMember &&
+                  !showDashboard &&
+                  styles.showroomCardBtnFollowingText,
+              ]}
+            >
+              {isClubAdmin
+                ? 'Manage'
+                : isMember
+                ? 'Enter Room'
+                : showDashboard
+                ? 'Dashboard'
+                : isFollowing
+                ? 'Following ✓'
+                : 'Follow'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -422,284 +1105,869 @@ function EventCard({ event, club, isInterested, onToggle, onPress }) {
   );
 }
 
-function ClubCard({ club, isFollowing, isMember, isClubAdmin, onToggle, onPress, onSapsDashboard }) {
-  const showDashboard = !!onSapsDashboard && !isClubAdmin;
-  return (
-    <TouchableOpacity style={[styles.clubCard, (isMember || isClubAdmin) && styles.clubCardHighlight]} activeOpacity={0.85} onPress={onPress}>
-      <View style={[styles.clubEmoji, { backgroundColor: `${club.color}33` }]}>
-        {club.logo_url
-          ? <Image source={{ uri: club.logo_url }} style={styles.clubLogoImg} />
-          : <Text style={styles.clubEmojiText}>{club.emoji}</Text>
-        }
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.clubName} numberOfLines={1}>{club.name}</Text>
-        <View style={styles.clubMetaRow}>
-          <View style={[styles.typeBadge, { backgroundColor: `${club.color}33` }]}>
-            <Text style={[styles.typeBadgeText, { color: club.color }]}>{club.type}</Text>
-          </View>
-          <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Users size={12} color={colors.textSecondary} /><Text style={styles.clubMembers}>{club.members}</Text></View>
-          {isClubAdmin && (
-            <View style={styles.adminPill}>
-              <Text style={styles.adminPillText}>ADMIN</Text>
-            </View>
-          )}
-          {isMember && !isClubAdmin && (
-            <View style={styles.memberPill}>
-              <Text style={styles.memberPillText}>MEMBER</Text>
-            </View>
-          )}
-        </View>
-      </View>
-      <TouchableOpacity
-        onPress={(e) => {
-          e.stopPropagation?.();
-          if (isClubAdmin || isMember) onPress();
-          else if (showDashboard) onSapsDashboard();
-          else onToggle();
-        }}
-        style={[
-          styles.followBtn,
-          (isClubAdmin || isMember || showDashboard) && styles.manageBtn,
-          isFollowing && !isClubAdmin && !isMember && !showDashboard && styles.followBtnActive,
-        ]}
-        activeOpacity={0.7}
-      >
-        <Text style={[
-          styles.followBtnText,
-          (isClubAdmin || isMember || showDashboard) && styles.manageBtnText,
-          isFollowing && !isClubAdmin && !isMember && !showDashboard && styles.followBtnTextActive,
-        ]}>
-          {isClubAdmin ? 'Manage' : isMember ? 'View' : showDashboard ? 'Dashboard' : isFollowing ? 'Following' : '+ Follow'}
-        </Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: tColors.bg, paddingHorizontal: tSpacing.md, paddingTop: tSpacing.sm },
+  container: {
+    flex: 1,
+    backgroundColor: tColors.bg,
+    paddingHorizontal: tSpacing.base,
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
+  },
 
-  topActions: {
+  /* Header Styles */
+  headerSection: {
+    marginBottom: tSpacing.base,
+  },
+  headerTopRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    fontSize: typography.xxxl,
+    fontFamily: typography.fontHeading,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  headerTagline: {
+    fontSize: typography.xs,
+    fontFamily: typography.fontMono,
+    color: tColors.textSecondary,
+    marginTop: 4,
+  },
+  topUtilityRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: tSpacing.sm,
   },
-  createBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: tColors.student.primaryDim,
-    borderWidth: 1, borderColor: tColors.student.primary,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: tRadius.full,
+  configureMainBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: tRadius.md,
   },
-  createBtnText: { fontSize: 12, color: tColors.student.primary, fontWeight: typography.bold },
-  adminBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: tColors.warningDim,
-    borderWidth: 1, borderColor: tColors.warning,
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: tRadius.full,
+  configureMainBtnText: {
+    fontSize: typography.xs,
+    color: tColors.textPrimary,
+    fontWeight: typography.bold,
+  },
+  adminUtilityBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: tRadius.md,
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
-  adminBtnIcon: { fontSize: 12 },
-  adminBtnText: { fontSize: 11, color: tColors.warning, fontWeight: typography.bold },
-  adminBadge: {
-    position: 'absolute', top: -4, right: -4,
-    width: 16, height: 16, borderRadius: 8,
+  adminUtilityBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: tColors.error,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  adminBadgeText: { fontSize: 9, color: '#fff', fontWeight: typography.bold },
+  adminUtilityBadgeText: {
+    fontSize: 8,
+    color: '#fff',
+    fontWeight: typography.bold,
+  },
 
-  featured: {
+  /* Billboard (Hero Banner) */
+  billboard: {
+    backgroundColor: tColors.card,
+    borderWidth: 1,
     borderRadius: tRadius.lg,
+    overflow: 'hidden',
+    marginBottom: tSpacing.base,
+    position: 'relative',
+    ...shadows.card,
+  },
+  billboardGradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  billboardContent: {
     padding: tSpacing.base,
+  },
+  billboardBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: tSpacing.xs,
+  },
+  billboardBadgeText: {
+    fontSize: 9,
+    fontFamily: typography.fontMono,
+    fontWeight: typography.bold,
+    color: tColors.accent,
+    letterSpacing: 1,
+  },
+  billboardTitle: {
+    fontSize: typography.xl,
+    fontFamily: typography.fontHeading,
+    color: tColors.textPrimary,
+    marginBottom: 6,
+    lineHeight: 28,
+  },
+  billboardSub: {
+    fontSize: typography.sm,
+    color: tColors.textSecondary,
     marginBottom: tSpacing.md,
   },
-  featuredLabel: { fontSize: 10, fontWeight: typography.bold, letterSpacing: 1, color: 'rgba(255,255,255,0.9)', marginBottom: 6 },
-  featuredTitle: { fontSize: 17, fontWeight: typography.bold, color: '#fff', marginBottom: 6 },
-  featuredMeta: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
-  featuredPill: {
-    alignSelf: 'flex-start', marginTop: tSpacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: tRadius.full,
+  billboardSpecs: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.borderSubtle,
+    borderRadius: tRadius.md,
+    padding: tSpacing.sm,
+    marginBottom: tSpacing.base,
   },
-  featuredPillText: { fontSize: 10, fontWeight: typography.semibold, color: '#fff' },
-
-  sectionLabel: {
-    fontSize: typography.lg, color: tColors.textPrimary, letterSpacing: 0.8,
-    fontWeight: typography.bold, marginBottom: tSpacing.sm, marginTop: tSpacing.md,
+  billboardSpecItem: {
+    flex: 1,
+    paddingHorizontal: 4,
+  },
+  billboardSpecLabel: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    marginBottom: 2,
+    letterSpacing: 0.5,
+  },
+  billboardSpecValue: {
+    fontSize: typography.sm,
+    color: tColors.textPrimary,
+    fontWeight: typography.semibold,
+  },
+  billboardActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  billboardPrimaryBtn: {
+    flex: 1.2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    borderRadius: tRadius.md,
+    paddingVertical: 10,
+  },
+  billboardPrimaryText: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    color: '#fff',
+  },
+  billboardSecondaryBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: tColors.cardAlt,
+  },
+  billboardSecondaryBtnActive: {
+    borderColor: tColors.success,
+    backgroundColor: tColors.successDim,
+  },
+  billboardSecondaryText: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    fontWeight: typography.semibold,
+  },
+  billboardSecondaryTextActive: {
+    color: tColors.success,
   },
 
-  eventCard: {
-    backgroundColor: tColors.card,
-    borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.lg,
+  /* Showroom Segmented Filters */
+  filterMenuContainer: {
+    marginBottom: tSpacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: tColors.borderSubtle,
+    paddingBottom: 2,
+  },
+  filterMenu: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  filterMenuItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  filterMenuItemActive: {
+    borderBottomColor: tColors.accent,
+  },
+  filterMenuItemText: {
+    fontSize: 10,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    fontWeight: typography.bold,
+    letterSpacing: 0.8,
+  },
+  filterMenuItemTextActive: {
+    color: tColors.accent,
+  },
+
+  /* Sections */
+  sectionContainer: {
+    marginBottom: tSpacing.lg,
+  },
+  sectionHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: tSpacing.sm,
+  },
+  sectionHeading: {
+    fontSize: typography.xs,
+    fontFamily: typography.fontMono,
+    fontWeight: typography.bold,
+    color: tColors.textSecondary,
+    letterSpacing: 1,
+  },
+
+  /* Horizontal Carousel for Events */
+  eventsCarousel: {
+    paddingRight: tSpacing.base,
+    gap: 10,
+  },
+  eventProductCard: {
+    width: 260,
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    ...shadows.card,
+  },
+  eventTagBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: tRadius.full,
+    marginBottom: 10,
+  },
+  eventTagText: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    fontWeight: typography.bold,
+  },
+  eventProductTitle: {
+    fontSize: typography.base,
+    fontFamily: typography.fontHeading,
+    color: tColors.textPrimary,
+    fontWeight: typography.bold,
+    marginBottom: 6,
+    minHeight: 40,
+  },
+  eventProductClubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  eventProductClubDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  eventProductClubName: {
+    fontSize: 10,
+    color: tColors.textSecondary,
+    fontWeight: typography.semibold,
+  },
+  eventMineBadge: {
+    backgroundColor: tColors.student.primaryDim,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: tRadius.full,
+  },
+  eventMineBadgeText: {
+    fontSize: 8,
+    color: tColors.student.primary,
+    fontWeight: typography.bold,
+  },
+  eventProductSpecs: {
+    gap: 4,
+    borderTopWidth: 1,
+    borderTopColor: tColors.borderSubtle,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  eventProductSpecRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  eventProductSpecText: {
+    fontSize: 10,
+    color: tColors.textSecondary,
+    flex: 1,
+  },
+  eventProductFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  eventProductCount: {
+    fontSize: 9,
+    color: tColors.textTertiary,
+  },
+  eventInterestBtn: {
+    backgroundColor: tColors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: tRadius.md,
+  },
+  eventInterestBtnActive: {
+    backgroundColor: tColors.successDim,
+    borderWidth: 1,
+    borderColor: tColors.success,
+  },
+  eventInterestBtnText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: typography.bold,
+  },
+  eventInterestBtnTextActive: {
+    color: tColors.success,
+  },
+
+  /* Showroom Grid (VW-style) */
+  showroomGrid: {
+    gap: 10,
+  },
+  showroomClubCard: {
+    backgroundColor: tColors.card,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
     overflow: 'hidden',
     ...shadows.card,
   },
-  eventStripe: { height: 3, width: '100%' },
-  eventBody: { padding: tSpacing.md },
-  eventTop: { flexDirection: 'row', gap: tSpacing.sm, marginBottom: tSpacing.sm },
-  eventEmoji: {
-    width: 44, height: 44, borderRadius: tRadius.md,
-    alignItems: 'center', justifyContent: 'center',
+  showroomClubCardHighlight: {
+    borderColor: tColors.accent,
   },
-  eventEmojiText: { fontSize: 22 },
-  eventClubRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
-  eventClubName: { fontSize: 10, fontWeight: typography.bold, letterSpacing: 0.8 },
-  mineBadge: {
-    backgroundColor: tColors.student.primaryDim,
-    paddingHorizontal: 6, paddingVertical: 1,
+  showroomCardStripe: {
+    height: 4,
+  },
+  showroomCardBody: {
+    padding: tSpacing.md,
+  },
+  showroomCardTop: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+    marginBottom: tSpacing.xs,
+  },
+  showroomCardLogo: {
+    width: 42,
+    height: 42,
+    borderRadius: tRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  showroomCardLogoImg: {
+    width: 42,
+    height: 42,
+    borderRadius: tRadius.md,
+  },
+  showroomCardEmojiText: {
+    fontSize: 20,
+  },
+  showroomNameRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6,
+  },
+  showroomCardName: {
+    fontSize: typography.md,
+    fontFamily: typography.fontHeading,
+    color: tColors.textPrimary,
+    fontWeight: typography.bold,
+  },
+  showroomTypeTag: {
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
     borderRadius: tRadius.full,
   },
-  mineBadgeText: { fontSize: 9, fontWeight: typography.bold, color: tColors.student.primary },
-  eventTitle: { fontSize: 14, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 4 },
-  eventMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  eventMeta: { fontSize: 10, color: tColors.textSecondary },
-  eventFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: tSpacing.sm, borderTopWidth: 1, borderTopColor: tColors.border,
+  showroomTypeTagText: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    fontWeight: typography.bold,
   },
-  interestedCount: { fontSize: 10, color: tColors.textTertiary },
-  interestBtn: {
-    backgroundColor: tColors.student.primary,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: tRadius.sm,
+  showroomCardFullName: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    marginTop: 1,
   },
-  interestBtnActive: {
-    backgroundColor: tColors.successDim,
-    borderWidth: 1, borderColor: tColors.success,
-  },
-  interestBtnText: { fontSize: 11, color: '#fff', fontWeight: typography.semibold },
-  interestBtnTextActive: { color: tColors.success },
-
-  filterRow: {
-    flexDirection: 'row', gap: 6,
+  showroomCardDesc: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    lineHeight: 18,
     marginBottom: tSpacing.sm,
   },
-  pill: {
-    borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.full,
-    paddingHorizontal: 14, height: 32,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: tColors.card,
+  showroomCardSpecs: {
+    flexDirection: 'row',
+    gap: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: tColors.borderSubtle,
+    paddingVertical: tSpacing.sm,
+    marginBottom: tSpacing.sm,
   },
-  pillActive: { backgroundColor: tColors.student.primaryDim, borderColor: tColors.student.primary },
-  pillText: { fontSize: 12, color: tColors.textSecondary, fontWeight: typography.medium },
-  pillTextActive: { color: '#fff', fontWeight: typography.semibold },
+  showroomCardSpecItem: {
+    flex: 1,
+  },
+  showroomCardSpecLabel: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    marginBottom: 2,
+  },
+  showroomCardSpecValue: {
+    fontSize: 11,
+    color: tColors.textPrimary,
+    fontWeight: typography.semibold,
+  },
+  showroomCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadgeAdmin: {
+    backgroundColor: tColors.warningDim,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: tRadius.full,
+  },
+  statusBadgeTextAdmin: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.warning,
+    fontWeight: typography.bold,
+  },
+  statusBadgeMember: {
+    backgroundColor: tColors.student.primaryDim,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: tRadius.full,
+  },
+  statusBadgeTextMember: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.student.primary,
+    fontWeight: typography.bold,
+  },
+  showroomCardBtn: {
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: tRadius.md,
+  },
+  showroomCardBtnFollowing: {
+    backgroundColor: tColors.successDim,
+    borderColor: tColors.success,
+  },
+  showroomCardBtnManage: {
+    backgroundColor: tColors.student.primaryDim,
+    borderColor: tColors.student.primary,
+  },
+  showroomCardBtnText: {
+    fontSize: 10,
+    color: tColors.textSecondary,
+    fontWeight: typography.bold,
+  },
+  showroomCardBtnFollowingText: {
+    color: tColors.success,
+  },
+  showroomCardBtnManageText: {
+    color: tColors.student.primary,
+  },
+  allManagedText: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 20,
+  },
 
-  subSectionLabel: {
-    fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8,
-    fontWeight: typography.bold, marginBottom: tSpacing.sm, marginTop: tSpacing.sm,
-  },
-  clubCard: {
-    flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
+  /* Pending Configurations Card */
+  pendingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: tColors.card,
-    borderWidth: 1, borderColor: tColors.border,
+    borderWidth: 1,
+    borderColor: tColors.warning,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.md,
+    marginBottom: tSpacing.sm,
+    ...shadows.card,
+  },
+  pendingEmojiContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: tRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingEmoji: {
+    fontSize: 24,
+  },
+  pendingName: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+  },
+  pendingStatusText: {
+    fontSize: 10,
+    color: tColors.warning,
+    marginTop: 2,
+  },
+  pendingBadge: {
+    backgroundColor: tColors.warningDim,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: tRadius.full,
+  },
+  pendingBadgeText: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.warning,
+    fontWeight: typography.bold,
+  },
+
+  /* Configurator Modal */
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+  },
+  modalSheet: {
+    backgroundColor: tColors.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    padding: tSpacing.base,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tSpacing.md,
+  },
+  modalTitle: {
+    fontSize: typography.md,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+  },
+  modalLabel: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    fontWeight: typography.bold,
+    marginBottom: 6,
+    marginTop: tSpacing.base,
+    letterSpacing: 0.8,
+  },
+  modalInput: {
+    backgroundColor: tColors.bg,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    padding: tSpacing.sm,
+    color: tColors.textPrimary,
+    fontSize: 13,
+    marginBottom: tSpacing.sm,
+  },
+
+  /* Step Indicator Progress Bar */
+  stepIndicatorRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: tSpacing.base,
+  },
+  stepIndicatorLine: {
+    flex: 1,
+    height: 3,
+    backgroundColor: tColors.border,
+    borderRadius: 1.5,
+  },
+  stepIndicatorLineActive: {
+    backgroundColor: tColors.textSecondary,
+  },
+
+  stepContent: {
+    paddingVertical: tSpacing.xs,
+  },
+  stepTitle: {
+    fontSize: typography.md,
+    fontFamily: typography.fontHeading,
+    color: tColors.textPrimary,
+    fontWeight: typography.bold,
+  },
+  stepSub: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    marginBottom: tSpacing.base,
+  },
+
+  /* Configurator Step 1: Chassis Selection */
+  chassisContainer: {
+    gap: 12,
+    marginBottom: tSpacing.sm,
+  },
+  chassisCard: {
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.lg,
+    padding: tSpacing.base,
+    gap: 6,
+  },
+  chassisCardActive: {
+    borderColor: tColors.accent,
+    backgroundColor: tColors.accentDim,
+  },
+  chassisTitle: {
+    fontSize: typography.base,
+    fontWeight: typography.bold,
+    color: tColors.textSecondary,
+  },
+  chassisTitleActive: {
+    color: tColors.textPrimary,
+  },
+  chassisDesc: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
+    lineHeight: 16,
+  },
+
+  /* Configurator Step 2: Emblem Icon */
+  emblemPreview: {
+    alignItems: 'center',
+    marginVertical: tSpacing.base,
+  },
+  emblemBubble: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tColors.cardAlt,
+    marginBottom: tSpacing.sm,
+  },
+  emblemBubbleText: {
+    fontSize: 36,
+  },
+  emblemPreviewLabel: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textSecondary,
+  },
+  emojisScroll: {
+    paddingVertical: 4,
+  },
+  emojisGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    width: 320,
+  },
+  emojiBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: tRadius.md,
+    backgroundColor: tColors.bg,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emojiBtnActive: {
+    borderColor: tColors.accent,
+    backgroundColor: tColors.accentDim,
+  },
+
+  /* Configurator Step 3: Color system & Live preview card */
+  liveCardPreviewContainer: {
+    backgroundColor: tColors.cardAlt,
+    borderWidth: 1,
+    borderColor: tColors.borderSubtle,
     borderRadius: tRadius.lg,
     padding: tSpacing.md,
     marginBottom: tSpacing.sm,
   },
-  clubCardHighlight: {
-    borderColor: tColors.student.primary,
-    backgroundColor: tColors.student.primaryDim,
+  previewLabel: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    marginBottom: tSpacing.sm,
+    letterSpacing: 0.5,
   },
-  clubEmoji: {
-    width: 44, height: 44, borderRadius: tRadius.md,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-  },
-  clubEmojiText: { fontSize: 20 },
-  clubLogoImg: { width: 44, height: 44, borderRadius: tRadius.md },
-  eventLogoImg: { width: 38, height: 38, borderRadius: tRadius.sm },
-  clubName: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 4 },
-  clubMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full },
-  typeBadgeText: { fontSize: 9, fontWeight: typography.bold, letterSpacing: 0.4 },
-  clubMembers: { fontSize: 10, color: tColors.textSecondary },
-  adminPill: {
-    backgroundColor: tColors.warningDim,
-    paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full,
-  },
-  adminPillText: { fontSize: 9, fontWeight: typography.bold, color: tColors.warning, letterSpacing: 0.4 },
-  memberPill: {
-    backgroundColor: tColors.student.primaryDim,
-    paddingHorizontal: 6, paddingVertical: 1, borderRadius: tRadius.full,
-  },
-  memberPillText: { fontSize: 9, fontWeight: typography.bold, color: tColors.student.primary, letterSpacing: 0.4 },
-
-  followBtn: {
+  livePreviewCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: tColors.card,
-    borderWidth: 1, borderColor: tColors.border,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: tRadius.sm,
+    borderWidth: 1,
+    borderRadius: tRadius.md,
+    padding: tSpacing.sm,
   },
-  followBtnActive: {
-    backgroundColor: tColors.successDim,
-    borderColor: tColors.success,
+  livePreviewEmoji: {
+    width: 36,
+    height: 36,
+    borderRadius: tRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  manageBtn: {
-    backgroundColor: tColors.student.primaryDim,
-    borderColor: tColors.student.primary,
+  livePreviewName: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
   },
-  followBtnText: { fontSize: 11, color: tColors.textSecondary, fontWeight: typography.semibold },
-  followBtnTextActive: { color: tColors.success },
-  manageBtnText: { color: tColors.student.primary },
-
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  modalSheet: {
-    backgroundColor: tColors.card,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: tColors.border,
-    padding: tSpacing.base, paddingBottom: 40,
-    maxHeight: '90%',
+  livePreviewType: {
+    fontSize: 8,
+    fontFamily: typography.fontMono,
+    color: tColors.textTertiary,
+    marginTop: 2,
   },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: tSpacing.md },
-  modalTitle: { fontSize: 17, fontWeight: typography.bold, color: tColors.textPrimary },
-  modalClose: { fontSize: 20, color: tColors.textSecondary, padding: 4 },
-  modalLabel: { fontSize: 10, color: tColors.textSecondary, letterSpacing: 0.8, fontWeight: typography.bold, marginBottom: 6, marginTop: tSpacing.sm },
-  modalInput: {
-    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
-    borderRadius: tRadius.md, padding: tSpacing.md,
-    color: tColors.textPrimary, fontSize: 14, marginBottom: tSpacing.sm,
-  },
-  emojiBtn: {
-    width: 44, height: 44, borderRadius: tRadius.md,
-    backgroundColor: tColors.bg, borderWidth: 1, borderColor: tColors.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  emojiBtnActive: { borderColor: tColors.student.primary, backgroundColor: tColors.student.primaryDim },
-  colorSwatch: { width: 28, height: 28, borderRadius: 14 },
-  colorSwatchActive: { borderWidth: 3, borderColor: '#fff', opacity: 1, transform: [{ scale: 1.2 }] },
-  typePill: {
-    borderWidth: 1, borderColor: tColors.border, borderRadius: tRadius.full,
-    paddingHorizontal: 18, paddingVertical: 7, backgroundColor: tColors.bg,
-  },
-  typePillActive: { backgroundColor: tColors.student.primary, borderColor: tColors.student.primary },
-  typePillText: { fontSize: 13, color: tColors.textSecondary, fontWeight: typography.medium },
-  typePillTextActive: { color: '#fff', fontWeight: typography.semibold },
-  submittedBox: { alignItems: 'center', paddingVertical: tSpacing.lg },
-  submittedIcon: { fontSize: 48, marginBottom: tSpacing.md },
-  submittedTitle: { fontSize: 18, fontWeight: typography.bold, color: tColors.textPrimary, marginBottom: 8 },
-  submittedSub: { fontSize: 13, color: tColors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: tSpacing.base, paddingHorizontal: tSpacing.md },
-  submittedBtn: { backgroundColor: tColors.student.primary, borderRadius: tRadius.md, paddingHorizontal: 32, paddingVertical: 12 },
-  submittedBtnText: { fontSize: 14, fontWeight: typography.bold, color: '#fff' },
-
-  pendingReqCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: tColors.warningDim,
-    borderWidth: 1, borderColor: tColors.warning,
-    borderRadius: tRadius.md, padding: tSpacing.md,
+  colorSwatchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
     marginBottom: tSpacing.sm,
   },
-  pendingReqEmoji: { fontSize: 24 },
-  pendingReqName: { fontSize: 13, fontWeight: typography.bold, color: tColors.textPrimary },
-  pendingReqSub: { fontSize: 11, color: tColors.warning, marginTop: 2 },
+  colorSwatch: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  colorSwatchActive: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    transform: [{ scale: 1.15 }],
+  },
 
-  createErrText: { fontSize: 12, color: tColors.error, marginBottom: tSpacing.sm },
-  createConfirmBtn: { borderRadius: tRadius.md, paddingVertical: 14, alignItems: 'center', marginTop: tSpacing.sm },
-  createConfirmBtnText: { fontSize: 15, color: '#fff', fontWeight: typography.bold },
+  /* Configurator Navigation buttons */
+  configuratorNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: tSpacing.base,
+    borderTopWidth: 1,
+    borderTopColor: tColors.borderSubtle,
+    paddingTop: tSpacing.base,
+  },
+  configBackBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: tRadius.md,
+    borderWidth: 1,
+    borderColor: tColors.border,
+  },
+  configBackText: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    fontWeight: typography.semibold,
+  },
+  configNextBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: tColors.accent,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: tRadius.md,
+  },
+  configNextText: {
+    fontSize: typography.xs,
+    color: '#fff',
+    fontWeight: typography.bold,
+  },
+  configSubmitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: tRadius.md,
+  },
+  configSubmitText: {
+    fontSize: typography.xs,
+    color: '#fff',
+    fontWeight: typography.bold,
+  },
+  createErrText: {
+    fontSize: typography.xs,
+    color: tColors.error,
+    marginTop: tSpacing.sm,
+  },
+
+  /* Submitted Panel */
+  submittedBox: {
+    alignItems: 'center',
+    paddingVertical: tSpacing.xl,
+  },
+  submittedBadge: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: tColors.successDim,
+    borderWidth: 1,
+    borderColor: tColors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: tSpacing.base,
+  },
+  submittedTitle: {
+    fontSize: typography.lg,
+    fontWeight: typography.bold,
+    color: tColors.textPrimary,
+    marginBottom: 8,
+  },
+  submittedSub: {
+    fontSize: typography.xs,
+    color: tColors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: tSpacing.xl,
+    paddingHorizontal: tSpacing.base,
+  },
+  submittedBtn: {
+    backgroundColor: tColors.accent,
+    borderRadius: tRadius.md,
+    paddingHorizontal: 36,
+    paddingVertical: 12,
+  },
+  submittedBtnText: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
+    color: '#fff',
+  },
 });

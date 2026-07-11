@@ -396,7 +396,7 @@ export default function ClubDashboardScreen({
     if (!recruitForm.role.trim()) { Alert.alert('Missing info', 'Please enter the role/position.'); return; }
     const title = `${club.name} — Recruiting: ${recruitForm.role.trim()}`;
     const timeStr = recruitForm.applyBy.trim() ? `Apply by ${recruitForm.applyBy.trim()}` : 'Open applications';
-    const venue = recruitForm.contact.trim() || 'DM on ChristConnect';
+    const venue = recruitForm.contact.trim() || 'DM on UniConnect';
     const desc = recruitForm.requirements.trim() || `${club.name} is looking for ${recruitForm.role.trim()}. Reach out to apply!`;
     const { data, error } = await supabase.from('hub_events').insert({
       club_id: String(rawId), club_name: club.name, title,

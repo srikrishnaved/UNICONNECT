@@ -180,7 +180,7 @@ export default function DMScreen({ route, navigation }) {
         </View>
         <View>
           <Text style={styles.recipientName}>{name}</Text>
-          <Text style={styles.recipientSub}>{isTeacher ? 'Faculty · Yeshwanthpur' : 'Student · ChristConnect'}</Text>
+          <Text style={styles.recipientSub}>{isTeacher ? 'Faculty · Yeshwanthpur' : 'Student · UniConnect'}</Text>
         </View>
       </View>
 
@@ -333,12 +333,12 @@ const styles = StyleSheet.create({
   msgImage: { width: 200, height: 150, borderRadius: 8, marginBottom: 4 },
   mediaBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   expiryBanner: {
-    backgroundColor: '#78350f18',
-    borderBottomWidth: 1, borderBottomColor: '#92400e30',
+    backgroundColor: colors.amberLight,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(245,158,11,0.3)',
     paddingVertical: 6, paddingHorizontal: spacing.md,
     alignItems: 'center',
   },
-  expiryText: { fontSize: 11, color: '#92400e', ...font.medium },
+  expiryText: { fontSize: 11, color: colors.amber, ...font.medium },
 
   lockedBar: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,

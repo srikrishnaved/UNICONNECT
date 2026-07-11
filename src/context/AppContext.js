@@ -492,7 +492,7 @@ export function AppProvider({ children }) {
 
   const sendPasswordReset = async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'https://christconnect.expo.app',
+      redirectTo: 'https://uniconnect-platform-gamma.vercel.app',
     });
     if (error) throw error;
   };
@@ -621,7 +621,7 @@ export function AppProvider({ children }) {
       user_id: teacherId,
       type: 'info',
       title: 'Your teacher account has been approved!',
-      body: 'Welcome to ChristConnect. You can now sign in to access the Teacher Dashboard.',
+      body: 'Welcome to UniConnect. You can now sign in to access the Teacher Dashboard.',
       read: false,
     });
   };

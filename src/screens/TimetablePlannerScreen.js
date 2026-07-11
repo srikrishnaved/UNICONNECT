@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { APP_CONFIG } from '../config/appConfig';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Modal, TextInput, Switch, ActivityIndicator, Alert, Clipboard, Platform,
@@ -10,7 +11,7 @@ import { colors, spacing, radius, font } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
 import * as DocumentPicker from 'expo-document-picker';
-import { CircleCheck, Calendar, Cpu, X, School, Check, Upload, MessageSquare, Trash2, Paperclip, Search, TriangleAlert } from 'lucide-react-native';
+import { CircleCheck, Calendar, Cpu, X, School, Check, Upload, MessageSquare, Trash2, Paperclip, Search, TriangleAlert, Lock } from 'lucide-react-native';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,12 +42,7 @@ async function getSubjectForTeacher(teacherName, className) {
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-const CLASSES = [
-  '1BcomIBA', '1BcomF&A', '1BcomIAF',
-  '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF',
-  '5BcomF&A(A)', '5BcomF&A(B)', '5BcomIAF',
-  '7BcomF&A',
-];
+const CLASSES = APP_CONFIG.classes;
 
 const FACULTY_LIST = [
   'Dr. Bhagyalakshmi', 'Dr. Hridhya', 'Dr. Ravi', 'Dr. Thirupathi',
@@ -59,13 +55,32 @@ const FACULTY_LIST = [
 
 const TIMETABLE_TEAM = ['Shruthi', 'Bhoomika', 'Thirupat'];
 
+// ── Semantic slot colours (role-specific, not part of the app theme) ─────────
+const C_ELECTIVE  = '#A855F7';
+const C_ELEC_TXT  = '#C4B5FD';
+const C_ELEC_DIM  = 'rgba(168,85,247,0.08)';
+const C_ELEC_BDG  = 'rgba(168,85,247,0.2)';
+const C_EXTERNAL  = '#94A3B8';
+const C_EXT_DIM   = 'rgba(148,163,184,0.05)';
+const C_EXT_BDG   = 'rgba(148,163,184,0.15)';
+const C_EXT_BDR   = 'rgba(148,163,184,0.4)';
+const C_PERM_BG   = 'rgba(239,68,68,0.15)';
+const C_PERM_BDR  = 'rgba(239,68,68,0.4)';
+const C_ABSENT_BG = 'rgba(248,113,113,0.06)';
+const C_ABSENT_DM = 'rgba(248,113,113,0.65)';
+const C_ERR_DIM   = 'rgba(248,113,113,0.1)';
+const C_SAT_DIM   = 'rgba(251,191,36,0.04)';
+const C_WARN_DIM  = 'rgba(251,191,36,0.12)';
+// Primary with alpha — computed from theme token so they track any primary colour change
+const C_PRIM_07 = `${tColors.faculty.primary}12`; // ~7%
+const C_PRIM_09 = `${tColors.faculty.primary}18`; // ~9%
+const C_PRIM_20 = `${tColors.faculty.primary}33`; // ~20%
+const C_PRIM_27 = `${tColors.faculty.primary}44`; // ~27%
+
 const DAY_ORDER = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 // Classes that have HED reserved at TUE P2 (5th-year classes have real subjects there).
-const HED_CLASSES = new Set([
-  '1BcomIBA', '1BcomF&A', '1BcomIAF',
-  '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF',
-]);
+const HED_CLASSES = new Set(APP_CONFIG.hedClasses);
 
 // Returns up to 3 free slots for a compensatory class, ordered by "starting from tomorrow"
 // in the weekly cycle. Respects teacher conflicts and availability constraints.
@@ -79,6 +94,8 @@ function findCompOptions(req, { slots, periods, mergedAdjunctConstraints, todayD
   const freeSlots = slots.filter(s =>
     s.class_name === req.original_class_name &&
     !s.course_name &&
+    !s.is_external &&
+    !(s.faculty_name && s.faculty_name.startsWith('External')) &&
     !(s.day === 'TUE' && s.period_name === 'P2' && HED_CLASSES.has(s.class_name))
   );
 
@@ -621,6 +638,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   // ── Open edit modal ──────────────────────────────────────────────────────
   const openEdit = (day, period) => {
     const existing = getSlot(day, period.name);
+    const isExternalSlot = existing?.is_external || (existing?.faculty_name && existing.faculty_name.startsWith('External'));
+    if (isExternalSlot && !isAppAdmin) {
+      Alert.alert('External Slot Protected', 'This slot is managed by an external department and can only be modified by a Super Admin.');
+      return;
+    }
     const existingOverride = permanentOverrides.find(
       po => po.class_name === selectedClass && po.day === day && po.period_name === period.name
     );
@@ -1210,6 +1232,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       Alert.alert('Cannot Substitute', 'This slot is reserved for HED and cannot be substituted.');
       return;
     }
+    const isExternalSlot = slot?.is_external || (slot?.faculty_name && slot.faculty_name.startsWith('External'));
+    if (isExternalSlot && !isAppAdmin) {
+      Alert.alert('Cannot Substitute', 'This slot is managed by an external department and can only be modified by a Super Admin.');
+      return;
+    }
     const newFaculty = (assignedSub && assignedSub.trim()) ? assignedSub.trim() : null;
     if (slot?.id) {
       const subSubject = newFaculty ? await getSubjectForTeacher(newFaculty, slot.class_name) : null;
@@ -1313,6 +1340,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   // ── Compensatory request handlers ─────────────────────────────────────────
 
   const handleAssignComp = useCallback(async (req, slot) => {
+    const isExternalSlot = slot?.is_external || (slot?.faculty_name && slot.faculty_name.startsWith('External'));
+    if (isExternalSlot && !isAppAdmin) {
+      Alert.alert('Cannot Assign', 'This slot is managed by an external department and can only be modified by a Super Admin.');
+      return;
+    }
     await supabase.from('timetable_slots').update({
       faculty_name: req.teacher_name,
       updated_at: new Date().toISOString(),
@@ -1362,7 +1394,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       // Check the target slot
       const { data: targetSlot } = await supabase
         .from('timetable_slots')
-        .select('id, course_name, faculty_name')
+        .select('id, course_name, faculty_name, is_external')
         .eq('class_name', req.original_class_name)
         .eq('day', resolveDay)
         .eq('period_name', resolvePeriod)
@@ -1370,6 +1402,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
 
       if (!targetSlot) {
         setResolveError(`No timetable slot exists for ${req.original_class_name} on ${resolveDay} ${resolvePeriod}.`);
+        return;
+      }
+      const isExternalTarget = targetSlot?.is_external || (targetSlot?.faculty_name && targetSlot.faculty_name.startsWith('External'));
+      if (isExternalTarget && !isAppAdmin) {
+        setResolveError('This slot is managed by an external department and can only be modified by a Super Admin.');
         return;
       }
       if (targetSlot.course_name) {
@@ -1482,6 +1519,12 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
 
   const handleConfirmSwap = useCallback(async () => {
     if (!swapSlotA || !swapSlotB) return;
+    const isExternalA = swapSlotA.slot?.is_external || (swapSlotA.slot?.faculty_name && swapSlotA.slot.faculty_name.startsWith('External'));
+    const isExternalB = swapSlotB.slot?.is_external || (swapSlotB.slot?.faculty_name && swapSlotB.slot.faculty_name.startsWith('External'));
+    if ((isExternalA || isExternalB) && !isAppAdmin) {
+      Alert.alert('Cannot Swap', 'One or both slots are managed by an external department and can only be modified by a Super Admin.');
+      return;
+    }
     if (
       (swapSlotA.day === 'TUE' && swapSlotA.period_name === 'P2' && HED_CLASSES.has(swapSlotA.class_name)) ||
       (swapSlotB.day === 'TUE' && swapSlotB.period_name === 'P2' && HED_CLASSES.has(swapSlotB.class_name))
@@ -1938,6 +1981,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                         slot.faculty_name.split(' / ').some(
                           f => f.trim().toLowerCase() === gridName.trim().toLowerCase()
                         );
+                      const isExternal = slot?.is_external || (slot?.faculty_name && slot.faculty_name.startsWith('External'));
                       const approvalStatus = slot?.approval_status || 'draft';
                       const isPending  = approvalStatus === 'pending';
                       const isApproved = approvalStatus === 'approved';
@@ -1962,6 +2006,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                                 isYou && !isRejected && styles.slotYou,
                                 isRejected && styles.slotRejected,
                                 isSwapSelected && styles.slotSwapSelected,
+                                isExternal && styles.slotExternal,
                               ]}
                               onPress={isGridTeam
                                 ? () => swapMode ? handleSwapCellPress(cellInfo) : openEdit(day, period)
@@ -1970,6 +2015,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                               activeOpacity={0.7}
                             >
                               <View style={styles.badgeRow}>
+                                {isExternal && (
+                                  <View style={styles.externalBadge}>
+                                    <Text style={styles.externalBadgeText}>EXTERNAL</Text>
+                                  </View>
+                                )}
                                 {isPerma && (
                                   <View style={styles.permaBadge}>
                                     <Text style={styles.permaBadgeText}>PERMA</Text>
@@ -2001,7 +2051,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                                   </View>
                                 )}
                                 {isGridTeam && (
-                                  <View style={styles.editDot} />
+                                  isExternal && !isAppAdmin ? (
+                                    <Lock size={10} color="#94A3B8" style={{ marginLeft: 'auto' }} />
+                                  ) : (
+                                    <View style={styles.editDot} />
+                                  )
                                 )}
                               </View>
                               <Text style={[styles.slotCourse, isRejected && styles.slotCourseRejected]} numberOfLines={2}>
@@ -2916,7 +2970,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           <TouchableOpacity style={styles.modalBackdrop} onPress={() => setApproveSubModal(null)} activeOpacity={1} />
           <View style={styles.approveSubCard}>
             <Text style={[styles.modalTitle, { marginBottom: 4 }]}>Assign Substitute</Text>
-            <Text style={{ color: '#94a3b8', fontSize: 13, marginBottom: 16 }}>
+            <Text style={{ color: C_EXTERNAL, fontSize: 13, marginBottom: 16 }}>
               {approveSubModal?.timetable_slots?.course_name || approveSubModal?.class_name || 'Class'} · {approveSubModal?.timetable_slots?.day || approveSubModal?.day} {approveSubModal?.timetable_slots?.period_name || approveSubModal?.period_name}
             </Text>
             <Text style={styles.subReqPref}>Who will cover this class?</Text>
@@ -2978,7 +3032,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           <View style={[styles.approveSubCard, { maxHeight: '85%' }]}>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={[styles.modalTitle, { marginBottom: 4 }]}>Resolve Manually</Text>
-              <Text style={{ color: '#94a3b8', fontSize: 13, marginBottom: 16 }}>
+              <Text style={{ color: C_EXTERNAL, fontSize: 13, marginBottom: 16 }}>
                 {resolveManualModal?.teacher_name} · lost {resolveManualModal?.original_class_name} {resolveManualModal?.original_day} {resolveManualModal?.original_period_name}
               </Text>
 
@@ -3533,7 +3587,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1, borderBottomWidth: 1, borderColor: tColors.border,
     padding: 3,
   },
-  satSlotCell: { backgroundColor: 'rgba(251, 191, 36, 0.04)' },
+  satSlotCell: { backgroundColor: C_SAT_DIM },
 
   slotContent: {
     flex: 1, backgroundColor: tColors.card,
@@ -3541,8 +3595,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 2, borderLeftColor: tColors.faculty.primary,
   },
   slotElective: {
-    borderLeftColor: '#A855F7',
-    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    borderLeftColor: C_ELECTIVE,
+    backgroundColor: C_ELEC_DIM,
   },
   slotYou: {
     borderLeftColor: tColors.success,
@@ -3553,19 +3607,29 @@ const styles = StyleSheet.create({
     backgroundColor: tColors.errorDim,
     opacity: 0.75,
   },
+  slotExternal: {
+    borderLeftColor: C_EXTERNAL,
+    backgroundColor: C_EXT_DIM,
+  },
 
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 3, flexWrap: 'wrap' },
-  permaBadge: {
-    backgroundColor: 'rgba(239,68,68,0.15)', borderRadius: 3,
+  externalBadge: {
+    backgroundColor: C_EXT_BDG, borderRadius: 3,
     paddingHorizontal: 4, paddingVertical: 1,
-    borderWidth: 1, borderColor: 'rgba(239,68,68,0.4)',
+    borderWidth: 1, borderColor: C_EXT_BDR,
+  },
+  externalBadgeText: { fontSize: 7, fontWeight: typography.bold, color: C_EXTERNAL, letterSpacing: 0.4 },
+  permaBadge: {
+    backgroundColor: C_PERM_BG, borderRadius: 3,
+    paddingHorizontal: 4, paddingVertical: 1,
+    borderWidth: 1, borderColor: C_PERM_BDR,
   },
   permaBadgeText: { fontSize: 7, fontWeight: typography.bold, color: tColors.error, letterSpacing: 0.4 },
   electiveBadge: {
-    backgroundColor: 'rgba(168, 85, 247, 0.2)', borderRadius: 3,
+    backgroundColor: C_ELEC_BDG, borderRadius: 3,
     paddingHorizontal: 4, paddingVertical: 1,
   },
-  electiveBadgeText: { fontSize: 7, fontWeight: typography.bold, color: '#C4B5FD', letterSpacing: 0.4 },
+  electiveBadgeText: { fontSize: 7, fontWeight: typography.bold, color: C_ELEC_TXT, letterSpacing: 0.4 },
   youBadge: {
     backgroundColor: tColors.successDim, borderRadius: 3,
     paddingHorizontal: 4, paddingVertical: 1,
@@ -3684,7 +3748,7 @@ const styles = StyleSheet.create({
   acItemText: { fontSize: typography.sm, color: tColors.textPrimary },
 
   conflictBox: {
-    backgroundColor: 'rgba(248, 113, 113, 0.1)', borderWidth: 1, borderColor: tColors.error,
+    backgroundColor: C_ERR_DIM, borderWidth: 1, borderColor: tColors.error,
     borderRadius: tRadius.md, padding: tSpacing.sm, marginVertical: tSpacing.sm,
   },
   conflictText: { fontSize: 12, color: tColors.error, marginBottom: 3, lineHeight: 16 },
@@ -3801,14 +3865,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: tSpacing.md, paddingVertical: tSpacing.md,
   },
   facultyCardAbsent: {
-    backgroundColor: 'rgba(248, 113, 113, 0.06)',
+    backgroundColor: C_ABSENT_BG,
     borderColor: tColors.error,
   },
   facultyCardLeft: { flex: 1 },
   facultyCardName: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
   facultyCardNameAbsent: { color: tColors.error },
   facultyCardCount: { fontSize: typography.xs, color: tColors.textSecondary, marginTop: 2 },
-  facultyCardCountAbsent: { color: 'rgba(248, 113, 113, 0.65)' },
+  facultyCardCountAbsent: { color: C_ABSENT_DM },
 
   absentBadge: {
     backgroundColor: tColors.errorDim, borderRadius: tRadius.full,
@@ -3924,7 +3988,7 @@ const styles = StyleSheet.create({
   testStrip: {
     flexDirection: 'row', alignItems: 'center', gap: tSpacing.sm,
     paddingHorizontal: tSpacing.md, paddingVertical: 7,
-    backgroundColor: 'rgba(251,191,36,0.12)',
+    backgroundColor: C_WARN_DIM,
     borderBottomWidth: 1, borderBottomColor: tColors.warning,
   },
   testStripLabel: { fontSize: 9, fontWeight: typography.bold, color: tColors.warning, letterSpacing: 0.6 },
@@ -4048,13 +4112,13 @@ const styles = StyleSheet.create({
 
   swapHintBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: tColors.faculty.primary + '18', borderBottomWidth: 1, borderBottomColor: tColors.faculty.primary + '33',
+    backgroundColor: C_PRIM_09, borderBottomWidth: 1, borderBottomColor: C_PRIM_20,
     paddingHorizontal: tSpacing.md, paddingVertical: 7,
   },
   swapHintText: { fontSize: typography.xs, color: tColors.faculty.primary, fontWeight: typography.medium, flex: 1, marginRight: tSpacing.sm },
   swapHintCancel: { fontSize: 14, color: tColors.faculty.primary, fontWeight: typography.bold, padding: tSpacing.xs },
 
-  slotSwapSelected: { borderWidth: 2, borderColor: tColors.faculty.primary, backgroundColor: tColors.faculty.primary + '18' },
+  slotSwapSelected: { borderWidth: 2, borderColor: tColors.faculty.primary, backgroundColor: C_PRIM_09 },
 
   swapModalRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: tSpacing.md,
@@ -4070,7 +4134,7 @@ const styles = StyleSheet.create({
     marginHorizontal: tSpacing.lg, marginBottom: tSpacing.md,
     borderWidth: 1, borderColor: tColors.faculty.primary, borderRadius: tRadius.md,
     paddingVertical: 9, alignItems: 'center',
-    backgroundColor: tColors.faculty.primary + '12',
+    backgroundColor: C_PRIM_07,
   },
   availEditorBtnText: { fontSize: typography.sm, fontWeight: typography.semibold, color: tColors.faculty.primary },
 
@@ -4142,12 +4206,12 @@ const styles = StyleSheet.create({
 
   subjectSuggestionPill: {
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: tRadius.md,
-    backgroundColor: tColors.faculty.primary + '18', borderWidth: 1, borderColor: tColors.faculty.primary + '44',
+    backgroundColor: C_PRIM_09, borderWidth: 1, borderColor: C_PRIM_27,
   },
   subjectSuggestionText: { fontSize: typography.xs, color: tColors.faculty.primary, fontWeight: typography.medium },
 
   compUnresolvedCard: {
-    backgroundColor: 'rgba(251,191,36,0.04)',
+    backgroundColor: C_SAT_DIM,
     borderColor: tColors.warning,
   },
   compUnresolvedBadge: {
@@ -4266,7 +4330,7 @@ const styles = StyleSheet.create({
     padding: 3, justifyContent: 'center',
   },
   previewCellEmpty: { backgroundColor: tColors.bg },
-  previewCellHed: { backgroundColor: 'rgba(251,191,36,0.12)' },
+  previewCellHed: { backgroundColor: C_WARN_DIM },
   previewHedText: { fontSize: 9, fontWeight: typography.bold, color: tColors.warning, textAlign: 'center' },
   previewCourse: { fontSize: 9, fontWeight: typography.semibold, color: tColors.textPrimary, lineHeight: 12 },
   previewFaculty: { fontSize: 8, color: tColors.textTertiary, lineHeight: 11, marginTop: 1 },

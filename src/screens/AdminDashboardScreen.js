@@ -138,7 +138,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
           </View>
           <View>
             <Text style={styles.headerTitle}>Admin Panel</Text>
-            <Text style={styles.headerSub}>ChristConnect · Christ University</Text>
+            <Text style={styles.headerSub}>UniConnect Platform</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.signOutBtn} onPress={onSignOut} activeOpacity={0.7}>
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.amber,
     alignItems: 'center', justifyContent: 'center',
   },
-  logoIcon: { color: '#1A1A00', fontSize: 17, fontWeight: '700' },
+  logoIcon: { color: colors.textPrimary, fontSize: 17, fontWeight: '700' },
   headerTitle: { fontSize: 16, ...font.bold, color: colors.textPrimary },
   headerSub: { fontSize: 11, color: colors.textSecondary },
 
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: spacing.sm },
   actionBtn: { flex: 1, borderRadius: radius.md, paddingVertical: 10, alignItems: 'center' },
   approveBtn: { backgroundColor: colors.green },
-  approveBtnText: { fontSize: 13, ...font.bold, color: '#0F0F1A' },
+  approveBtnText: { fontSize: 13, ...font.bold, color: colors.textPrimary },
   rejectBtn: { borderWidth: 1, borderColor: colors.red },
   rejectBtnText: { fontSize: 13, ...font.bold, color: colors.red },
 
@@ -645,5 +645,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.amber, borderRadius: radius.md,
     paddingVertical: 14, alignItems: 'center', marginTop: spacing.lg,
   },
-  createConfirmBtnText: { fontSize: 15, color: '#1A1A00', ...font.bold },
+  createConfirmBtnText: { fontSize: 15, color: colors.textPrimary, ...font.bold },
 });

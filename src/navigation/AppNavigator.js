@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { APP_CONFIG } from '../config/appConfig';
+
+const splitAppName = (appName) => {
+  const match = appName.match(/^([A-Z][a-z]+)([A-Z].*)$/);
+  return match ? [match[1], match[2]] : [appName, ''];
+};
 import { Text, View, TouchableOpacity, Modal } from 'react-native';
 import { Compass, CalendarDays, Landmark, Users, GraduationCap, BookOpen, Search, Bell, User, Zap, ClipboardList, Calendar } from 'lucide-react-native';
 import NotificationsPanel from '../screens/NotificationsPanel';
@@ -223,7 +229,7 @@ export default function AppNavigator() {
               <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>✦</Text>
             </View>
             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
-              Christ<Text style={{ color: colors.primary }}>Connect</Text>
+              {splitAppName(APP_CONFIG.appName)[0]}<Text style={{ color: colors.primary }}>{splitAppName(APP_CONFIG.appName)[1]}</Text>
             </Text>
           </View>
         ),

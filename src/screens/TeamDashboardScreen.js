@@ -14,7 +14,7 @@ import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check } from '
 const STATUS_COLOR = {
   pending:  { bg: colors.amberLight,   border: colors.amber,       text: colors.amber,       label: 'Pending' },
   accepted: { bg: colors.greenLight,   border: colors.greenBorder, text: colors.green,       label: 'Confirmed' },
-  declined: { bg: '#FEF2F2',           border: '#FECACA',          text: '#DC2626',          label: 'Declined' },
+  declined: { bg: colors.redLight,      border: 'rgba(239,68,68,0.3)', text: colors.red,      label: 'Declined' },
 };
 
 export default function TeamDashboardScreen({ route, navigation }) {

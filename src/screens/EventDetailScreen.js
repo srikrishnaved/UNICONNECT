@@ -5,6 +5,7 @@ import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
 import { Calendar, MapPin, Users, Check } from 'lucide-react-native';
+import { ClubLucideIcon } from './HubScreen';
 
 export default function EventDetailScreen({ route }) {
   const event = route.params.event;
@@ -29,10 +30,10 @@ export default function EventDetailScreen({ route }) {
         {event.imageUri ? (
           <Image source={{ uri: event.imageUri }} style={styles.heroImage} resizeMode="cover" />
         ) : (
-          <View style={[styles.heroBanner, { backgroundColor: club.color + '22' }]}>
+          <View style={[styles.heroBanner, { backgroundColor: club.color + '22', justifyContent: 'center', alignItems: 'center' }]}>
             {club.logo_url
               ? <Image source={{ uri: club.logo_url }} style={styles.heroLogo} />
-              : <Text style={styles.heroEmoji}>{club.emoji}</Text>
+              : <ClubLucideIcon emoji={club.emoji} size={48} color={club.color} />
             }
           </View>
         )}

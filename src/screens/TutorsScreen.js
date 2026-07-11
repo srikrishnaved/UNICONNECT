@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   requestBtn: { backgroundColor: colors.green },
   actionBtnText: { fontSize: 12, color: '#fff', ...font.bold },
   manageBtnText: { color: colors.primary },
-  requestBtnText: { color: '#0F0F1A' },
+  requestBtnText: { color: colors.textPrimary },
 
   emptyBox: { alignItems: 'center', padding: spacing.xl },
   emptyIcon: { fontSize: 36, marginBottom: 8 },

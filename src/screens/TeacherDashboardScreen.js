@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { APP_CONFIG } from '../config/appConfig';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
@@ -23,12 +24,9 @@ import AttendanceReportScreen from '../components/AttendanceReportScreen';
 import NAACScreen from '../components/NAACScreen';
 import { Sparkles, Pencil, Bell, GraduationCap, Landmark, CircleCheck, Calendar, ClipboardList, FileText, CalendarDays, Mail, Megaphone, BookOpen, BookMarked, Users, Search, X, BarChart2, Trash2, Check, Gift, Info, Sun, User, MessageCircle, Paperclip, Timer, Clock } from 'lucide-react-native';
 
-const ALL_COURSES = ['1BcomIAF', '3BcomIAF', '5BcomIAF', '1BcomIBA', '3BcomIBA', '1BcomF&A', '3BcomF&A(A)', '3BcomF&A(B)', '5BcomF&A(A)', '5BcomF&A(B)', '7BcomF&A'];
+const ALL_COURSES = APP_CONFIG.classes;
 // Classes that have HED reserved at TUE P2 (5th-year classes have real subjects there).
-const HED_CLASSES = new Set([
-  '1BcomIBA', '1BcomF&A', '1BcomIAF',
-  '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF',
-]);
+const HED_CLASSES = new Set(APP_CONFIG.hedClasses);
 // Flip to true after creating the group_teacher_requests table in Supabase
 const GROUP_TEACHER_TABLE_EXISTS = false;
 const EMOJI_OPTIONS = ['📚', '⚡', '🧠', '💡', '🎯', '📊', '💼', '🔬', '💻', '📝', '🌏', '🎓'];
@@ -1959,7 +1957,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                             <Text style={styles.clubDashBtnArrow}>›</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={{ padding: 10, backgroundColor: '#fee2e2', borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}
+                            style={{ padding: 10, backgroundColor: tColors.errorDim, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}
                             onPress={() => Alert.alert(
                               'Delete Club',
                               `Remove "${club.fullName || club.name}" from the Hub? This cannot be undone.`,
@@ -2070,7 +2068,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
                           activeOpacity={0.7}
                         >
                           {resolvingClubReq === req.id
-                            ? <ActivityIndicator size="small" color="#0F0F1A" />
+                            ? <ActivityIndicator size="small" color={tColors.textPrimary} />
                             : <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Check size={13} color={colors.success} /><Text style={styles.resolveBtnApproveText}>Approve</Text></View>
                           }
                         </TouchableOpacity>
@@ -2623,7 +2621,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
               {!chatLoading && !chatStudentUUID ? (
                 <View style={styles.chatNoAccount}>
                   <Text style={styles.chatNoAccountText}>
-                    This student hasn't created a ChristConnect account yet. They'll appear here once they sign up.
+                    This student hasn't created a UniConnect account yet. They'll appear here once they sign up.
                   </Text>
                 </View>
               ) : (

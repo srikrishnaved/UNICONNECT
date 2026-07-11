@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS timetable_slots (
   faculty_name  text,
   batch_details text,
   is_elective   boolean DEFAULT false,
+  is_external   boolean DEFAULT false,
   created_at    timestamptz DEFAULT now(),
   updated_at    timestamptz DEFAULT now(),
   UNIQUE (class_name, day, period_name)

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 import { Users, Star, Check, Landmark, Sparkles, Search, CircleCheck } from 'lucide-react-native';
+import { ClubLucideIcon } from './HubScreen';
 
 const COURSES = ['All', 'BCom IAF', 'BCom F&A', 'BCom IBA'];
 const YEARS = ['All', '1st Year', '2nd Year', '3rd Year'];
@@ -282,6 +283,10 @@ export default function DiscoverScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Discover</Text>
+        <Text style={styles.headerSubtitle}>Find your people</Text>
+      </View>
       <View style={styles.searchBar}>
         <Search size={18} color={colors.textSecondary} />
         <TextInput
@@ -363,10 +368,10 @@ export default function DiscoverScreen() {
                       onPress={() => navigation.navigate('ClubDetail', { club: c })}
                       activeOpacity={0.75}
                     >
-                      <View style={[styles.clubEmoji, { backgroundColor: (c.color || colors.primary) + '25', overflow: 'hidden' }]}>
+                      <View style={[styles.clubEmoji, { backgroundColor: (c.color || colors.primary) + '25', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }]}>
                         {c.logo_url
                           ? <Image source={{ uri: c.logo_url }} style={styles.clubLogoImg} />
-                          : <Text style={{ fontSize: 20 }}>{c.emoji}</Text>
+                          : <ClubLucideIcon emoji={c.emoji} size={20} color={c.color || colors.primary} />
                         }
                       </View>
                       <View style={{ flex: 1 }}>
@@ -401,13 +406,22 @@ export default function DiscoverScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg, padding: spacing.md },
 
+  header: { paddingBottom: 16 },
+  headerTitle: {
+    fontSize: 28, ...font.bold, color: colors.textPrimary, letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 13, color: colors.textSecondary, fontWeight: '400', marginTop: 4,
+  },
+
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.card,
     borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: 10,
+    borderRadius: radius.full,
+    paddingHorizontal: 18, paddingVertical: 14,
     marginBottom: spacing.md,
+    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
   },
   searchIcon: { fontSize: 14 },
   searchInput: { flex: 1, fontSize: 14, color: colors.textPrimary, padding: 0 },
@@ -415,11 +429,11 @@ const styles = StyleSheet.create({
   pillRowWrap: { marginBottom: spacing.sm },
   pillRow: {
     flexDirection: 'row', alignItems: 'center',
-    gap: spacing.xs, paddingRight: spacing.lg, paddingVertical: 2,
+    gap: 8, paddingRight: spacing.lg, paddingVertical: 4,
   },
   pill: {
     borderWidth: 1, borderColor: colors.border, borderRadius: radius.full,
-    paddingHorizontal: 14, height: 32, justifyContent: 'center',
+    paddingHorizontal: 16, height: 34, justifyContent: 'center',
     alignItems: 'center', backgroundColor: colors.card,
   },
   pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
@@ -427,69 +441,75 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#fff', ...font.semibold },
 
   sectionLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.semibold, marginBottom: spacing.xs, marginTop: spacing.xs,
+    fontSize: 10, color: colors.textTertiary, letterSpacing: 1.4,
+    ...font.bold, marginBottom: spacing.sm, marginTop: spacing.xs,
+    textTransform: 'uppercase',
   },
   subLabel: {
-    fontSize: 10, color: colors.textSecondary, letterSpacing: 0.8,
-    ...font.semibold, marginBottom: spacing.sm, marginTop: spacing.md,
+    fontSize: 10, color: colors.textSecondary, letterSpacing: 1.2,
+    ...font.bold, marginBottom: spacing.sm, marginTop: spacing.lg,
+    textTransform: 'uppercase',
   },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
 
   card: {
     width: '48%',
     backgroundColor: colors.card,
     borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    borderRadius: radius.xl,
+    padding: 16,
     marginBottom: 0,
+    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
   },
   cardTop: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'flex-start', marginBottom: spacing.sm,
+    alignItems: 'center', marginBottom: 12,
   },
   avatar: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 46, height: 46, borderRadius: radius.md,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { fontSize: 14, ...font.bold },
+  avatarText: { fontSize: 15, ...font.bold },
 
   realBadge: {
     backgroundColor: colors.greenLight, borderWidth: 1, borderColor: colors.greenBorder,
-    borderRadius: radius.full, paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2,
+    alignSelf: 'flex-start', marginBottom: 8,
   },
-  realBadgeText: { fontSize: 9, ...font.bold, color: colors.green, letterSpacing: 0.5 },
+  realBadgeText: { fontSize: 8, ...font.bold, color: colors.green, letterSpacing: 0.8 },
 
   connectBtn: {
-    backgroundColor: colors.primary, borderRadius: radius.sm,
-    paddingHorizontal: 10, paddingVertical: 5,
+    backgroundColor: colors.primary, borderRadius: radius.full,
+    paddingHorizontal: 12, paddingVertical: 6,
+    alignItems: 'center', justifyContent: 'center',
   },
   connectBtnActive: {
-    backgroundColor: colors.greenLight, borderWidth: 1, borderColor: colors.greenBorder,
+    backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.greenBorder,
   },
   connectBtnPending: {
-    backgroundColor: colors.cardAlt || colors.card, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border,
   },
-  connectBtnText: { fontSize: 11, color: '#fff', ...font.semibold },
+  connectBtnText: { fontSize: 10, color: '#fff', ...font.bold, textTransform: 'uppercase', letterSpacing: 0.6 },
   connectBtnTextActive: { color: colors.green },
   connectBtnTextPending: { color: colors.textSecondary },
 
-  name: { fontSize: 13, ...font.semibold, color: colors.textPrimary, marginBottom: 4 },
+  name: { fontSize: 14, ...font.semibold, color: colors.textPrimary, marginBottom: 4 },
   courseBadge: {
     alignSelf: 'flex-start', borderRadius: radius.full,
-    paddingHorizontal: 8, paddingVertical: 2, marginBottom: 6,
+    paddingHorizontal: 10, paddingVertical: 2, marginBottom: 8,
   },
-  courseText: { fontSize: 11, ...font.semibold },
+  courseText: { fontSize: 10, ...font.bold, textTransform: 'uppercase', letterSpacing: 0.4 },
   meta: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   interest: { fontSize: 11, color: colors.textSecondary, marginTop: 4 },
 
-  sharedRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
+  sharedRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
   sharedChip: {
-    backgroundColor: colors.primaryLight, borderRadius: radius.full,
-    paddingHorizontal: 7, paddingVertical: 2,
+    backgroundColor: 'transparent', borderRadius: radius.full,
+    borderWidth: 1, borderColor: colors.primaryLight,
+    paddingHorizontal: 8, paddingVertical: 2,
   },
-  sharedChipText: { fontSize: 10, color: colors.primary, ...font.semibold },
+  sharedChipText: { fontSize: 9, color: colors.primary, ...font.bold, textTransform: 'uppercase', letterSpacing: 0.4 },
 
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyIcon: { fontSize: 36, marginBottom: 8 },
@@ -499,34 +519,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
     backgroundColor: colors.card,
     borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    borderRadius: radius.lg,
+    padding: 16,
     marginBottom: spacing.sm,
+    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
   },
   clubEmoji: {
-    width: 44, height: 44, borderRadius: radius.md,
+    width: 46, height: 46, borderRadius: radius.md,
     alignItems: 'center', justifyContent: 'center',
   },
-  clubLogoImg: { width: 44, height: 44, borderRadius: radius.md },
+  clubLogoImg: { width: 46, height: 46, borderRadius: radius.md },
   clubRowName: { fontSize: 14, ...font.semibold, color: colors.textPrimary, marginBottom: 2 },
   clubRowDesc: { fontSize: 11, color: colors.textTertiary },
   clubChevron: { fontSize: 20, color: colors.textTertiary },
 
   undoToast: {
     position: 'absolute', bottom: 24, left: 16, right: 16,
-    backgroundColor: '#1E1E2E',
-    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: 16,
+    paddingVertical: 14, paddingHorizontal: 18,
     gap: 12,
-    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
     elevation: 8,
+    borderWidth: 1, borderColor: colors.border,
   },
-  undoToastText: { flex: 1, fontSize: 13, color: '#fff', ...font.medium },
+  undoToastText: { flex: 1, fontSize: 13, color: colors.textPrimary, ...font.medium },
   undoBtn: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: radius.sm,
+    paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: radius.full,
   },
-  undoBtnText: { fontSize: 13, color: '#fff', ...font.bold },
+  undoBtnText: { fontSize: 12, color: '#fff', ...font.bold },
 });

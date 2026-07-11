@@ -639,8 +639,8 @@ const styles = StyleSheet.create({
   applyBtnText: { fontSize: 13, ...font.bold, color: '#fff' },
   pendingBtn: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   pendingBtnText: { fontSize: 13, ...font.bold, color: colors.textSecondary },
-  leaveBtn: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
-  leaveBtnText: { fontSize: 13, ...font.bold, color: '#DC2626' },
+  leaveBtn: { backgroundColor: colors.redLight, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
+  leaveBtnText: { fontSize: 13, ...font.bold, color: colors.red },
 
   dashboardBtn: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
