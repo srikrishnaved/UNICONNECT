@@ -699,8 +699,8 @@ export default function ClubDetailScreen({ route, navigation }) {
         )}
 
 
-        {/* My Contribution — visible to members who are not admins */}
-        {isMember && !isEffectiveAdmin && (
+        {/* My Contribution */}
+        {isMember && (
           <Section label="MY CONTRIBUTION & HOURS TRACKER">
             <View style={styles.myHoursTrackerBox}>
               <View style={styles.myHoursTrackerMain}>
