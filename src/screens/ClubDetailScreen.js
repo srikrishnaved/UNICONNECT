@@ -1179,6 +1179,23 @@ export default function ClubDetailScreen({ route, navigation }) {
               style={styles.modalInput}
               keyboardType="decimal-pad"
             />
+
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
+              {['1', '2', '3', '5'].map(val => (
+                <TouchableOpacity
+                  key={val}
+                  onPress={() => {
+                    const current = parseFloat(hoursForm.hours) || 0;
+                    setHoursForm(f => ({ ...f, hours: String(current + parseFloat(val)) }));
+                  }}
+                  style={styles.presetBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.presetBtnText}>+{val} Hour{val !== '1' ? 's' : ''}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             {hoursError ? (
               <Text style={{ color: tColors.error, fontSize: 12, marginTop: 6 }}>{hoursError}</Text>
             ) : null}
@@ -1960,5 +1977,19 @@ const styles = StyleSheet.create({
   historyStatusText: {
     fontSize: 8,
     fontWeight: typography.bold,
+  },
+  presetBtn: {
+    flex: 1,
+    backgroundColor: tColors.bg,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    borderRadius: tRadius.md,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  presetBtnText: {
+    fontSize: 11,
+    fontWeight: typography.bold,
+    color: tColors.textSecondary,
   },
 });

@@ -753,6 +753,22 @@ export default function TeamDetailScreen({ route, navigation }) {
               keyboardType="decimal-pad"
             />
 
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
+              {['1', '2', '3', '5'].map(val => (
+                <TouchableOpacity
+                  key={val}
+                  onPress={() => {
+                    const current = parseFloat(hoursForm.hours) || 0;
+                    setHoursForm(f => ({ ...f, hours: String(current + parseFloat(val)) }));
+                  }}
+                  style={styles.presetBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.presetBtnText}>+{val} Hour{val !== '1' ? 's' : ''}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             {hoursError ? (
               <Text style={{ color: colors.red, fontSize: 12, marginTop: 6, marginBottom: 12 }}>{hoursError}</Text>
             ) : null}
@@ -1017,5 +1033,19 @@ const styles = StyleSheet.create({
   historyStatusText: {
     fontSize: 8,
     ...font.bold,
+  },
+  presetBtn: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  presetBtnText: {
+    fontSize: 11,
+    ...font.bold,
+    color: colors.textSecondary,
   },
 });

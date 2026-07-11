@@ -47,6 +47,11 @@ export default function TeamDashboardScreen({ route, navigation }) {
   const [hoursSubmitting, setHoursSubmitting] = useState(false);
   const [hoursError, setHoursError] = useState('');
 
+  // Coordinator Hours Approval states
+  const [pendingHourReqs, setPendingHourReqs] = useState([]);
+  const [pendingHourProfiles, setPendingHourProfiles] = useState({});
+  const [resolvingHourReq, setResolvingHourReq] = useState(null);
+
   const loadAll = useCallback(async () => {
     const { data: eventsData } = await supabase
       .from('hub_events')
@@ -59,7 +64,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
 
     const eventIds = eventsList.map(e => String(e.id));
 
-    const [assignmentsRes, memberRowsRes, hoursRes, adjRes] = await Promise.all([
+    const [assignmentsRes, memberRowsRes, hoursRes, adjRes, pendingRes] = await Promise.all([
       eventIds.length
         ? supabase.from('event_member_assignments').select('*').eq('team_id', teamId).in('event_id', eventIds)
         : Promise.resolve({ data: [] }),
@@ -67,6 +72,9 @@ export default function TeamDashboardScreen({ route, navigation }) {
       supabase.from('club_member_hours').select('user_id, total_hours').eq('club_id', teamId),
       userProfile?.id
         ? supabase.from('hour_adjustments').select('id, hours_delta, reason, status, created_at').eq('user_id', userProfile.id).eq('club_id', teamId).order('created_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
+      isEffectiveAdmin
+        ? supabase.from('hour_adjustments').select('*').eq('club_id', teamId).eq('status', 'pending').order('created_at', { ascending: false })
         : Promise.resolve({ data: [] }),
     ]);
 
@@ -78,19 +86,28 @@ export default function TeamDashboardScreen({ route, navigation }) {
     setMemberHours(hoursMap);
     setMyAdjustments(adjRes.data || []);
 
+    const reqs = pendingRes.data || [];
+    setPendingHourReqs(reqs);
+
     const memberIds = (memberRowsRes.data || []).map(r => r.user_id);
     const assignedIds = assignmentsList.map(a => a.user_id);
-    const allIds = [...new Set([...memberIds, ...assignedIds])];
+    const reqUserIds = reqs.map(r => r.user_id);
+    const allIds = [...new Set([...memberIds, ...assignedIds, ...reqUserIds])];
 
     if (allIds.length > 0) {
       const { data: profilesData } = await supabase
         .from('profiles').select('id, name, course, year').in('id', allIds);
       const map = {};
-      (profilesData || []).forEach(p => { map[p.id] = p; });
+      const profNames = {};
+      (profilesData || []).forEach(p => { 
+        map[p.id] = p; 
+        profNames[p.id] = p.name;
+      });
       setProfiles(map);
+      setPendingHourProfiles(prev => ({ ...prev, ...profNames }));
       setTeamMembers(memberIds.map(id => map[id]).filter(Boolean));
     }
-  }, [teamId, userProfile?.id]);
+  }, [teamId, userProfile?.id, isEffectiveAdmin]);
 
   useEffect(() => {
     loadAll().finally(() => setLoading(false));
@@ -192,6 +209,59 @@ export default function TeamDashboardScreen({ route, navigation }) {
       .eq('club_id', teamId)
       .order('created_at', { ascending: false });
     setMyAdjustments(adjData || []);
+  };
+
+  const handleApproveHours = async (req) => {
+    setResolvingHourReq(req.id);
+    const { error } = await supabase.from('hour_adjustments').update({ status: 'approved' }).eq('id', req.id);
+    if (error) {
+      alert('Could not approve: ' + error.message);
+      setResolvingHourReq(null);
+      return;
+    }
+
+    const currentHours = memberHours[req.user_id] || 0;
+    const newHours = currentHours + Number(req.hours_delta);
+    
+    const { data: existingHours } = await supabase.from('club_member_hours').select('id').eq('user_id', req.user_id).eq('club_id', teamId).maybeSingle();
+    if (existingHours) {
+      await supabase.from('club_member_hours').update({ total_hours: newHours }).eq('id', existingHours.id);
+    } else {
+      await supabase.from('club_member_hours').insert({ user_id: req.user_id, club_id: teamId, total_hours: newHours });
+    }
+
+    createNotification(
+      req.user_id, 'info',
+      `Hours request approved!`,
+      `Your request for +${req.hours_delta}h in ${team.name} has been approved.`,
+      { club_id: teamId }
+    );
+
+    setMemberHours(prev => ({ ...prev, [req.user_id]: newHours }));
+    setPendingHourReqs(prev => prev.filter(r => r.id !== req.id));
+    setResolvingHourReq(null);
+    Alert.alert('Approved', `Approved +${req.hours_delta}h for member.`);
+  };
+
+  const handleRejectHours = async (req) => {
+    setResolvingHourReq(req.id);
+    const { error } = await supabase.from('hour_adjustments').update({ status: 'rejected' }).eq('id', req.id);
+    if (error) {
+      alert('Could not reject: ' + error.message);
+      setResolvingHourReq(null);
+      return;
+    }
+
+    createNotification(
+      req.user_id, 'info',
+      `Hours request declined`,
+      `Your request for +${req.hours_delta}h in ${team.name} was declined.`,
+      { club_id: teamId }
+    );
+
+    setPendingHourReqs(prev => prev.filter(r => r.id !== req.id));
+    setResolvingHourReq(null);
+    Alert.alert('Declined', 'Hours request declined.');
   };
 
   // Sort team members for the modal: unassigned first, then sorted by hours ascending (lowest hours first)
@@ -421,6 +491,48 @@ export default function TeamDashboardScreen({ route, navigation }) {
                 </View>
                 <Text style={styles.adminActionArrow}>›</Text>
               </TouchableOpacity>
+
+              {/* Pending Hours Requests */}
+              {pendingHourReqs.length > 0 && (
+                <View style={{ marginTop: spacing.md, marginBottom: spacing.sm }}>
+                  <Text style={styles.hoursSubLabel}>PENDING HOURS REQUESTS</Text>
+                  {pendingHourReqs.map(req => (
+                    <View key={req.id} style={styles.hourReqCard}>
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <Text style={styles.memberRowName}>{pendingHourProfiles[req.user_id] || 'Unknown member'}</Text>
+                        <Text style={styles.memberRowMeta} numberOfLines={1}>{req.reason}</Text>
+                        <Text style={[styles.memberRowMeta, { color: colors.primary, ...font.bold }]}>+{req.hours_delta}h requested</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                        <TouchableOpacity
+                          style={[styles.hourReqBtn, { backgroundColor: colors.redLight, borderColor: colors.red }]}
+                          onPress={() => handleRejectHours(req)}
+                          disabled={resolvingHourReq === req.id}
+                          activeOpacity={0.7}
+                        >
+                          {resolvingHourReq === req.id ? (
+                            <ActivityIndicator size="small" color={colors.red} />
+                          ) : (
+                            <Text style={[styles.hourReqBtnText, { color: colors.red }]}>Reject</Text>
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.hourReqBtn, { backgroundColor: colors.greenLight, borderColor: colors.green }]}
+                          onPress={() => handleApproveHours(req)}
+                          disabled={resolvingHourReq === req.id}
+                          activeOpacity={0.7}
+                        >
+                          {resolvingHourReq === req.id ? (
+                            <ActivityIndicator size="small" color={colors.green} />
+                          ) : (
+                            <Text style={[styles.hourReqBtnText, { color: colors.green }]}>Approve</Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
             </>
           )}
 
@@ -651,6 +763,22 @@ export default function TeamDashboardScreen({ route, navigation }) {
               style={styles.modalInput}
               keyboardType="decimal-pad"
             />
+
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
+              {['1', '2', '3', '5'].map(val => (
+                <TouchableOpacity
+                  key={val}
+                  onPress={() => {
+                    const current = parseFloat(hoursForm.hours) || 0;
+                    setHoursForm(f => ({ ...f, hours: String(current + parseFloat(val)) }));
+                  }}
+                  style={styles.presetBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.presetBtnText}>+{val} Hour{val !== '1' ? 's' : ''}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             {hoursError ? (
               <Text style={{ color: colors.red, fontSize: 12, marginTop: 6, marginBottom: 12 }}>{hoursError}</Text>
@@ -959,5 +1087,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     ...font.bold,
     color: '#fff',
+  },
+  presetBtn: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  presetBtnText: {
+    fontSize: 11,
+    ...font.bold,
+    color: colors.textSecondary,
+  },
+  hoursSubLabel: {
+    fontSize: 9,
+    ...font.bold,
+    color: colors.textTertiary,
+    letterSpacing: 0.8,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+  },
+  hourReqCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  memberRowName: {
+    fontSize: 13,
+    ...font.bold,
+    color: colors.textPrimary,
+  },
+  memberRowMeta: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  hourReqBtn: {
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hourReqBtnText: {
+    fontSize: 11,
+    ...font.bold,
   },
 });
