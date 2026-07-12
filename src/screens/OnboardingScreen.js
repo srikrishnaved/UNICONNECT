@@ -16,7 +16,7 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X } from 'lucide-react-native';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
 import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
@@ -925,11 +925,11 @@ export default function OnboardingScreen() {
           >
             {/* Logo and Title */}
             <View style={siStyles.headerContainer}>
-              <View style={[siStyles.logoMark, { backgroundColor: accentColor }]}>
-                <Text style={siStyles.logoMarkText}>✦</Text>
+              <View style={[siStyles.logoMark, { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.08)', borderWidth: 1 }]}>
+                <Layers size={22} color={accentColor} />
               </View>
               <Text style={siStyles.title}>UniConnect</Text>
-              <Text style={siStyles.subtitle}>Your academic workspace, unified.</Text>
+              <Text style={siStyles.subtitle}>Sign in to your university workspace</Text>
             </View>
 
             {/* Role selector Segment Control */}
@@ -942,7 +942,7 @@ export default function OnboardingScreen() {
                 onPress={() => setSelectedRole('student')}
                 activeOpacity={0.8}
               >
-                <GraduationCap size={16} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
+                <User size={14} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
                 <Text style={[
                   siStyles.roleName,
                   selectedRole === 'student' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
@@ -957,7 +957,7 @@ export default function OnboardingScreen() {
                 onPress={() => setSelectedRole('faculty')}
                 activeOpacity={0.8}
               >
-                <School size={16} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
+                <BookOpen size={14} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
                 <Text style={[
                   siStyles.roleName,
                   selectedRole === 'faculty' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
@@ -1746,17 +1746,12 @@ const siStyles = StyleSheet.create({
     marginBottom: 32,
   },
   logoMark: {
-    width: 54,
-    height: 54,
-    borderRadius: 16,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: tSpacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 16,
   },
   logoMarkText: {
     color: '#fff',
@@ -1764,17 +1759,19 @@ const siStyles = StyleSheet.create({
     fontWeight: '700',
   },
   title: {
-    fontFamily: typography.fontHeading,
-    fontSize: 36,
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 32,
     color: '#ffffff',
-    fontWeight: '750',
-    marginBottom: 4,
+    fontWeight: '600',
+    letterSpacing: -0.8,
+    marginBottom: 6,
     textAlign: 'center',
-    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
   },
   subtitle: {
-    fontSize: typography.sm,
-    color: 'rgba(255, 255, 255, 0.55)',
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.45)',
+    letterSpacing: -0.1,
     textAlign: 'center',
   },
   roleRow: {
