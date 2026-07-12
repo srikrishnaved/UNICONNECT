@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
@@ -35,6 +35,128 @@ const splitAppName = (appName) => {
 export default function OnboardingScreen() {
   const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
   const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
+
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+
+  const activeAccentColor = selectedRole === 'faculty'
+    ? tColors.faculty.primary
+    : tColors.student.primary;
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || step !== 'signin') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    // Resize handler
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Mouse tracking
+    const handleMouseMove = (e) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Create blobs
+    const colorsList = [
+      activeAccentColor,
+      '#6366f1', // Indigo
+      '#d97706', // Amber
+      '#06b6d4', // Cyan
+      '#8b5cf6', // Purple
+    ];
+
+    const blobs = Array.from({ length: 6 }).map((_, i) => {
+      const radius = 130 + Math.random() * 120;
+      return {
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: 0,
+        vy: 0,
+        baseVx: (Math.random() - 0.5) * 0.7,
+        baseVy: (Math.random() - 0.5) * 0.7,
+        radius,
+        color: colorsList[i % colorsList.length],
+      };
+    });
+
+    // Animation Loop
+    const tick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      blobs.forEach(blob => {
+        // Mouse repulsion force
+        if (mx > -500 && my > -500) {
+          const dx = blob.x - mx;
+          const dy = blob.y - my;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 320) {
+            const force = (320 - dist) / 320 * 0.55;
+            blob.vx += (dx / dist) * force;
+            blob.vy += (dy / dist) * force;
+          }
+        }
+
+        // Damping and constant movement
+        blob.vx *= 0.95;
+        blob.vy *= 0.95;
+        blob.x += blob.vx + blob.baseVx;
+        blob.y += blob.vy + blob.baseVy;
+
+        // Boundary collision (bounce)
+        if (blob.x - blob.radius < 0) {
+          blob.x = blob.radius;
+          blob.baseVx *= -1;
+        } else if (blob.x + blob.radius > canvas.width) {
+          blob.x = canvas.width - blob.radius;
+          blob.baseVx *= -1;
+        }
+
+        if (blob.y - blob.radius < 0) {
+          blob.y = blob.radius;
+          blob.baseVy *= -1;
+        } else if (blob.y + blob.radius > canvas.height) {
+          blob.y = canvas.height - blob.radius;
+          blob.baseVy *= -1;
+        }
+
+        // Draw radial gradient for liquid look
+        const grad = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, blob.radius
+        );
+        grad.addColorStop(0, blob.color);
+        grad.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      });
+
+      animationFrameId = requestAnimationFrame(tick);
+    };
+
+    tick();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [activeAccentColor, step]);
 
   // 'roleSelect' | 'signup' | 'signin' | 'picker' | 'interests' | 'allset' | 'teacherSignup' | 'teacherIdentity' | 'teacherSubjects'
   const [step, setStep] = useState('signin');
@@ -885,37 +1007,25 @@ export default function OnboardingScreen() {
       ? tColors.faculty.primary
       : tColors.student.primary;
 
-    const styleTag = `
-      @keyframes float-blob-1 {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(50px, -70px) scale(1.2); }
-        66% { transform: translate(-30px, 50px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-      }
-      @keyframes float-blob-2 {
-        0% { transform: translate(0px, 0px) scale(1); }
-        50% { transform: translate(-70px, 60px) scale(1.15); }
-        100% { transform: translate(0px, 0px) scale(1); }
-      }
-      .floating-blob-1 {
-        animation: float-blob-1 18s infinite ease-in-out;
-      }
-      .floating-blob-2 {
-        animation: float-blob-2 22s infinite ease-in-out;
-      }
-    `;
-
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#06050b' }}>
         {Platform.OS === 'web' && (
-          <>
-            <style dangerouslySetInnerHTML={{ __html: styleTag }} />
-            <View style={siStyles.bgWrapper}>
-              <View style={[siStyles.bgBlob, siStyles.bgBlob1, { backgroundColor: accentColor }]} className="floating-blob-1" />
-              <View style={[siStyles.bgBlob, siStyles.bgBlob2, { backgroundColor: '#6366f1' }]} className="floating-blob-2" />
-              <View style={[siStyles.bgBlob, siStyles.bgBlob3, { backgroundColor: '#d97706' }]} className="floating-blob-1" />
-            </View>
-          </>
+          <canvas
+            ref={canvasRef}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%',
+              filter: 'blur(85px)',
+              opacity: 0.35,
+              pointerEvents: 'none',
+              zIndex: -1,
+            }}
+          />
         )}
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView
