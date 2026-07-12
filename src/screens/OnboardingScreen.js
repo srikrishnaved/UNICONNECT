@@ -1020,11 +1020,17 @@ export default function OnboardingScreen() {
 
             {/* Footer links */}
             <View style={siStyles.footerRow}>
-              <Text style={siStyles.footerLink}>Privacy Policy</Text>
+              <TouchableOpacity onPress={() => setLegalModal('privacy')} activeOpacity={0.7}>
+                <Text style={siStyles.footerLink}>Privacy Policy</Text>
+              </TouchableOpacity>
               <Text style={siStyles.footerSep}>·</Text>
-              <Text style={siStyles.footerLink}>Security</Text>
+              <TouchableOpacity onPress={() => setLegalModal('security')} activeOpacity={0.7}>
+                <Text style={siStyles.footerLink}>Security</Text>
+              </TouchableOpacity>
               <Text style={siStyles.footerSep}>·</Text>
-              <Text style={siStyles.footerLink}>Support</Text>
+              <TouchableOpacity onPress={() => setLegalModal('support')} activeOpacity={0.7}>
+                <Text style={siStyles.footerLink}>Support</Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>

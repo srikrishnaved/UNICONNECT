@@ -479,6 +479,14 @@ export default function MyProfileScreen() {
           <TouchableOpacity onPress={() => navigation.navigate('Legal', { type: 'terms' })} activeOpacity={0.7}>
             <Text style={styles.legalLink}>Terms of Service</Text>
           </TouchableOpacity>
+          <Text style={styles.legalDot}>·</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Legal', { type: 'security' })} activeOpacity={0.7}>
+            <Text style={styles.legalLink}>Security</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalDot}>·</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Legal', { type: 'support' })} activeOpacity={0.7}>
+            <Text style={styles.legalLink}>Support</Text>
+          </TouchableOpacity>
         </View>
 
         {!userProfile?.is_super_admin && (

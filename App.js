@@ -258,9 +258,14 @@ function AppShell() {
             <Stack.Screen name="DM" component={DMScreen} options={{ title: '' }} />
             <Stack.Screen name="Search" component={SearchScreen} options={{ title: 'Search' }} />
             <Stack.Screen name="EventDetail" component={EventDetailScreen} options={{ title: 'Event' }} />
-            <Stack.Screen name="Legal" component={LegalScreen} options={({ route }) => ({
-              title: route.params?.type === 'terms' ? 'Terms of Service' : 'Privacy Policy',
-            })} />
+            <Stack.Screen name="Legal" component={LegalScreen} options={({ route }) => {
+              const type = route.params?.type;
+              let title = 'Privacy Policy';
+              if (type === 'terms') title = 'Terms of Service';
+              else if (type === 'security') title = 'Security & Safety';
+              else if (type === 'support') title = 'Support & Help';
+              return { title };
+            }} />
             <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} options={{ title: 'Privacy Policy' }} />
             <Stack.Screen name="Terms" component={TermsOfServiceScreen} options={{ title: 'Terms of Service' }} />
           </Stack.Navigator>

@@ -90,12 +90,72 @@ const TERMS_OF_SERVICE = [
   },
 ];
 
+const SECURITY_POLICY = [
+  {
+    heading: 'Overview',
+    body: 'UniConnect prioritises the security and safety of all institutional data, user profiles, and communications. This policy explains our security standards, data safeguards, and guidance for reporting vulnerabilities.',
+  },
+  {
+    heading: 'Data Security & Storage',
+    body: 'All database transactions and student/faculty profiles are hosted in securely isolated Supabase containers. Access tokens are encrypted, and passwords are authenticated securely using standard scrypt key derivation. All database records are protected by Role-Level Security (RLS) policies.',
+  },
+  {
+    heading: 'Institutional Verification',
+    body: 'Access is strictly limited to verified students and faculty. Administrators routinely audit the roster. Accounts representing inactive users, withdrawn students, or unauthorized external domains are suspended immediately.',
+  },
+  {
+    heading: 'Safety & Reporting',
+    body: 'To maintain a safe academic workspace, users can report any post, event, group chat, or profile. Reports are instantly logged and forwarded to the University Administrator. Violations of acceptable use policies (harassment, spam, or impersonation) lead to permanent account suspension.',
+  },
+  {
+    heading: 'Reporting Vulnerabilities',
+    body: 'If you discover any security loophole, data leak, or access control bypass, please report it immediately to security@uniconnect.app or the support contact below. Do not disclose vulnerabilities publicly before a patch is deployed.',
+  },
+  {
+    heading: 'Contact',
+    body: 'For security concerns, contact:\nsrikrishnavedkodakalla@gmail.com\n\nThis policy was last updated on 12 July 2026.',
+  },
+];
+
+const SUPPORT_INFO = [
+  {
+    heading: 'Support Overview',
+    body: 'UniConnect is designed to be self-configuring and easy to use. If you encounter any technical issues, login problems, or need help navigating features, review the FAQs below or contact our desk.',
+  },
+  {
+    heading: 'Frequently Asked Questions',
+    body: '• My account is pending approval: Account approvals are managed by your institution\'s Super Admin or Class Representative. Platform support cannot override institutional approvals.\n\n• Can\'t access certain features: Features like Timetables, Attendance, NAAC, or Clubs can be disabled by your university. If a tab is missing, your institution has opted to turn that service pillar off.\n\n• AI study planner errors: Ensure uploaded course structures are in PDF or plain TXT format and under 5MB.',
+  },
+  {
+    heading: 'Contact Support',
+    body: 'For technical inquiries, bug reports, or feature requests, contact:\nsrikrishnavedkodakalla@gmail.com\n\nWe aim to respond to all technical tickets within 24 to 48 hours. Please include your registered email, institutional subdomain, and screenshots of the issue.',
+  },
+];
+
 export default function LegalScreen({ route }) {
   const type = route?.params?.type ?? 'privacy';
-  const isPrivacy = type === 'privacy';
-  const sections = isPrivacy ? PRIVACY_POLICY : TERMS_OF_SERVICE;
-  const titleIcon = isPrivacy ? <Lock size={20} color={colors.textSecondary} /> : <ClipboardList size={20} color={colors.textSecondary} />;
-  const titleText = isPrivacy ? 'Privacy Policy' : 'Terms of Service';
+  
+  let sections = PRIVACY_POLICY;
+  let titleText = 'Privacy Policy';
+  let titleIcon = <Lock size={20} color={colors.textSecondary} />;
+
+  if (type === 'privacy') {
+    sections = PRIVACY_POLICY;
+    titleText = 'Privacy Policy';
+    titleIcon = <Lock size={20} color={colors.textSecondary} />;
+  } else if (type === 'terms') {
+    sections = TERMS_OF_SERVICE;
+    titleText = 'Terms of Service';
+    titleIcon = <ClipboardList size={20} color={colors.textSecondary} />;
+  } else if (type === 'security') {
+    sections = SECURITY_POLICY;
+    titleText = 'Security & Safety Policy';
+    titleIcon = <Lock size={20} color={colors.textSecondary} />;
+  } else if (type === 'support') {
+    sections = SUPPORT_INFO;
+    titleText = 'Support & Help Desk';
+    titleIcon = <ClipboardList size={20} color={colors.textSecondary} />;
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
