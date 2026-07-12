@@ -69,9 +69,21 @@ export default function OnboardingScreen() {
     };
     window.addEventListener('mousemove', handleMouseMove);
 
+    // Helper to resolve CSS variables like var(--color, fallback) for Canvas compatibility
+    const parseCanvasColor = (col) => {
+      if (typeof col !== 'string') return '#c9622e';
+      if (col.startsWith('var(')) {
+        const parts = col.split(',');
+        if (parts.length > 1) {
+          return parts[1].replace(')', '').trim();
+        }
+      }
+      return col;
+    };
+
     // Create blobs
     const colorsList = [
-      activeAccentColor,
+      parseCanvasColor(activeAccentColor),
       '#6366f1', // Indigo
       '#d97706', // Amber
       '#06b6d4', // Cyan
