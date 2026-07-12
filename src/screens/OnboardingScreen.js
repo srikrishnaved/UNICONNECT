@@ -895,50 +895,67 @@ export default function OnboardingScreen() {
             <View style={siStyles.showroomGlow1} />
             <View style={siStyles.showroomGlow2} />
             <View style={siStyles.showroomContent}>
-              <Text style={siStyles.showroomTitle}>ChristConnect</Text>
-              <Text style={siStyles.showroomSubtitle}>The academic platform trusted by leading universities for administration, NAAC auditing, and student life.</Text>
-              
-              {/* Stats Section */}
-              <View style={siStyles.statsSection}>
-                <Text style={siStyles.sectionLabel}>PLATFORM IMPACT</Text>
-                <View style={siStyles.statsGrid}>
-                  {/* Stat 1 */}
-                  <View style={siStyles.statBox}>
-                    <Text style={siStyles.statNumber}>12,000+</Text>
-                    <Text style={siStyles.statLabel}>Active Students & Faculty</Text>
-                  </View>
-
-                  {/* Stat 2 */}
-                  <View style={siStyles.statBox}>
-                    <Text style={siStyles.statNumber}>99.8%</Text>
-                    <Text style={siStyles.statLabel}>Attendance Tracking Accuracy</Text>
-                  </View>
-
-                  {/* Stat 3 */}
-                  <View style={siStyles.statBox}>
-                    <Text style={siStyles.statNumber}>85%</Text>
-                    <Text style={siStyles.statLabel}>NAAC Compilation Time Saved</Text>
-                  </View>
+              <View style={siStyles.eventsHeader}>
+                <View style={siStyles.eventsBadge}>
+                  <Sparkles size={12} color="#f97316" />
+                  <Text style={siStyles.eventsBadgeText}>CAMPUS EVENTS</Text>
                 </View>
+                <Text style={siStyles.showroomTitle}>Upcoming Flyers</Text>
+                <Text style={siStyles.showroomSubtitle}>Explore what's happening at your university workspace this week.</Text>
               </View>
-
-              {/* Testimonial Card */}
-              <View style={siStyles.testimonialCard}>
-                <View style={siStyles.starsRow}>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <Star key={n} size={14} color="#f59e0b" fill="#f59e0b" style={{ marginRight: 3 }} />
-                  ))}
-                </View>
-                <Text style={siStyles.quoteText}>
-                  "ChristConnect turned our manual NAAC file compilation into a weeks-long automation. The clubs portal keeps our campus alive and connected."
-                </Text>
-                <View style={siStyles.authorRow}>
-                  <View style={siStyles.authorAvatar}>
-                    <Text style={siStyles.avatarText}>MJ</Text>
+              
+              <View style={siStyles.eventsList}>
+                {/* Event Card 1: Hackathon */}
+                <View style={siStyles.eventFlyer}>
+                  <View style={[siStyles.flyerPoster, { backgroundColor: '#6366f1' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }]}>
+                    <Text style={siStyles.flyerMonth}>JUL</Text>
+                    <Text style={siStyles.flyerDay}>20</Text>
                   </View>
-                  <View>
-                    <Text style={siStyles.authorName}>Dr. Maria Joseph</Text>
-                    <Text style={siStyles.authorRole}>Registrar, Christ University</Text>
+                  <View style={siStyles.flyerDetails}>
+                    <View style={siStyles.flyerHeaderRow}>
+                      <Text style={siStyles.flyerCategory}>HACKATHON</Text>
+                      <View style={siStyles.flyerStatusBadge}>
+                        <Text style={siStyles.flyerStatusText}>120+ RSVP</Text>
+                      </View>
+                    </View>
+                    <Text style={siStyles.flyerTitle}>Mega Tech Hackathon 2026</Text>
+                    <Text style={siStyles.flyerMeta}>9:00 AM · Central Seminar Hall</Text>
+                  </View>
+                </View>
+
+                {/* Event Card 2: Cultural Fest */}
+                <View style={siStyles.eventFlyer}>
+                  <View style={[siStyles.flyerPoster, { backgroundColor: '#ec4899' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #ec4899, #f43f5e)' }]}>
+                    <Text style={siStyles.flyerMonth}>AUG</Text>
+                    <Text style={siStyles.flyerDay}>05</Text>
+                  </View>
+                  <View style={siStyles.flyerDetails}>
+                    <View style={siStyles.flyerHeaderRow}>
+                      <Text style={siStyles.flyerCategory}>CULTURAL FEST</Text>
+                      <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(236, 72, 153, 0.15)' }]}>
+                        <Text style={[siStyles.flyerStatusText, { color: '#ec4899' }]}>Open to All</Text>
+                      </View>
+                    </View>
+                    <Text style={siStyles.flyerTitle}>Sargam Cultural Fest 2026</Text>
+                    <Text style={siStyles.flyerMeta}>10:00 AM · Main Auditorium</Text>
+                  </View>
+                </View>
+
+                {/* Event Card 3: GenAI Lecture */}
+                <View style={siStyles.eventFlyer}>
+                  <View style={[siStyles.flyerPoster, { backgroundColor: '#059669' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #059669, #10b981)' }]}>
+                    <Text style={siStyles.flyerMonth}>JUL</Text>
+                    <Text style={siStyles.flyerDay}>15</Text>
+                  </View>
+                  <View style={siStyles.flyerDetails}>
+                    <View style={siStyles.flyerHeaderRow}>
+                      <Text style={siStyles.flyerCategory}>GUEST LECTURE</Text>
+                      <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
+                        <Text style={[siStyles.flyerStatusText, { color: '#10b981' }]}>GenAI Core</Text>
+                      </View>
+                    </View>
+                    <Text style={siStyles.flyerTitle}>Academic Guest Lecture on GenAI</Text>
+                    <Text style={siStyles.flyerMeta}>2:00 PM · Room 302</Text>
                   </View>
                 </View>
               </View>
@@ -2038,95 +2055,95 @@ const siStyles = StyleSheet.create({
     marginBottom: 40,
     maxWidth: 480,
   },
-  statsSection: {
-    marginVertical: 36,
+  eventsHeader: {
+    marginBottom: 24,
   },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#3b82f6',
-    letterSpacing: 1.5,
-    marginBottom: 16,
-  },
-  statsGrid: {
+  eventsBadge: {
     flexDirection: 'row',
-    gap: 16,
-    flexWrap: 'wrap',
-  },
-  statBox: {
-    flex: 1,
-    minWidth: 140,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 16,
-  },
-  statNumber: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.45)',
-    lineHeight: 16,
-  },
-  testimonialCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
-    marginTop: 10,
-    position: 'relative',
-  },
-  starsRow: {
-    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 99,
     marginBottom: 12,
   },
-  quoteText: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 22,
-    fontStyle: 'italic',
-    marginBottom: 20,
+  eventsBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#f97316',
+    letterSpacing: 1,
   },
-  authorRow: {
+  eventsList: {
+    gap: 16,
+  },
+  eventFlyer: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    padding: 12,
     alignItems: 'center',
   },
-  authorAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+  flyerPoster: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    marginRight: 16,
   },
-  avatarText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#3b82f6',
+  flyerMonth: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 0.5,
   },
-  authorName: {
+  flyerDay: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#ffffff',
+    marginTop: -2,
+  },
+  flyerDetails: {
+    flex: 1,
+  },
+  flyerHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  flyerCategory: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.4)',
+    letterSpacing: 0.5,
+  },
+  flyerStatusBadge: {
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 99,
+  },
+  flyerStatusText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#8b5cf6',
+  },
+  flyerTitle: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
+    marginBottom: 2,
   },
-  authorRole: {
+  flyerMeta: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 11,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.4)',
-    marginTop: 1,
   },
   formPanel: {
     flex: 1,
