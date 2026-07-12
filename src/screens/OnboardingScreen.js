@@ -97,6 +97,18 @@ export default function OnboardingScreen() {
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  const handleRegisterUniversityPress = () => {
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+    const url = isDev ? 'http://localhost:5173' : 'https://uni-registration.vercel.app';
+    if (Platform.OS === 'web') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Workspace Onboarding', `Visit the university registration portal at ${url} on your desktop browser.`);
+      });
+    }
+  };
+
   // University setup request fields
   const [uniName, setUniName] = useState('');
   const [uniWebsite, setUniWebsite] = useState('');
@@ -388,7 +400,7 @@ export default function OnboardingScreen() {
 
           <TouchableOpacity
             style={[styles.roleCard, { borderColor: colors.green, marginTop: spacing.sm }]}
-            onPress={() => setStep('uniRequest')}
+            onPress={handleRegisterUniversityPress}
             activeOpacity={0.85}
           >
             <School size={32} color={colors.accent} />
@@ -1020,9 +1032,7 @@ export default function OnboardingScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              onPress={() => {
-                setStep('uniRequest');
-              }} 
+              onPress={handleRegisterUniversityPress} 
               activeOpacity={0.7} 
               style={[styles.switchRow, { marginTop: 10 }]}
             >
