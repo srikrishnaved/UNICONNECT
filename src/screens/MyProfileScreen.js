@@ -479,95 +479,99 @@ export default function MyProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── My Attendance ────────────────────────────────────────────── */}
-        <TouchableOpacity
-          style={styles.crDashBtn}
-          onPress={() => setShowReport(true)}
-          activeOpacity={0.85}
-        >
-          <ClipboardList size={20} color={tColors.textSecondary} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.crDashBtnTitle}>My Attendance</Text>
-            <Text style={styles.crDashBtnSub}>View your attendance records</Text>
-          </View>
-          <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
-        </TouchableOpacity>
+        {!userProfile?.is_super_admin && (
+          <>
+            {/* ── My Attendance ────────────────────────────────────────────── */}
+            <TouchableOpacity
+              style={styles.crDashBtn}
+              onPress={() => setShowReport(true)}
+              activeOpacity={0.85}
+            >
+              <ClipboardList size={20} color={tColors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.crDashBtnTitle}>My Attendance</Text>
+                <Text style={styles.crDashBtnSub}>View your attendance records</Text>
+              </View>
+              <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
+            </TouchableOpacity>
 
-        {/* ── Class Representative ─────────────────────────────────────── */}
-        {crStatus === 'approved' ? (
-          <TouchableOpacity
-            style={styles.crDashBtn}
-            onPress={() => setShowCRDashboard(true)}
-            activeOpacity={0.85}
-          >
-            <ClipboardList size={20} color={tColors.textSecondary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crDashBtnTitle}>CR Dashboard</Text>
-              <Text style={styles.crDashBtnSub}>Open your Class Representative tools</Text>
-            </View>
-            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
-          </TouchableOpacity>
-        ) : crStatus === 'pending' ? (
-          <View style={styles.crPendingCard}>
-            <Clock size={20} color={tColors.warning} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crPendingTitle}>CR Application Pending</Text>
-              <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.crApplyBtn}
-            onPress={() => { setShowCRApply(true); setCrApplyError(''); setCrReason(''); }}
-            activeOpacity={0.85}
-          >
-            <Award size={20} color={tColors.textSecondary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crApplyBtnTitle}>Apply as Class Representative</Text>
-              <Text style={styles.crApplyBtnSub}>Submit an application for admin approval</Text>
-            </View>
-            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
-          </TouchableOpacity>
-        )}
+            {/* ── Class Representative ─────────────────────────────────────── */}
+            {crStatus === 'approved' ? (
+              <TouchableOpacity
+                style={styles.crDashBtn}
+                onPress={() => setShowCRDashboard(true)}
+                activeOpacity={0.85}
+              >
+                <ClipboardList size={20} color={tColors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crDashBtnTitle}>CR Dashboard</Text>
+                  <Text style={styles.crDashBtnSub}>Open your Class Representative tools</Text>
+                </View>
+                <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
+              </TouchableOpacity>
+            ) : crStatus === 'pending' ? (
+              <View style={styles.crPendingCard}>
+                <Clock size={20} color={tColors.warning} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crPendingTitle}>CR Application Pending</Text>
+                  <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.crApplyBtn}
+                onPress={() => { setShowCRApply(true); setCrApplyError(''); setCrReason(''); }}
+                activeOpacity={0.85}
+              >
+                <Award size={20} color={tColors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crApplyBtnTitle}>Apply as Class Representative</Text>
+                  <Text style={styles.crApplyBtnSub}>Submit an application for admin approval</Text>
+                </View>
+                <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
+              </TouchableOpacity>
+            )}
 
-        {/* ── SAPS Core Team ──────────────────────────────────────────── */}
-        {sapsMyRole !== null ? (
-          <View style={styles.crDashBtn}>
-            <Star size={20} color={tColors.textSecondary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crDashBtnTitle}>SAPS Core Team</Text>
-              <Text style={styles.crDashBtnSub}>{sapsMyRole}</Text>
-            </View>
-          </View>
-        ) : availableSapsRoles.length === 0 ? (
-          <View style={styles.crPendingCard}>
-            <Check size={20} color={tColors.warning} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crPendingTitle}>SAPS Core Team is complete</Text>
-              <Text style={styles.crPendingSub}>All 5 positions have been filled</Text>
-            </View>
-          </View>
-        ) : sapsAppStatus === 'pending' ? (
-          <View style={styles.crPendingCard}>
-            <Clock size={20} color={tColors.warning} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crPendingTitle}>SAPS Application Pending</Text>
-              <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.crApplyBtn}
-            onPress={() => { setSapsApplyError(''); setSapsSelectedRole(null); setShowSapsApply(true); }}
-            activeOpacity={0.85}
-          >
-            <Star size={20} color={tColors.textSecondary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.crApplyBtnTitle}>Apply for SAPS Core Team</Text>
-              <Text style={styles.crApplyBtnSub}>Choose a role and submit for admin approval</Text>
-            </View>
-            <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
-          </TouchableOpacity>
+            {/* ── SAPS Core Team ──────────────────────────────────────────── */}
+            {sapsMyRole !== null ? (
+              <View style={styles.crDashBtn}>
+                <Star size={20} color={tColors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crDashBtnTitle}>SAPS Core Team</Text>
+                  <Text style={styles.crDashBtnSub}>{sapsMyRole}</Text>
+                </View>
+              </View>
+            ) : availableSapsRoles.length === 0 ? (
+              <View style={styles.crPendingCard}>
+                <Check size={20} color={tColors.warning} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crPendingTitle}>SAPS Core Team is complete</Text>
+                  <Text style={styles.crPendingSub}>All 5 positions have been filled</Text>
+                </View>
+              </View>
+            ) : sapsAppStatus === 'pending' ? (
+              <View style={styles.crPendingCard}>
+                <Clock size={20} color={tColors.warning} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crPendingTitle}>SAPS Application Pending</Text>
+                  <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.crApplyBtn}
+                onPress={() => { setSapsApplyError(''); setSapsSelectedRole(null); setShowSapsApply(true); }}
+                activeOpacity={0.85}
+              >
+                <Star size={20} color={tColors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.crApplyBtnTitle}>Apply for SAPS Core Team</Text>
+                  <Text style={styles.crApplyBtnSub}>Choose a role and submit for admin approval</Text>
+                </View>
+                <Text style={{ fontSize: 18, color: tColors.textTertiary }}>›</Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
 
         {/* Sign out */}
