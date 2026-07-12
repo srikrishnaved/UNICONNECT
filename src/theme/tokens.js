@@ -1,3 +1,7 @@
+import { Platform } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
+
 export const colors = {
   // Backgrounds — light theme
   bg: '#FFFFFF',
@@ -13,25 +17,25 @@ export const colors = {
   borderStrong: 'rgba(0,0,0,0.15)',
 
   // Single accent (terracotta)
-  accent: '#c9622e',
-  accentHover: '#d97840',
-  accentActive: '#b0551f',
-  accentDim: 'rgba(201,98,46,0.1)',
+  accent: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
+  accentHover: isWeb ? 'var(--color-accent-hover, #d97840)' : '#d97840',
+  accentActive: isWeb ? 'var(--color-accent-active, #b0551f)' : '#b0551f',
+  accentDim: isWeb ? 'var(--color-accent-dim, rgba(201,98,46,0.1))' : 'rgba(201,98,46,0.1)',
 
   // Kept for backward-compat: student and faculty both point to terracotta
-  primary: '#c9622e',
+  primary: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
   student: {
-    primary: '#c9622e',
-    primaryLight: '#d97840',
-    primaryDim: 'rgba(201,98,46,0.1)',
-    urgency: '#c9622e',
-    urgencyDim: 'rgba(201,98,46,0.1)',
+    primary: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
+    primaryLight: isWeb ? 'var(--color-accent-hover, #d97840)' : '#d97840',
+    primaryDim: isWeb ? 'var(--color-accent-dim, rgba(201,98,46,0.1))' : 'rgba(201,98,46,0.1)',
+    urgency: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
+    urgencyDim: isWeb ? 'var(--color-accent-dim, rgba(201,98,46,0.1))' : 'rgba(201,98,46,0.1)',
   },
   faculty: {
-    primary: '#c9622e',
-    primaryLight: '#d97840',
-    primaryDim: 'rgba(201,98,46,0.1)',
-    live: '#c9622e',
+    primary: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
+    primaryLight: isWeb ? 'var(--color-accent-hover, #d97840)' : '#d97840',
+    primaryDim: isWeb ? 'var(--color-accent-dim, rgba(201,98,46,0.1))' : 'rgba(201,98,46,0.1)',
+    live: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
   },
 
   // Status
@@ -48,8 +52,8 @@ export const colors = {
   textPrimary: '#1D1D1F',
   textSecondary: '#6E6E73',
   textTertiary: '#86868B',
-  textAccentStudent: '#c9622e',
-  textAccentFaculty: '#c9622e',
+  textAccentStudent: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
+  textAccentFaculty: isWeb ? 'var(--color-accent, #c9622e)' : '#c9622e',
 };
 
 export const typography = {

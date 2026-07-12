@@ -4,6 +4,72 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { hubEvents as seedEvents, teachers, studyGroups as seedGroups, initializeWorkspaceData } from '../data';
 import { computeClass } from '../lib/classUtils';
+import { colors as tokensColors } from '../theme/tokens';
+import { colors as themeColors } from '../theme';
+import { APP_CONFIG } from '../config/appConfig';
+
+const getSubdomain = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const uniParam = searchParams.get('uni');
+    if (uniParam) return uniParam;
+
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'dist-psi-ten-59') {
+      return parts[0];
+    }
+  }
+  return null;
+};
+
+function applyUniversityBranding(accentColor, brandingName) {
+  if (!accentColor) return;
+
+  const hexToRgba = (hex, alpha) => {
+    if (!hex || !hex.startsWith('#')) return `rgba(201,98,46,${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
+
+  const adjustColor = (hex, percent) => {
+    let num = parseInt(hex.replace("#",""), 16),
+    amt = Math.round(2.55 * percent),
+    R = (num >> 16) + amt,
+    G = (num >> 8 & 0x00FF) + amt,
+    B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
+  };
+
+  const hoverColor = adjustColor(accentColor, 10);
+  const activeColor = adjustColor(accentColor, -10);
+  const dimColor = hexToRgba(accentColor, 0.1);
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--color-accent-hover', hoverColor);
+    document.documentElement.style.setProperty('--color-accent-active', activeColor);
+    document.documentElement.style.setProperty('--color-accent-dim', dimColor);
+  }
+
+  // Mutate token colors (for native/inline reference)
+  tokensColors.accent = accentColor;
+  tokensColors.primary = accentColor;
+  tokensColors.student.primary = accentColor;
+  tokensColors.student.primaryDim = dimColor;
+  tokensColors.faculty.primary = accentColor;
+  tokensColors.faculty.primaryDim = dimColor;
+
+  // Mutate themeColors
+  themeColors.primary = accentColor;
+  themeColors.primaryLight = hexToRgba(accentColor, 0.08);
+
+  // Update App Config
+  APP_CONFIG.universityName = brandingName || 'Christ University';
+  APP_CONFIG.legalName = brandingName || 'UniConnect';
+}
 
 const getSignUpUniversityId = async () => {
   if (typeof window !== 'undefined' && window.location) {
@@ -335,6 +401,44 @@ export function AppProvider({ children }) {
     const id = setInterval(() => refreshConnections(userProfile.id), 5000);
     return () => clearInterval(id);
   }, [userProfile?.id, pendingOutgoing.size]);
+
+  // Apply dynamic branding based on logged in user's university or subdomain
+  useEffect(() => {
+    const universityId = userProfile?.university_id || teacherProfile?.university_id;
+    if (universityId) {
+      supabase
+        .from('university_setup_progress')
+        .select('accent_color, branding_name')
+        .eq('university_id', universityId)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (!error && data && data.accent_color) {
+            applyUniversityBranding(data.accent_color, data.branding_name);
+          } else {
+            applyUniversityBranding('#c9622e', 'Christ University');
+          }
+        });
+    } else {
+      const subdomain = getSubdomain();
+      if (subdomain) {
+        supabase
+          .from('university_setup_progress')
+          .select('accent_color, branding_name')
+          .eq('is_setup_complete', true)
+          .ilike('university_website', `%${subdomain}%`)
+          .limit(1)
+          .then(({ data, error }) => {
+            if (!error && data && data.length > 0 && data[0].accent_color) {
+              applyUniversityBranding(data[0].accent_color, data[0].branding_name);
+            } else {
+              applyUniversityBranding('#c9622e', 'Christ University');
+            }
+          });
+      } else {
+        applyUniversityBranding('#c9622e', 'Christ University');
+      }
+    }
+  }, [userProfile?.university_id, teacherProfile?.university_id]);
 
   // ── Student auth ────────────────────────────────────────────────────────────
 

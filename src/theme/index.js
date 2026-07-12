@@ -1,4 +1,6 @@
-// ─── Theme definitions ────────────────────────────────────────────────────────
+import { Platform } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const novigradTheme = {
   bg: '#FFFFFF', // Pure white background
@@ -9,10 +11,10 @@ const novigradTheme = {
   textPrimary: '#1D1D1F', // Apple charcoal/black text
   textSecondary: '#6E6E73', // Apple grey text
   textTertiary: '#86868B',
-  primary: '#0071E3', // Apple Blue accent
-  primaryDark: '#0055B3',
-  pink: '#0D9488', // Teal accent
-  primaryLight: 'rgba(0, 113, 227, 0.08)',
+  primary: isWeb ? 'var(--color-accent, #0071E3)' : '#0071E3', // Apple Blue accent
+  primaryDark: isWeb ? 'var(--color-accent-active, #0055B3)' : '#0055B3',
+  pink: isWeb ? 'var(--color-accent, #0D9488)' : '#0D9488', // Teal accent
+  primaryLight: isWeb ? 'var(--color-accent-dim, rgba(0, 113, 227, 0.08))' : 'rgba(0, 113, 227, 0.08)',
   green: '#10B981',
   greenLight: 'rgba(16, 185, 129, 0.1)',
   greenBorder: 'rgba(16, 185, 129, 0.25)',
