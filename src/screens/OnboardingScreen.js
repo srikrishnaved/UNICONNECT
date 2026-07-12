@@ -93,6 +93,7 @@ export default function OnboardingScreen() {
   // Forgot password
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const [focusedField, setFocusedField] = useState(null);
   const [forgotError, setForgotError] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -892,62 +893,88 @@ export default function OnboardingScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Title */}
-            <Text style={siStyles.title}>UniConnect</Text>
-            <Text style={siStyles.subtitle}>Your campus, connected.</Text>
+            {/* Logo and Title */}
+            <View style={siStyles.headerContainer}>
+              <View style={[siStyles.logoMark, { backgroundColor: accentColor }]}>
+                <Text style={siStyles.logoMarkText}>✦</Text>
+              </View>
+              <Text style={siStyles.title}>UniConnect</Text>
+              <Text style={siStyles.subtitle}>Your academic workspace, unified.</Text>
+            </View>
 
-            {/* Role selector */}
+            {/* Role selector Segment Control */}
             <View style={siStyles.roleRow}>
               <TouchableOpacity
-                style={[siStyles.roleCard, { borderColor: selectedRole === 'student' ? tColors.student.primary : tColors.border }]}
+                style={[
+                  siStyles.roleCard,
+                  selectedRole === 'student' && { backgroundColor: tColors.bg, borderColor: tColors.border, ...shadows.card }
+                ]}
                 onPress={() => setSelectedRole('student')}
-                activeOpacity={0.85}
+                activeOpacity={0.8}
               >
-                <GraduationCap size={28} color={tColors.student.primary} />
-                <Text style={siStyles.roleAccessLabel}>ACCESS</Text>
-                <Text style={siStyles.roleName}>Student</Text>
+                <GraduationCap size={16} color={selectedRole === 'student' ? accentColor : tColors.textSecondary} />
+                <Text style={[
+                  siStyles.roleName,
+                  selectedRole === 'student' ? { color: tColors.textPrimary, fontWeight: '600' } : { color: tColors.textSecondary }
+                ]}>Student Portal</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[siStyles.roleCard, { borderColor: selectedRole === 'faculty' ? tColors.faculty.primary : tColors.border }]}
+                style={[
+                  siStyles.roleCard,
+                  selectedRole === 'faculty' && { backgroundColor: tColors.bg, borderColor: tColors.border, ...shadows.card }
+                ]}
                 onPress={() => setSelectedRole('faculty')}
-                activeOpacity={0.85}
+                activeOpacity={0.8}
               >
-                <School size={28} color={tColors.faculty.primary} />
-                <Text style={siStyles.roleAccessLabel}>PORTAL</Text>
-                <Text style={siStyles.roleName}>Faculty</Text>
+                <School size={16} color={selectedRole === 'faculty' ? accentColor : tColors.textSecondary} />
+                <Text style={[
+                  siStyles.roleName,
+                  selectedRole === 'faculty' ? { color: tColors.textPrimary, fontWeight: '600' } : { color: tColors.textSecondary }
+                ]}>Faculty Portal</Text>
               </TouchableOpacity>
             </View>
 
             {/* Form container */}
             <View style={siStyles.formCard}>
               {/* Email input */}
-              <View style={siStyles.inputRow}>
-                <Mail size={16} color={tColors.textTertiary} />
+              <View style={[
+                siStyles.inputRow,
+                focusedField === 'email' && { borderColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.1, shadowRadius: 3 }
+              ]}>
+                <Mail size={16} color={focusedField === 'email' ? accentColor : tColors.textTertiary} />
                 <TextInput
                   value={signInEmail}
                   onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
                   placeholder="yourname@email.com"
-                  placeholderTextColor={tColors.textSecondary}
+                  placeholderTextColor={tColors.textTertiary}
                   style={siStyles.input}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
               {/* Password input */}
-              <View style={[siStyles.inputRow, { marginBottom: 0 }]}>
-                <Lock size={16} color={tColors.textTertiary} />
+              <View style={[
+                siStyles.inputRow,
+                { marginBottom: 0 },
+                focusedField === 'password' && { borderColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.1, shadowRadius: 3 }
+              ]}>
+                <Lock size={16} color={focusedField === 'password' ? accentColor : tColors.textTertiary} />
                 <TextInput
                   key={showSignInPassword ? 'si-visible' : 'si-hidden'}
                   value={signInPassword}
                   onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
                   placeholder="Your password"
-                  placeholderTextColor={tColors.textSecondary}
+                  placeholderTextColor={tColors.textTertiary}
                   style={[siStyles.input, { flex: 1 }]}
                   secureTextEntry={!showSignInPassword}
                   autoCapitalize="none"
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
                 />
                 <TouchableOpacity
                   onPress={() => setShowSignInPassword(v => !v)}
@@ -979,7 +1006,7 @@ export default function OnboardingScreen() {
                         value={forgotEmail}
                         onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
                         placeholder="yourname@email.com"
-                        placeholderTextColor={tColors.textSecondary}
+                        placeholderTextColor={tColors.textTertiary}
                         style={siStyles.standaloneInput}
                         keyboardType="email-address"
                         autoCapitalize="none"
@@ -1018,6 +1045,26 @@ export default function OnboardingScreen() {
               }
             </TouchableOpacity>
 
+            {/* Subtle Divider */}
+            <View style={siStyles.dividerRow}>
+              <View style={siStyles.dividerLine} />
+              <Text style={siStyles.dividerText}>or</Text>
+              <View style={siStyles.dividerLine} />
+            </View>
+
+            {/* Switch Account options */}
+            <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>
+              <Text style={styles.switchLink}>Create an account</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={handleRegisterUniversityPress} 
+              activeOpacity={0.7} 
+              style={[styles.switchRow, { marginTop: 10, marginBottom: tSpacing.xl }]}
+            >
+              <Text style={[styles.switchLink, { color: accentColor }]}>Register a New University Workspace</Text>
+            </TouchableOpacity>
+
             {/* Footer links */}
             <View style={siStyles.footerRow}>
               <TouchableOpacity onPress={() => setLegalModal('privacy')} activeOpacity={0.7}>
@@ -1032,18 +1079,6 @@ export default function OnboardingScreen() {
                 <Text style={siStyles.footerLink}>Support</Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>
-              <Text style={styles.switchLink}>Create an account</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              onPress={handleRegisterUniversityPress} 
-              activeOpacity={0.7} 
-              style={[styles.switchRow, { marginTop: 10 }]}
-            >
-              <Text style={[styles.switchLink, { color: colors.primary }]}>Register a New University Workspace</Text>
-            </TouchableOpacity>
 
             {/* Legal content viewer */}
             <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
@@ -1669,82 +1704,100 @@ const styles = StyleSheet.create({
 const siStyles = StyleSheet.create({
   container: {
     paddingHorizontal: tSpacing.base,
-    paddingTop: tSpacing.xxxl,
+    paddingTop: 60,
     paddingBottom: tSpacing.xxxl,
     flexGrow: 1,
+    maxWidth: 440,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoMark: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: tSpacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  logoMarkText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '700',
   },
   title: {
-    fontSize: typography.xxxl,
-    fontWeight: typography.bold,
-    color: tColors.student.primary,
-    marginBottom: tSpacing.xs,
+    fontFamily: typography.fontHeading,
+    fontSize: 32,
+    color: tColors.textPrimary,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: typography.base,
+    fontSize: typography.sm,
     color: tColors.textSecondary,
-    marginBottom: tSpacing.xl,
+    textAlign: 'center',
   },
   roleRow: {
     flexDirection: 'row',
-    gap: tSpacing.md,
-    marginBottom: tSpacing.xl,
+    backgroundColor: tColors.card,
+    borderRadius: tRadius.md, // sharp 4px
+    padding: 4,
+    borderWidth: 1,
+    borderColor: tColors.border,
+    marginBottom: tSpacing.lg,
   },
   roleCard: {
     flex: 1,
-    backgroundColor: tColors.card,
-    borderWidth: 1.5,
-    borderColor: tColors.border,
-    borderRadius: tRadius.lg,
-    padding: tSpacing.base,
+    paddingVertical: 12,
     alignItems: 'center',
-    ...shadows.card,
-  },
-  roleIcon: { fontSize: 28, marginBottom: tSpacing.xs },
-  roleAccessLabel: {
-    fontSize: typography.xs,
-    color: tColors.textSecondary,
-    fontWeight: typography.semibold,
-    letterSpacing: 1,
-    marginBottom: 2,
+    justifyContent: 'center',
+    borderRadius: 3, // sharp 3px
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   roleName: {
-    fontSize: typography.base,
-    fontWeight: typography.bold,
-    color: tColors.textPrimary,
+    fontSize: typography.sm,
+    color: tColors.textSecondary,
   },
   formCard: {
-    ...presets.card,
-    padding: tSpacing.base,
-    marginBottom: tSpacing.md,
+    backgroundColor: tColors.bg,
+    marginBottom: tSpacing.sm,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: tColors.cardAlt,
+    backgroundColor: tColors.card,
     borderWidth: 1,
     borderColor: tColors.border,
-    borderRadius: tRadius.md,
+    borderRadius: tRadius.md, // sharp 4px
     paddingHorizontal: tSpacing.md,
     marginBottom: tSpacing.md,
-  },
-  inputIcon: {
-    fontSize: 15,
-    color: tColors.textSecondary,
-    marginRight: tSpacing.sm,
   },
   input: {
     flex: 1,
     color: tColors.textPrimary,
     fontSize: typography.base,
-    paddingVertical: tSpacing.md,
+    paddingVertical: 14,
+    paddingLeft: 10,
   },
   standaloneInput: {
-    backgroundColor: tColors.cardAlt,
+    backgroundColor: tColors.card,
     borderWidth: 1,
     borderColor: tColors.border,
     borderRadius: tRadius.md,
     paddingHorizontal: tSpacing.md,
-    paddingVertical: tSpacing.md,
+    paddingVertical: 14,
     color: tColors.textPrimary,
     fontSize: typography.base,
     marginBottom: tSpacing.md,
@@ -1752,20 +1805,20 @@ const siStyles = StyleSheet.create({
   forgotLink: {
     fontSize: typography.sm,
     color: tColors.textSecondary,
-    fontWeight: typography.medium,
+    textDecorationLine: 'underline',
   },
   forgotBox: {
-    marginTop: tSpacing.md,
+    backgroundColor: tColors.card,
+    borderRadius: tRadius.md,
     padding: tSpacing.md,
-    backgroundColor: tColors.bg,
+    marginTop: tSpacing.sm,
     borderWidth: 1,
     borderColor: tColors.border,
-    borderRadius: tRadius.md,
   },
   forgotLabel: {
     fontSize: typography.sm,
     color: tColors.textSecondary,
-    marginBottom: tSpacing.md,
+    marginBottom: tSpacing.sm,
     lineHeight: 18,
   },
   forgotSuccess: {
@@ -1778,24 +1831,47 @@ const siStyles = StyleSheet.create({
     color: tColors.error,
     marginBottom: tSpacing.sm,
     marginTop: tSpacing.xs,
+    textAlign: 'center',
   },
   primaryBtn: {
     borderRadius: tRadius.md,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: tSpacing.base,
+    justifyContent: 'center',
+    marginTop: tSpacing.sm,
     width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   primaryBtnText: {
     color: '#fff',
-    fontSize: typography.md,
-    fontWeight: typography.bold,
+    fontSize: typography.base,
+    fontWeight: '600',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: tColors.border,
+  },
+  dividerText: {
+    fontSize: typography.xs,
+    color: tColors.textTertiary,
+    paddingHorizontal: 12,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: tSpacing.sm,
+    marginTop: 24,
     marginBottom: tSpacing.base,
   },
   footerLink: {
