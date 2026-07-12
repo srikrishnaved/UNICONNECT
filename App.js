@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { Sparkles, Clock } from 'lucide-react-native';
+import { Sparkles, Clock, ArrowLeft } from 'lucide-react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -220,13 +220,22 @@ function AppShell() {
       {mode === 'app' && (
         <NavigationContainer theme={navTheme} linking={linking} initialState={initialNavState} onStateChange={handleNavStateChange}>
           <Stack.Navigator
-            screenOptions={{
+            screenOptions={({ navigation }) => ({
               headerStyle: { backgroundColor: colors.card },
               headerTintColor: colors.textPrimary,
               headerTitleStyle: { fontWeight: '600', fontSize: 15 },
               headerShadowVisible: false,
               contentStyle: { backgroundColor: colors.bg },
-            }}
+              headerLeft: () => (
+                <TouchableOpacity
+                  onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main')}
+                  style={{ marginLeft: Platform.OS === 'web' ? 0 : 16, marginRight: 8 }}
+                  activeOpacity={0.7}
+                >
+                  <ArrowLeft size={18} color={colors.textPrimary} />
+                </TouchableOpacity>
+              ),
+            })}
           >
             <Stack.Screen name="Main" component={AppNavigator} options={{ headerShown: false }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
