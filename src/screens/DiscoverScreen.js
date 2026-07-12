@@ -15,6 +15,7 @@ const YEARS = ['All', '1st Year', '2nd Year', '3rd Year'];
 export default function DiscoverScreen() {
   const { isConnected, toggleConnect, isBlocked, userProfile, sendConnectionRequest, hasPendingRequest, cancelConnectionRequest, disconnectUser } = useApp();
   const navigation = useNavigation();
+  const universityId = userProfile?.university_id;
   const [search, setSearch] = useState('');
   const [course, setCourse] = useState('All');
   const [year, setYear] = useState('All');
@@ -46,15 +47,17 @@ export default function DiscoverScreen() {
   };
 
   useEffect(() => {
+    if (!universityId) return;
     supabase
       .from('profiles')
       .select('id, name, course, year, class, campus, bio, interests')
+      .eq('university_id', universityId)
       .order('name', { ascending: true })
       .then(({ data }) => {
         setRealUsers(data || []);
         setLoadingReal(false);
       });
-  }, []);
+  }, [universityId]);
 
   const filteredReal = useMemo(() => {
     const me = userProfile;
