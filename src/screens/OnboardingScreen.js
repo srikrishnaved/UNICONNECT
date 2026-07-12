@@ -16,7 +16,7 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users, Star } from 'lucide-react-native';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users, Star, Cpu, Music, Code } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
 import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
@@ -888,7 +888,7 @@ export default function OnboardingScreen() {
       : tColors.student.primary;
 
     return (
-      <View style={{ flex: 1, backgroundColor: '#06050b', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <View style={{ flex: 1, backgroundColor: '#fafafa', flexDirection: isDesktop ? 'row' : 'column' }}>
         {/* LEFT PANEL: Showroom (Desktop Only) */}
         {isDesktop && (
           <View style={siStyles.showroomPanel}>
@@ -900,7 +900,7 @@ export default function OnboardingScreen() {
                   <Sparkles size={12} color="#f97316" />
                   <Text style={siStyles.eventsBadgeText}>CAMPUS EVENTS</Text>
                 </View>
-                <Text style={siStyles.showroomTitle}>Upcoming Flyers</Text>
+                <Text style={siStyles.showroomTitle}>Upcoming Events</Text>
                 <Text style={siStyles.showroomSubtitle}>Explore what's happening at your university workspace this week.</Text>
               </View>
               
@@ -908,12 +908,11 @@ export default function OnboardingScreen() {
                 {/* Event Card 1: Hackathon */}
                 <View style={siStyles.eventFlyer}>
                   <View style={[siStyles.flyerPoster, { backgroundColor: '#6366f1' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }]}>
-                    <Text style={siStyles.flyerMonth}>JUL</Text>
-                    <Text style={siStyles.flyerDay}>20</Text>
+                    <Code size={22} color="#ffffff" />
                   </View>
                   <View style={siStyles.flyerDetails}>
                     <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>HACKATHON</Text>
+                      <Text style={siStyles.flyerCategory}>HACKATHON · JUL 20</Text>
                       <View style={siStyles.flyerStatusBadge}>
                         <Text style={siStyles.flyerStatusText}>120+ RSVP</Text>
                       </View>
@@ -926,12 +925,11 @@ export default function OnboardingScreen() {
                 {/* Event Card 2: Cultural Fest */}
                 <View style={siStyles.eventFlyer}>
                   <View style={[siStyles.flyerPoster, { backgroundColor: '#ec4899' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #ec4899, #f43f5e)' }]}>
-                    <Text style={siStyles.flyerMonth}>AUG</Text>
-                    <Text style={siStyles.flyerDay}>05</Text>
+                    <Music size={22} color="#ffffff" />
                   </View>
                   <View style={siStyles.flyerDetails}>
                     <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>CULTURAL FEST</Text>
+                      <Text style={siStyles.flyerCategory}>CULTURAL FEST · AUG 05</Text>
                       <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(236, 72, 153, 0.15)' }]}>
                         <Text style={[siStyles.flyerStatusText, { color: '#ec4899' }]}>Open to All</Text>
                       </View>
@@ -944,12 +942,11 @@ export default function OnboardingScreen() {
                 {/* Event Card 3: GenAI Lecture */}
                 <View style={siStyles.eventFlyer}>
                   <View style={[siStyles.flyerPoster, { backgroundColor: '#059669' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #059669, #10b981)' }]}>
-                    <Text style={siStyles.flyerMonth}>JUL</Text>
-                    <Text style={siStyles.flyerDay}>15</Text>
+                    <Cpu size={22} color="#ffffff" />
                   </View>
                   <View style={siStyles.flyerDetails}>
                     <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>GUEST LECTURE</Text>
+                      <Text style={siStyles.flyerCategory}>GUEST LECTURE · JUL 15</Text>
                       <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
                         <Text style={[siStyles.flyerStatusText, { color: '#10b981' }]}>GenAI Core</Text>
                       </View>
@@ -1806,14 +1803,14 @@ const siStyles = StyleSheet.create({
     marginBottom: 16,
   },
   logoMarkText: {
-    color: '#fff',
+    color: '#1d1d1f',
     fontSize: 26,
     fontWeight: '700',
   },
   title: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 32,
-    color: '#ffffff',
+    color: '#1d1d1f',
     fontWeight: '600',
     letterSpacing: -0.8,
     marginBottom: 6,
@@ -1822,17 +1819,17 @@ const siStyles = StyleSheet.create({
   subtitle: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#86868b',
     letterSpacing: -0.1,
     textAlign: 'center',
   },
   roleRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    borderRadius: 10,
     padding: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     marginBottom: 20,
   },
   roleCard: {
@@ -1840,7 +1837,7 @@ const siStyles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
+    borderRadius: 8,
     flexDirection: 'row',
     gap: 8,
     backgroundColor: 'transparent',
@@ -1849,20 +1846,20 @@ const siStyles = StyleSheet.create({
   },
   roleName: {
     fontSize: typography.sm,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   formCard: {
-    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 255, 255, 0.04)' : '#121118',
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 255, 255, 0.75)' : '#ffffff',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: tSpacing.lg,
     marginBottom: tSpacing.md,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 4,
     ...Platform.select({
       web: {
         backdropFilter: 'blur(30px)',
@@ -1873,47 +1870,47 @@ const siStyles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 8,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderRadius: 10,
     paddingHorizontal: tSpacing.md,
     marginBottom: tSpacing.md,
   },
   input: {
     flex: 1,
-    color: '#ffffff',
+    color: '#1d1d1f',
     fontSize: typography.base,
     paddingVertical: 14,
     paddingLeft: 10,
   },
   standaloneInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 8,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderRadius: 10,
     paddingHorizontal: tSpacing.md,
     paddingVertical: 14,
-    color: '#ffffff',
+    color: '#1d1d1f',
     fontSize: typography.base,
     marginBottom: tSpacing.md,
   },
   forgotLink: {
     fontSize: typography.sm,
-    color: 'rgba(255, 255, 255, 0.45)',
-    textDecorationLine: 'underline',
+    color: '#0066cc',
+    textDecorationLine: 'none',
   },
   forgotBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.01)',
+    borderRadius: 10,
     padding: tSpacing.md,
     marginTop: tSpacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
   forgotLabel: {
     fontSize: typography.sm,
-    color: 'rgba(255, 255, 255, 0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginBottom: tSpacing.sm,
     lineHeight: 18,
   },
@@ -1930,7 +1927,7 @@ const siStyles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryBtn: {
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1938,7 +1935,7 @@ const siStyles = StyleSheet.create({
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -1955,11 +1952,11 @@ const siStyles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
   },
   dividerText: {
     fontSize: typography.xs,
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: 'rgba(0, 0, 0, 0.35)',
     paddingHorizontal: 12,
   },
   footerRow: {
@@ -1972,11 +1969,11 @@ const siStyles = StyleSheet.create({
   },
   footerLink: {
     fontSize: typography.xs,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   footerSep: {
     fontSize: typography.xs,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   // Liquid background shapes
   bgWrapper: {
@@ -1990,7 +1987,7 @@ const siStyles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    opacity: 0.22,
+    opacity: 0.1,
     filter: 'blur(90px)',
   },
   bgBlob1: {
@@ -2008,9 +2005,9 @@ const siStyles = StyleSheet.create({
   // Showroom Layout Styles
   showroomPanel: {
     flex: 1.2,
-    backgroundColor: '#08070d',
+    backgroundColor: '#f5f5f7',
     borderRightWidth: 1,
-    borderRightColor: 'rgba(255, 255, 255, 0.05)',
+    borderRightColor: 'rgba(0, 0, 0, 0.05)',
     justifyContent: 'center',
     paddingHorizontal: 48,
     position: 'relative',
@@ -2026,7 +2023,7 @@ const siStyles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: 'rgba(59, 130, 246, 0.07)',
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
     filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
   },
   showroomGlow2: {
@@ -2036,21 +2033,21 @@ const siStyles = StyleSheet.create({
     width: 450,
     height: 450,
     borderRadius: 225,
-    backgroundColor: 'rgba(249, 115, 22, 0.05)',
+    backgroundColor: 'rgba(236, 72, 153, 0.06)',
     filter: Platform.OS === 'web' ? 'blur(120px)' : undefined,
   },
   showroomTitle: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 38,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1d1d1f',
     letterSpacing: -1,
     marginBottom: 8,
   },
   showroomSubtitle: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: '#86868b',
     letterSpacing: -0.2,
     marginBottom: 40,
     maxWidth: 480,
@@ -2080,9 +2077,9 @@ const siStyles = StyleSheet.create({
   },
   eventFlyer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: 14,
     padding: 12,
     alignItems: 'center',
@@ -2098,13 +2095,13 @@ const siStyles = StyleSheet.create({
   flyerMonth: {
     fontSize: 10,
     fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.5,
   },
   flyerDay: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#1d1d1f',
     marginTop: -2,
   },
   flyerDetails: {
@@ -2119,11 +2116,11 @@ const siStyles = StyleSheet.create({
   flyerCategory: {
     fontSize: 9,
     fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'rgba(0, 0, 0, 0.4)',
     letterSpacing: 0.5,
   },
   flyerStatusBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 99,
@@ -2131,19 +2128,19 @@ const siStyles = StyleSheet.create({
   flyerStatusText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#8b5cf6',
+    color: '#6366f1',
   },
   flyerTitle: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 14,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1d1d1f',
     marginBottom: 2,
   },
   flyerMeta: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   formPanel: {
     flex: 1,
@@ -2158,43 +2155,43 @@ const siStyles = StyleSheet.create({
     width: 350,
     height: 350,
     borderRadius: 175,
-    opacity: 0.12,
+    opacity: 0.06,
     filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 8,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderRadius: 10,
     paddingHorizontal: tSpacing.md,
   },
   forgotTitle: {
     fontSize: 15,
-    color: '#ffffff',
+    color: '#1d1d1f',
     fontWeight: '600',
     marginBottom: 4,
   },
   forgotSubtitle: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#86868b',
     marginBottom: 12,
     lineHeight: 16,
   },
   forgotInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 8,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderRadius: 10,
     paddingHorizontal: tSpacing.md,
     paddingVertical: 10,
-    color: '#ffffff',
+    color: '#1d1d1f',
     fontSize: 14,
     marginBottom: 10,
   },
   forgotBtn: {
-    borderRadius: 6,
+    borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -2211,15 +2208,11 @@ const siStyles = StyleSheet.create({
     marginBottom: 8,
   },
   submitBtn: {
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 14,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
   },
   submitBtnText: {
     color: '#ffffff',
