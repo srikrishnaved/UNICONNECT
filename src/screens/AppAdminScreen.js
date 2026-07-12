@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, Modal, ActivityIndicator, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { colors, spacing, radius, font } from '../theme';
 import { ShieldCheck, Check, X, Pin, Trash2, Info, Landmark, Gift, ClipboardList, School } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
@@ -85,52 +86,110 @@ export default function AppAdminScreen() {
     setResolvingUni(req.id);
     try {
       if (action === 'approved') {
+        // Step 1: Initialize temporary client to avoid logging out the current App Admin session
+        const tempSupabase = createClient('https://qoseoqvdwiaqdkmivrxk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvc2VvcXZkd2lhcWRrbWl2cnhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NTE0NzcsImV4cCI6MjA5NjMyNzQ3N30.2ykDB6h_VYClR6yxHuqK0N3UTpztBYcTTK7wvO5tGoY', {
+          auth: { persistSession: false }
+        });
+
+        // Step 2: Create Auth account
+        const { data: signUpData, error: signUpErr } = await tempSupabase.auth.signUp({
+          email: req.admin_email,
+          password: req.admin_password_hash,
+        });
+        if (signUpErr) throw signUpErr;
+        const newUserId = signUpData.user?.id;
+        if (!newUserId) throw new Error('Auth account creation failed.');
+
+        // Step 3: Insert user profile as Active Super Admin
         const { error: profileErr } = await supabase
           .from('profiles')
-          .update({
-            is_super_admin: true,
+          .insert({
+            id: newUserId,
+            name: req.admin_name,
+            email: req.admin_email,
+            role: 'student',
             status: 'active',
-            university_id: req.user_id,
-          })
-          .eq('id', req.user_id);
+            course: 'Setup',
+            year: 'N/A',
+            campus: 'Main',
+            is_super_admin: true,
+            university_id: newUserId,
+          });
         if (profileErr) throw profileErr;
 
+        // Step 4: Insert university setup progress
+        const classesArray = req.classes_list ? req.classes_list.split(',').map(c => c.trim()).filter(Boolean) : [];
         const { error: progressErr } = await supabase
           .from('university_setup_progress')
           .insert({
-            university_id: req.user_id,
+            university_id: newUserId,
             university_name: req.university_name,
             university_website: req.university_website,
-            is_setup_complete: false,
+            enabled_classes: classesArray,
+            step_details_done: true,
+            step_classes_done: true,
+            is_setup_complete: true,
           });
         if (progressErr && progressErr.code !== '23505') throw progressErr;
 
+        // Step 5: Seed customized university periods
+        const periodCount = req.periods_count || 6;
+        const periodsToUpsert = Array.from({ length: periodCount }, (_, i) => {
+          let label = `P${i + 1}`;
+          let start = '09:00:00';
+          let end = '10:00:00';
+
+          if (i === 0) { label = 'M1'; start = '09:00:00'; end = '10:00:00'; }
+          else if (i === 1) { label = 'M2'; start = '10:00:00'; end = '11:00:00'; }
+          else if (i === 2) { label = 'P1'; start = '11:15:00'; end = '12:15:00'; }
+          else if (i === 3) { label = 'P2'; start = '12:15:00'; end = '13:15:00'; }
+          else if (i === 4) { label = 'P3'; start = '14:00:00'; end = '15:00:00'; }
+          else if (i === 5) { label = 'P4'; start = '15:00:00'; end = '16:00:00'; }
+          else {
+            const hour = i + 9;
+            start = `${hour}:00:00`;
+            end = `${hour + 1}:00:00`;
+          }
+          
+          return {
+            university_id: newUserId,
+            label: label,
+            start_time: start,
+            end_time: end,
+            is_break: false,
+            period_order: i,
+            applies_to_days: ['MON', 'TUE', 'WED', 'THU', 'FRI']
+          };
+        });
+
+        await supabase.from('university_periods').delete().eq('university_id', newUserId);
+        const { error: perErr } = await supabase.from('university_periods').insert(periodsToUpsert);
+        if (perErr) throw perErr;
+
+        // Step 6: Update registration request with the approved user ID
+        await supabase
+          .from('university_setup_requests')
+          .update({ 
+            status: action,
+            approved_user_id: newUserId
+          })
+          .eq('id', req.id);
+
+        // Step 7: Push welcome notification
         await supabase.from('notifications').insert({
-          user_id: req.user_id,
+          user_id: newUserId,
           type: 'info',
           title: 'Workspace Request Approved!',
-          body: `Your request for "${req.university_name}" has been approved. Log in and navigate to the Super Admin dashboard to start setting up your workspace.`,
+          body: `Your request for "${req.university_name}" has been approved. Log in to start configuring your campus.`,
           read: false,
         });
+
       } else {
         await supabase
-          .from('profiles')
-          .update({ status: 'rejected' })
-          .eq('id', req.user_id);
-
-        await supabase.from('notifications').insert({
-          user_id: req.user_id,
-          type: 'info',
-          title: 'Workspace Request Update',
-          body: `Your request for "${req.university_name}" was reviewed and could not be approved at this time.`,
-          read: false,
-        });
+          .from('university_setup_requests')
+          .update({ status: action })
+          .eq('id', req.id);
       }
-
-      await supabase
-        .from('university_setup_requests')
-        .update({ status: action })
-        .eq('id', req.id);
 
       setUniRequests(prev => prev.filter(r => r.id !== req.id));
       alert(`Request ${action} successfully!`);
