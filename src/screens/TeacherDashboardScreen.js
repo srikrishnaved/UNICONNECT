@@ -953,7 +953,13 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
   // ── Study group create ────────────────────────────────────────────────────────
   const [showCreate, setShowCreate] = useState(false);
-  const [newGroup, setNewGroup] = useState({ name: '', desc: '', emoji: '📚', visibleTo: [...ALL_COURSES] });
+  const [newGroup, setNewGroup] = useState({ name: '', desc: '', emoji: '📚', visibleTo: [] });
+
+  useEffect(() => {
+    if (uniClasses?.length && !newGroup.visibleTo.length) {
+      setNewGroup(p => ({ ...p, visibleTo: [...uniClasses] }));
+    }
+  }, [uniClasses]);
 
   const toggleCourse = (course) => {
     setNewGroup(prev => {
@@ -980,7 +986,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       teacherName: effectiveProfile.name,
       teacherId: effectiveProfile.id,
     });
-    setNewGroup({ name: '', desc: '', emoji: '📚', visibleTo: [...ALL_COURSES] });
+    setNewGroup({ name: '', desc: '', emoji: '📚', visibleTo: [...uniClasses] });
     setShowCreate(false);
   };
 
@@ -2827,7 +2833,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             <Text style={styles.modalLabel}>VISIBLE TO</Text>
             <Text style={styles.modalHint}>Select which student classes can see this group</Text>
             <View style={styles.courseCheckRow}>
-              {ALL_COURSES.map(c => {
+              {uniClasses.map(c => {
                 const selected = newGroup.visibleTo.includes(c);
                 return (
                   <TouchableOpacity

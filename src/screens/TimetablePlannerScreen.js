@@ -9,6 +9,7 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
+import { useUniversityConfig } from '../hooks/useUniversityConfig';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
@@ -167,6 +168,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   const { userProfile, teacherProfile, createNotification, isAppAdmin,
     adminTestAsName: testAsName, setAdminTestAsName: setTestAsName } = useApp();
   const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
+  const { classes: configClasses } = useUniversityConfig();
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [periods, setPeriods] = useState([]);
@@ -176,7 +178,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   const [loading, setLoading] = useState(true);
 
   // ── UI state ──────────────────────────────────────────────────────────────
-  const [selectedClass, setSelectedClass] = useState('1BcomIBA');
+  const [selectedClass, setSelectedClass] = useState('');
   const [activeTab, setActiveTab] = useState('grid');
 
   // ── Edit modal ────────────────────────────────────────────────────────────
@@ -346,19 +348,20 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   // Build class list from whatever class_name values actually exist in the DB,
   // preserving the canonical CLASSES order for known names.
   const derivedClasses = useMemo(() => {
-    if (!slots.length) return CLASSES;
+    const baseClasses = configClasses && configClasses.length > 0 ? configClasses : CLASSES;
+    if (!slots.length) return baseClasses;
     const fromDB = [...new Set(slots.map(s => s.class_name).filter(Boolean))];
-    if (!fromDB.length) return CLASSES;
-    const ordered = CLASSES.filter(c => fromDB.includes(c));
+    if (!fromDB.length) return baseClasses;
+    const ordered = baseClasses.filter(c => fromDB.includes(c));
     // Exclude space-format aliases that are duplicates of paren-format names already in CLASSES
     const spaceAliases = new Set(['3BcomF&A A', '3BcomF&A B', '5BcomF&A A', '5BcomF&A B']);
-    const extra = fromDB.filter(c => !CLASSES.includes(c) && !spaceAliases.has(c)).sort();
+    const extra = fromDB.filter(c => !baseClasses.includes(c) && !spaceAliases.has(c)).sort();
     return [...ordered, ...extra];
-  }, [slots]);
+  }, [slots, configClasses]);
 
   // Snap selectedClass to the first real class whenever derivedClasses resolves.
   useEffect(() => {
-    if (derivedClasses.length > 0 && !derivedClasses.includes(selectedClass)) {
+    if (derivedClasses.length > 0 && (!selectedClass || !derivedClasses.includes(selectedClass))) {
       setSelectedClass(derivedClasses[0]);
     }
   }, [derivedClasses]);
