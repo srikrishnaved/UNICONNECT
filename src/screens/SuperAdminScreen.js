@@ -127,10 +127,11 @@ export default function SuperAdminScreen({ navigation }) {
   const loadTeachers = async () => {
     setLoading(true);
     try {
+      const uid = userProfile?.id;
       const [pendingRes, activeRes, slotRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('role', 'teacher').eq('status', 'pending').order('created_at', { ascending: false }),
-        supabase.from('profiles').select('*').eq('role', 'teacher').eq('status', 'active').order('created_at', { ascending: false }),
-        supabase.from('timetable_slots').select('faculty_name, course_name').not('faculty_name', 'is', null).not('course_name', 'is', null),
+        supabase.from('profiles').select('*').eq('role', 'teacher').eq('status', 'pending').eq('university_id', uid).order('created_at', { ascending: false }),
+        supabase.from('profiles').select('*').eq('role', 'teacher').eq('status', 'active').eq('university_id', uid).order('created_at', { ascending: false }),
+        supabase.from('timetable_slots').select('faculty_name, course_name').not('faculty_name', 'is', null).not('course_name', 'is', null).eq('university_id', uid),
       ]);
 
       // Build faculty_name → Set<course_name> map from timetable slots.
@@ -169,19 +170,20 @@ export default function SuperAdminScreen({ navigation }) {
   const loadStats = async () => {
     setStatsLoading(true);
     try {
+      const uid = userProfile?.id;
       const count = (res) => res.count ?? 0;
       const [
         usersRes, teachersRes, studentsRes,
         membershipsRes, hubEventsRes,
         subRes, compRes, nfaRes, actRes,
       ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('university_id', uid),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher').eq('university_id', uid),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student').eq('university_id', uid),
         supabase.from('club_memberships').select('id', { count: 'exact', head: true }),
         supabase.from('hub_events').select('id', { count: 'exact', head: true }),
-        supabase.from('substitute_requests').select('id', { count: 'exact', head: true }),
-        supabase.from('compensatory_requests').select('id', { count: 'exact', head: true }),
+        supabase.from('substitute_requests').select('id', { count: 'exact', head: true }).eq('university_id', uid),
+        supabase.from('compensatory_requests').select('id', { count: 'exact', head: true }).eq('university_id', uid),
         supabase.from('nfa_requests').select('id', { count: 'exact', head: true }),
         supabase.from('activity_reports').select('id', { count: 'exact', head: true }),
       ]);
@@ -362,9 +364,10 @@ export default function SuperAdminScreen({ navigation }) {
     setApprovalTarget(teacher);
     setApprovalSeedPick(null);
     setApprovalSearch('');
-    setApprovalFacultyList([]);
+    const uid = userProfile?.id;
     supabase.from('timetable_slots').select('faculty_name')
       .not('faculty_name', 'is', null).neq('faculty_name', '')
+      .eq('university_id', uid)
       .then(({ data }) => {
         const names = [...new Set(
           (data || []).flatMap(r =>

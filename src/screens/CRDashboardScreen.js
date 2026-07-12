@@ -404,6 +404,7 @@ function copyToClipboard(text) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CRDashboardScreen({ onClose }) {
   const { userProfile, resignCR } = useApp();
+  const universityId = userProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
   const name    = userProfile?.name    || 'CR';
   const course  = userProfile?.course  || 'BCom IAF';
   const year    = userProfile?.year    || '3rd Year';
@@ -511,11 +512,31 @@ export default function CRDashboardScreen({ onClose }) {
   // ── Attendance ─────────────────────────────────────────────────────────────
   const [attDate, setAttDate] = useState(todayISO());
   const [selPeriod, setSelPeriod] = useState(null);
+  const [dbPeriods, setDbPeriods] = useState(PERIODS);
   const [customPeriods, setCustomPeriods] = useState([]);
   const [showAddPeriod, setShowAddPeriod] = useState(false);
   const [newPeriodLabel, setNewPeriodLabel] = useState('');
   const [newPeriodTime, setNewPeriodTime] = useState('');
-  const allPeriods = [...PERIODS, ...customPeriods];
+  const allPeriods = [...dbPeriods, ...customPeriods];
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('timetable_periods').select('*').order('sort_order');
+        if (data && data.length > 0) {
+          setDbPeriods(data.map(p => ({
+            id: p.name,
+            label: p.name,
+            time: `${p.start_time} – ${p.end_time}`,
+            is_saturday: !!p.is_saturday
+          })));
+        }
+      } catch (err) {
+        console.warn('[CRDashboardScreen] failed to load periods:', err.message);
+      }
+    })();
+  }, []);
+
   const [attLogs, setAttLogs] = useState([]);
   const [expandedLog, setExpandedLog] = useState(null);
 
@@ -564,6 +585,7 @@ export default function CRDashboardScreen({ onClose }) {
       .in('class_name', classNames)
       .eq('day', dayName)
       .eq('period_name', period.id)
+      .eq('university_id', universityId)
       .limit(1);
 
     if (data && data.length > 0 && data[0].course_code) {
@@ -573,7 +595,7 @@ export default function CRDashboardScreen({ onClose }) {
       setSelSubjectCode('');
       setSelSubjectName('');
     }
-  }, [course, year, section, allPeriods]);
+  }, [course, year, section, allPeriods, universityId]);
 
   useEffect(() => {
     autoDetectSubject(attDate, selPeriod);

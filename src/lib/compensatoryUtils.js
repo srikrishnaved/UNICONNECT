@@ -7,6 +7,7 @@ export async function createCompensatoryRequest(supabase, {
   className,
   day,
   periodName,
+  universityId = null,
 }) {
   if (!teacherName || !className) return;
   await supabase.from('compensatory_requests').insert({
@@ -16,5 +17,6 @@ export async function createCompensatoryRequest(supabase, {
     original_period_name: periodName,
     source_change_log_id: changeLogId || null,
     status:               'pending',
+    university_id:        universityId,
   });
 }

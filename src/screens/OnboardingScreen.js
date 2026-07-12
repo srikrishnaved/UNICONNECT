@@ -97,6 +97,66 @@ export default function OnboardingScreen() {
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  // University setup request fields
+  const [uniName, setUniName] = useState('');
+  const [uniWebsite, setUniWebsite] = useState('');
+  const [uniAdminName, setUniAdminName] = useState('');
+  const [uniAdminEmail, setUniAdminEmail] = useState('');
+  const [uniAdminPassword, setUniAdminPassword] = useState('');
+  const [showUniPassword, setShowUniPassword] = useState(false);
+  const [uniRequestError, setUniRequestError] = useState('');
+  const [uniRequestSuccess, setUniRequestSuccess] = useState(false);
+
+  const handleUniRequestSubmit = async () => {
+    if (!uniName.trim() || !uniWebsite.trim() || !uniAdminName.trim() || !uniAdminEmail.trim() || !uniAdminPassword.trim()) {
+      setUniRequestError('Please fill in all fields.');
+      return;
+    }
+    setLoading(true);
+    setUniRequestError('');
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: uniAdminEmail.trim().toLowerCase(),
+        password: uniAdminPassword.trim(),
+      });
+      if (error) throw error;
+      const userId = data.user?.id;
+      if (!userId) throw new Error('Account creation failed.');
+
+      const profile = {
+        id: userId,
+        name: uniAdminName.trim(),
+        email: uniAdminEmail.trim().toLowerCase(),
+        role: 'student',
+        status: 'pending_setup_approval',
+        course: 'Setup',
+        year: 'N/A',
+        campus: 'Main',
+        bio: '',
+        interests: [],
+        university_id: null,
+      };
+      const { error: profileError } = await supabase.from('profiles').insert(profile);
+      if (profileError && profileError.code !== '23505') throw profileError;
+
+      const { error: reqError } = await supabase.from('university_setup_requests').insert({
+        user_id: userId,
+        university_name: uniName.trim(),
+        university_website: uniWebsite.trim().toLowerCase(),
+        admin_name: uniAdminName.trim(),
+        admin_email: uniAdminEmail.trim().toLowerCase(),
+        status: 'pending',
+      });
+      if (reqError) throw reqError;
+
+      setUniRequestSuccess(true);
+    } catch (err) {
+      setUniRequestError(err.message || 'Could not submit request. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isValidPassword = (pwd) =>
     pwd.length >= 6 && /[0-9]/.test(pwd) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(pwd);
 
@@ -269,7 +329,6 @@ export default function OnboardingScreen() {
 
   // ── Sign Up step 4 — bio ───────────────────────────────────────────────────
   const handleBioNext = () => {
-    if (bio.trim().length < 20) return;
     setStep('allset');
   };
 
@@ -327,6 +386,19 @@ export default function OnboardingScreen() {
             <Text style={{ fontSize: 18, color: colors.textTertiary }}>→</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[styles.roleCard, { borderColor: colors.green, marginTop: spacing.sm }]}
+            onPress={() => setStep('uniRequest')}
+            activeOpacity={0.85}
+          >
+            <School size={32} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.roleCardTitle, { color: colors.green }]}>Register University</Text>
+              <Text style={styles.roleCardSub}>Request a new workspace for your institution</Text>
+            </View>
+            <Text style={{ fontSize: 18, color: colors.textTertiary }}>→</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => setStep('signin')} activeOpacity={0.7} style={styles.switchRow}>
             <Text style={styles.switchText}>
               Already have an account? <Text style={styles.switchLink}>Sign In</Text>
@@ -334,6 +406,148 @@ export default function OnboardingScreen() {
           </TouchableOpacity>
 
         </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Step: University Registration Request ────────────────────────────────
+  if (step === 'uniRequest') {
+    if (uniRequestSuccess) {
+      return (
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+            <View style={styles.allsetContainer}>
+              <View style={styles.checkCircle}>
+                <Check size={42} style={styles.checkIcon} />
+              </View>
+              <Text style={styles.allsetTitle}>Request Submitted!</Text>
+              <Text style={styles.allsetSub}>
+                Your workspace request for "{uniName}" has been received. Once the application is approved by the system administrators, you will be able to log in to complete your setup.
+              </Text>
+              <TouchableOpacity
+                style={[styles.primaryBtn, { width: '100%' }]}
+                onPress={() => {
+                  setUniRequestSuccess(false);
+                  setUniName('');
+                  setUniWebsite('');
+                  setUniAdminName('');
+                  setUniAdminEmail('');
+                  setUniAdminPassword('');
+                  setStep('signin');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryBtnText}>Back to Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      );
+    }
+
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <View style={styles.stepHeader}>
+              <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7}>
+                <Text style={styles.backBtn}>← Back</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.logoRow}>
+              <View style={[styles.logoBox, { backgroundColor: colors.green }]}>
+                <School size={18} color="#fff" />
+              </View>
+              <Text style={styles.logoText}>Workspace <Text style={{ color: colors.green }}>Setup</Text></Text>
+            </View>
+
+            <Text style={styles.heading}>Register your University</Text>
+            <Text style={styles.subheading}>
+              Fill in the details below to request a new isolated workspace for your institution.
+            </Text>
+
+            <Text style={styles.label}>UNIVERSITY NAME *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Oxford University"
+              placeholderTextColor={colors.textTertiary}
+              value={uniName}
+              onChangeText={setUniName}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.label}>WEBSITE SUBDOMAIN / DOMAIN *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. oxford.uniconnect.app"
+              placeholderTextColor={colors.textTertiary}
+              value={uniWebsite}
+              onChangeText={setUniWebsite}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Text style={styles.label}>ADMIN FULL NAME *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. John Doe"
+              placeholderTextColor={colors.textTertiary}
+              value={uniAdminName}
+              onChangeText={setUniAdminName}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.label}>ADMIN EMAIL ADDRESS *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. admin@oxford.edu"
+              placeholderTextColor={colors.textTertiary}
+              value={uniAdminEmail}
+              onChangeText={setUniAdminEmail}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+            />
+
+            <Text style={styles.label}>ADMIN PASSWORD *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Min. 6 characters"
+              placeholderTextColor={colors.textTertiary}
+              secureTextEntry={!showUniPassword}
+              value={uniAdminPassword}
+              onChangeText={setUniAdminPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity
+              onPress={() => setShowUniPassword(prev => !prev)}
+              style={styles.showPasswordRow}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.showPasswordTick}>{showUniPassword ? '✓' : '☐'}</Text>
+              <Text style={styles.showPasswordText}>Show Password</Text>
+            </TouchableOpacity>
+
+            {uniRequestError ? (
+              <Text style={styles.errorText}>{uniRequestError}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, { backgroundColor: colors.green }, loading && styles.primaryBtnDisabled]}
+              onPress={handleUniRequestSubmit}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.primaryBtnText}>Submit Request</Text>
+              }
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -1063,7 +1277,7 @@ export default function OnboardingScreen() {
   // ── Step: Bio ─────────────────────────────────────────────────────────────
   if (step === 'bio') {
     const bioLen = bio.trim().length;
-    const bioValid = bioLen >= 20;
+    const bioValid = bioLen <= 300;
     return (
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -1097,8 +1311,8 @@ export default function OnboardingScreen() {
               maxLength={300}
             />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -spacing.sm, marginBottom: spacing.xl }}>
-              <Text style={{ fontSize: 11, color: bioValid ? colors.primary : colors.textTertiary }}>
-                {bioValid ? '✓ Looks good!' : `${20 - bioLen} more character${20 - bioLen === 1 ? '' : 's'} needed`}
+              <Text style={{ fontSize: 11, color: colors.primary }}>
+                {bioLen > 0 ? '✓ Looks good!' : ''}
               </Text>
               <Text style={{ fontSize: 11, color: colors.textTertiary }}>{bioLen}/300</Text>
             </View>

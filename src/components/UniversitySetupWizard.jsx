@@ -7,6 +7,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
+import { useApp } from '../context/AppContext';
 import {
   colors as tColors,
   typography,
@@ -37,6 +38,7 @@ export default function UniversitySetupWizard({
   universityId,
   initialStep = 1,
 }) {
+  const { updateProfile } = useApp();
   const [step, setStep] = useState(initialStep);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -156,6 +158,7 @@ export default function UniversitySetupWizard({
         .upsert(periodsToUpsert, { onConflict: 'university_id,label' });
       if (perErr) throw perErr;
       await upsert({ is_setup_complete: true });
+      await updateProfile({ university_id: universityId });
       onComplete?.();
     } catch (e) {
       setError(e.message || 'Could not complete setup.');

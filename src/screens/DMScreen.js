@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
+import { APP_CONFIG } from '../config/appConfig';
 import { pickAndUploadMedia } from '../lib/uploadMedia';
 import MediaMessage from '../components/MediaMessage';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
@@ -180,7 +181,7 @@ export default function DMScreen({ route, navigation }) {
         </View>
         <View>
           <Text style={styles.recipientName}>{name}</Text>
-          <Text style={styles.recipientSub}>{isTeacher ? 'Faculty · Yeshwanthpur' : 'Student · UniConnect'}</Text>
+          <Text style={styles.recipientSub}>{isTeacher ? `Faculty · ${APP_CONFIG.campusName || 'your campus'}` : 'Student · UniConnect'}</Text>
         </View>
       </View>
 

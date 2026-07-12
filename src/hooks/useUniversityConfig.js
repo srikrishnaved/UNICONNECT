@@ -39,13 +39,15 @@ export function useUniversityConfig() {
         // Determine if the current user is the super admin.
         // Teachers use PIN auth (no Supabase session), so user may be null.
         let isSuperAdmin = false;
+        let userUniId = null;
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('is_super_admin')
+            .select('is_super_admin, university_id')
             .eq('id', user.id)
             .maybeSingle();
           isSuperAdmin = !!profile?.is_super_admin;
+          userUniId = profile?.university_id;
         }
 
         let progress = null;
@@ -70,7 +72,7 @@ export function useUniversityConfig() {
           progressError = error;
         }
 
-        // Fallback to super admin session or latest completed registration if no subdomain matches
+        // Fallback to super admin session or logged-in user's university_id if no subdomain matches
         if (!progress) {
           if (isSuperAdmin) {
             ({ data: progress, error: progressError } = await supabase
@@ -78,15 +80,19 @@ export function useUniversityConfig() {
               .select('enabled_classes, university_id')
               .eq('university_id', user.id)
               .maybeSingle());
-          } else {
-            const { data: rows, error } = await supabase
+          } else if (userUniId) {
+            ({ data: progress, error: progressError } = await supabase
               .from('university_setup_progress')
               .select('enabled_classes, university_id')
-              .eq('is_setup_complete', true)
-              .order('updated_at', { ascending: false })
-              .limit(1);
-            progress = rows?.[0] ?? null;
-            progressError = error;
+              .eq('university_id', userUniId)
+              .maybeSingle());
+          } else {
+            // Default/anonymous fallback or CHRIST transition fallback
+            ({ data: progress, error: progressError } = await supabase
+              .from('university_setup_progress')
+              .select('enabled_classes, university_id')
+              .eq('university_id', '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd')
+              .maybeSingle());
           }
         }
 

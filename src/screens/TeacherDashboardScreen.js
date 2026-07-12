@@ -32,8 +32,19 @@ const GROUP_TEACHER_TABLE_EXISTS = false;
 const EMOJI_OPTIONS = ['📚', '⚡', '🧠', '💡', '🎯', '📊', '💼', '🔬', '💻', '📝', '🌏', '🎓'];
 const REQUIRED_VISITS = 5;
 
+// Returns the constraint matching a given day, period, and class, if any
+function getSlotConstraint(day, periodName, className) {
+  const constraints = APP_CONFIG.constraints || [];
+  return constraints.find(c =>
+    c.day === day &&
+    c.periodName === periodName &&
+    (!c.appliesTo || c.appliesTo.includes(className))
+  ) || null;
+}
+
 export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   const { teacherProfile, setTeacherProfile, teacherGroups, addTeacherGroup, submitFacultyClubRequest, createNotification, deleteClub, isAppAdmin, userProfile, isSapsCore, adminTestTeacher } = useApp();
+  const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
   const { classes: uniClasses } = useUniversityConfig();
 
   const TIMETABLE_TEAM_NAMES = ['Shruthi', 'Bhoomika', 'Thirupat'];
@@ -585,7 +596,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   const [renameInput, setRenameInput] = useState('');
   const [renameSubmitting, setRenameSubmitting] = useState(false);
 
-  const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const DAY_LABELS = APP_CONFIG.workingDays || ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const DAY_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   useEffect(() => {
@@ -594,7 +605,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
     (async () => {
       setTodayClassesLoading(true);
       const [slotsRes, periodsRes] = await Promise.all([
-        supabase.from('timetable_slots').select('*').eq('day', todayDay).ilike('faculty_name', `%${name}%`),
+        supabase.from('timetable_slots').select('*').eq('day', todayDay).ilike('faculty_name', `%${name}%`).eq('university_id', universityId),
         supabase.from('timetable_periods').select('*').order('sort_order'),
       ]);
       const periodMap = Object.fromEntries((periodsRes.data || []).map(p => [p.name, p]));
@@ -614,7 +625,8 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       setScheduleSlotsLoading(true);
       const { data } = await supabase
         .from('timetable_slots').select('*')
-        .eq('day', scheduleDay).ilike('faculty_name', `%${name}%`);
+        .eq('day', scheduleDay).ilike('faculty_name', `%${name}%`)
+        .eq('university_id', universityId);
       const mapped = (data || []).map(s => ({ ...s, periodInfo: allPeriodMap[s.period_name] || null }));
       mapped.sort((a, b) => (a.periodInfo?.sort_order ?? 99) - (b.periodInfo?.sort_order ?? 99));
       setScheduleSlots(mapped);
@@ -633,7 +645,8 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       const name = effectiveProfile.name;
       const { data: daySlots } = await supabase
         .from('timetable_slots').select('*')
-        .eq('day', dayName).ilike('faculty_name', `%${name}%`);
+        .eq('day', dayName).ilike('faculty_name', `%${name}%`)
+        .eq('university_id', universityId);
       if (!daySlots?.length) {
         Alert.alert('No classes', `You have no classes on ${dayName}.`);
         setAbsenceSubmitting(false);
@@ -647,7 +660,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
           course_name: 'Class Cancelled',
           faculty_name: null,
           updated_at: now,
-        }).eq('id', slot.id)
+        }).eq('id', slot.id).eq('university_id', universityId)
       ));
       await supabase.from('timetable_change_log').insert(daySlots.map(slot => ({
         changed_by: teacherId != null ? String(teacherId) : null,
@@ -703,6 +716,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         reason: subReqReason.trim(),
         preferred_substitute: subReqPrefSub.trim() || null,
         status: 'pending',
+        university_id: universityId,
       });
       const { data: teamProfiles } = await supabase.from('profiles').select('id, name')
         .or(['Shruti', 'Bhoomika', 'Tirupathi', 'Hridhya'].map(n => `name.ilike.%${n}%`).join(','));
@@ -763,6 +777,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       .from('timetable_slots')
       .select('class_name')
       .ilike('faculty_name', `%${nameToMatch}%`)
+      .eq('university_id', universityId)
       .then(({ data }) => {
         const unique = [...new Set((data || []).map(r => r.class_name).filter(Boolean))].sort();
         setTeacherClasses(unique);
@@ -1018,13 +1033,17 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
     console.log('[applyEventOverride] (1) affected_slots:', JSON.stringify(ev.affected_slots));
     let hedSkipped = false;
     for (const slotRef of (ev.affected_slots || [])) {
-      if (slotRef.day === 'TUE' && slotRef.period_name === 'P2' && HED_CLASSES.has(slotRef.class_name)) {
+      if (getSlotConstraint(slotRef.day, slotRef.period_name, slotRef.class_name)) {
         hedSkipped = true;
         continue;
       }
       const { data: slot } = await supabase.from('timetable_slots')
-        .select('id, course_name, faculty_name').eq('class_name', slotRef.class_name)
-        .eq('day', slotRef.day).eq('period_name', slotRef.period_name).maybeSingle();
+        .select('id, course_name, faculty_name')
+        .eq('class_name', slotRef.class_name)
+        .eq('day', slotRef.day)
+        .eq('period_name', slotRef.period_name)
+        .eq('university_id', universityId)
+        .maybeSingle();
       if (slot?.id) {
         // overridden_by_event is not a column in timetable_slots — omit it to avoid 400.
         // The change_log row below captures the original values for audit/restore.
@@ -1037,7 +1056,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
           '| match:', slotRef.class_name, slotRef.day, slotRef.period_name,
           '| payload:', JSON.stringify(patchPayload));
         const { data: patchData, error: patchErr } = await supabase
-          .from('timetable_slots').update(patchPayload).eq('id', slot.id).select();
+          .from('timetable_slots').update(patchPayload).eq('id', slot.id).eq('university_id', universityId).select();
         console.log('[applyEventOverride] (2) response — data:', JSON.stringify(patchData),
           '| error:', patchErr ? JSON.stringify(patchErr) : null);
         const { data: evLogRow } = await supabase.from('timetable_change_log').insert({
@@ -1053,6 +1072,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             className: slotRef.class_name,
             day: slotRef.day,
             periodName: slotRef.period_name,
+            universityId,
           }).catch(e => console.warn('[CompReq] event override error:', e.message));
         }
       } else {
@@ -1061,7 +1081,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       }
     }
     if (hedSkipped) {
-      Alert.alert('Partial Override', 'TUE P2 is reserved for HED and was not overridden.');
+      Alert.alert('Partial Override', 'Some slots are restricted by university constraints and were not overridden.');
     }
     const firstSlot = (ev.affected_slots || [])[0];
     if (firstSlot) {
@@ -1070,6 +1090,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
         .eq('class_name', firstSlot.class_name)
         .eq('day', firstSlot.day)
         .eq('period_name', firstSlot.period_name)
+        .eq('university_id', universityId)
         .maybeSingle();
       console.log('[applyEventOverride] (3) re-fetch confirm —',
         firstSlot.class_name, firstSlot.day, firstSlot.period_name,

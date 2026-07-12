@@ -153,6 +153,7 @@ export default function ClubDashboardScreen({
     loadClubJoinRequests, resolveClubJoinRequest, deleteClub,
     userCreatedClubs, createNotification, adminTestTeacher,
   } = useApp();
+  const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
 
   const club = hubClubs.find(c => c.id === clubId)
     || userCreatedClubs?.find(c => c.id === String(rawId));
@@ -834,6 +835,7 @@ export default function ClubDashboardScreen({
                 className: slotRef.class_name,
                 day: slotRef.day,
                 periodName: slotRef.period_name,
+                universityId,
               }).catch(e => console.warn('[CompReq] club event override error:', e.message));
             }
           }

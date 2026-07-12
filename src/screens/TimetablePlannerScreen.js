@@ -11,6 +11,8 @@ import { colors, spacing, radius, font } from '../theme';
 import { colors as tColors, typography, spacing as tSpacing, radius as tRadius, shadows, presets } from '../theme/tokens';
 import { createCompensatoryRequest } from '../lib/compensatoryUtils';
 import * as DocumentPicker from 'expo-document-picker';
+import * as XLSX from 'xlsx';
+import * as FileSystem from 'expo-file-system';
 import { CircleCheck, Calendar, Cpu, X, School, Check, Upload, MessageSquare, Trash2, Paperclip, Search, TriangleAlert, Lock } from 'lucide-react-native';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,9 +40,19 @@ async function getSubjectForTeacher(teacherName, className) {
   }
 }
 
+// Returns the constraint matching a given day, period, and class, if any
+function getSlotConstraint(day, periodName, className) {
+  const constraints = APP_CONFIG.constraints || [];
+  return constraints.find(c =>
+    c.day === day &&
+    c.periodName === periodName &&
+    (!c.appliesTo || c.appliesTo.includes(className))
+  ) || null;
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const DAYS = APP_CONFIG.workingDays || ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 const CLASSES = APP_CONFIG.classes;
 
@@ -77,7 +89,7 @@ const C_PRIM_09 = `${tColors.faculty.primary}18`; // ~9%
 const C_PRIM_20 = `${tColors.faculty.primary}33`; // ~20%
 const C_PRIM_27 = `${tColors.faculty.primary}44`; // ~27%
 
-const DAY_ORDER = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const DAY_ORDER = APP_CONFIG.workingDays || ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 // Classes that have HED reserved at TUE P2 (5th-year classes have real subjects there).
 const HED_CLASSES = new Set(APP_CONFIG.hedClasses);
@@ -96,7 +108,7 @@ function findCompOptions(req, { slots, periods, mergedAdjunctConstraints, todayD
     !s.course_name &&
     !s.is_external &&
     !(s.faculty_name && s.faculty_name.startsWith('External')) &&
-    !(s.day === 'TUE' && s.period_name === 'P2' && HED_CLASSES.has(s.class_name))
+    !getSlotConstraint(s.day, s.period_name, s.class_name)
   );
 
   const teacherLower = req.teacher_name.toLowerCase();
@@ -154,6 +166,7 @@ const PERIOD_COL_W = 58;
 export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   const { userProfile, teacherProfile, createNotification, isAppAdmin,
     adminTestAsName: testAsName, setAdminTestAsName: setTestAsName } = useApp();
+  const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [periods, setPeriods] = useState([]);
@@ -360,10 +373,10 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
     (async () => {
       const [pRes, cRes, sRes, fcRes, psRes] = await Promise.all([
         supabase.from('timetable_periods').select('*').order('sort_order'),
-        supabase.from('timetable_classrooms').select('*'),
-        supabase.from('timetable_slots').select('*'),
-        supabase.from('timetable_faculty_constraints').select('*'),
-        supabase.from('timetable_paired_sessions').select('*'),
+        supabase.from('timetable_classrooms').select('*').eq('university_id', universityId),
+        supabase.from('timetable_slots').select('*').eq('university_id', universityId),
+        supabase.from('timetable_faculty_constraints').select('*').eq('university_id', universityId),
+        supabase.from('timetable_paired_sessions').select('*').eq('university_id', universityId),
       ]);
       if (cancelled) return;
       setPeriods(pRes.data || []);
@@ -417,12 +430,14 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       .from('substitute_requests')
       .select('*, timetable_slots(*)')
       .eq('status', 'pending')
+      .eq('university_id', universityId)
       .order('created_at', { ascending: false })
       .then(({ data }) => setPendingSubReqs(data || []));
     supabase
       .from('compensatory_requests')
       .select('*')
       .in('status', ['pending', 'unresolved'])
+      .eq('university_id', universityId)
       .order('created_at', { ascending: false })
       .then(({ data }) => setCompReqs(data || []));
   }, [isTimetableTeam, activeTab]);
@@ -733,8 +748,9 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   // ── Save slot ─────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!editTarget) return;
-    if (editTarget.day === 'TUE' && editTarget.period_name === 'P2' && HED_CLASSES.has(selectedClass)) {
-      Alert.alert('HED Slot Protected', 'This slot is reserved for HED and cannot be edited directly. Contact the timetable team lead for an override.');
+    const constraint = getSlotConstraint(editTarget.day, editTarget.period_name, selectedClass);
+    if (constraint) {
+      Alert.alert('Slot Protected', `This slot is restricted: ${constraint.reason || 'reserved'} and cannot be edited directly. Contact the timetable team lead for an override.`);
       return;
     }
     if (editForm.change_type === 'substitute' && !editForm.reason.trim()) {
@@ -766,12 +782,13 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         batch_details: editForm.batch_details.trim() || null,
         is_elective: editForm.is_elective,
         updated_at: new Date().toISOString(),
+        university_id: universityId,
       };
 
       let savedSlotId = existing?.id;
 
       if (existing?.id) {
-        await supabase.from('timetable_slots').update(payload).eq('id', existing.id);
+        await supabase.from('timetable_slots').update(payload).eq('id', existing.id).eq('university_id', universityId);
       } else {
         const { data } = await supabase.from('timetable_slots').insert({ ...payload, created_at: new Date().toISOString() }).select('id').single();
         savedSlotId = data?.id;
@@ -956,7 +973,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
             course_name: subject.name,
             course_code: subject.code,
             updated_at: now,
-          }).eq('id', slot.id);
+          }).eq('id', slot.id).eq('university_id', universityId);
         })
       );
 
@@ -1004,6 +1021,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
             className: cls,
             day: selectedDay,
             periodName,
+            universityId,
           }).catch(e => console.warn('[CompReq] publish error:', e.message));
         }
       });
@@ -1096,6 +1114,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         reason: subReqReason.trim(),
         preferred_substitute: subReqPrefSub || null,
         status: 'pending',
+        university_id: universityId,
       });
 
       const { data: notifProfiles } = await supabase
@@ -1138,7 +1157,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           course_name: 'Class Cancelled',
           faculty_name: null,
           updated_at: now,
-        }).eq('id', slot.id)
+        }).eq('id', slot.id).eq('university_id', universityId)
       ));
       await supabase.from('timetable_change_log').insert(mySlots.map(slot => ({
         changed_by: teacherId != null ? String(teacherId) : null,
@@ -1180,7 +1199,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
     try {
       const { error } = await supabase.rpc('reset_timetable_slots');
       if (error) { Alert.alert('Reset Failed', error.message); return; }
-      await supabase.from('compensatory_requests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('compensatory_requests').delete().neq('id', '00000000-0000-0000-0000-000000000000').eq('university_id', universityId);
       // Re-apply permanent overrides on top of the reset baseline
       const { data: overrides } = await supabase.from('timetable_permanent_overrides').select('*');
       if (overrides?.length) {
@@ -1192,11 +1211,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
             batch_details: po.batch_details,
             is_elective: po.is_elective,
             updated_at: new Date().toISOString(),
-          }).eq('class_name', po.class_name).eq('day', po.day).eq('period_name', po.period_name);
+          }).eq('class_name', po.class_name).eq('day', po.day).eq('period_name', po.period_name).eq('university_id', universityId);
         }
         setPermanentOverrides(overrides);
       }
-      const { data: freshSlots } = await supabase.from('timetable_slots').select('*');
+      const { data: freshSlots } = await supabase.from('timetable_slots').select('*').eq('university_id', universityId);
       if (freshSlots) setSlots(freshSlots);
       setCompReqs([]);
       setResetModalVisible(false);
@@ -1222,14 +1241,16 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         .eq('class_name', req.class_name)
         .eq('day', req.day)
         .eq('period_name', req.period_name)
+        .eq('university_id', universityId)
         .maybeSingle();
       slot = found || null;
     }
     const reqDay = req.day || slot?.day;
     const reqPeriod = req.period_name || slot?.period_name;
     const reqClass = req.class_name || slot?.class_name;
-    if (reqDay === 'TUE' && reqPeriod === 'P2' && HED_CLASSES.has(reqClass)) {
-      Alert.alert('Cannot Substitute', 'This slot is reserved for HED and cannot be substituted.');
+    const constraint = getSlotConstraint(reqDay, reqPeriod, reqClass);
+    if (constraint) {
+      Alert.alert('Cannot Substitute', `This slot is restricted: ${constraint.reason || 'reserved'} and cannot be substituted.`);
       return;
     }
     const isExternalSlot = slot?.is_external || (slot?.faculty_name && slot.faculty_name.startsWith('External'));
@@ -1251,7 +1272,8 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       if (subSubject) { slotPatch.course_name = subSubject.name; slotPatch.course_code = subSubject.code; }
       const { error: slotErr } = await supabase.from('timetable_slots')
         .update(slotPatch)
-        .eq('id', slot.id);
+        .eq('id', slot.id)
+        .eq('university_id', universityId);
       if (slotErr) { Alert.alert('Slot Update Failed', slotErr.message); return; }
       setSlots(prev => prev.map(s => s.id === slot.id ? { ...s, ...slotPatch } : s));
       let subChangeLogId = null;
@@ -1274,12 +1296,13 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
           className: slot.class_name,
           day: slot.day,
           periodName: slot.period_name,
+          universityId,
         }).catch(e => console.warn('[CompReq] sub approval error:', e.message));
       }
     } else {
       Alert.alert('Cannot Update Timetable', 'This request has no slot linked — timetable was not changed, but the request will be marked approved.');
     }
-    await supabase.from('substitute_requests').update({ status: 'approved' }).eq('id', req.id);
+    await supabase.from('substitute_requests').update({ status: 'approved' }).eq('id', req.id).eq('university_id', universityId);
     if (req.requesting_teacher_id) {
       const approvedMsg = `Your substitute request for ${slot?.course_name || 'your class'} has been approved.${newFaculty ? ` ${newFaculty} will cover the session.` : ''}`;
       await createNotification('teacher-' + req.requesting_teacher_id, 'info', 'Request Approved', approvedMsg);
@@ -1294,7 +1317,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
   }, [userProfile, teacherProfile, createNotification]);
 
   const handleRejectSubReq = useCallback(async (req) => {
-    await supabase.from('substitute_requests').update({ status: 'rejected' }).eq('id', req.id);
+    await supabase.from('substitute_requests').update({ status: 'rejected' }).eq('id', req.id).eq('university_id', universityId);
     if (req.requesting_teacher_id) {
       const slot = req.timetable_slots;
       await createNotification('teacher-' + req.requesting_teacher_id, 'info', 'Request Not Approved', `Your substitute request for ${slot?.course_name || 'your class'} could not be approved at this time.`);
@@ -1348,7 +1371,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
     await supabase.from('timetable_slots').update({
       faculty_name: req.teacher_name,
       updated_at: new Date().toISOString(),
-    }).eq('id', slot.id);
+    }).eq('id', slot.id).eq('university_id', universityId);
     setSlots(prev => prev.map(s =>
       s.id === slot.id ? { ...s, faculty_name: req.teacher_name } : s
     ));
@@ -1369,7 +1392,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       proposed_day: slot.day,
       proposed_period_name: slot.period_name,
       reviewed_by: userProfile?.id || null,
-    }).eq('id', req.id);
+    }).eq('id', req.id).eq('university_id', universityId);
     notifyTeacherByName(req.teacher_name, 'info',
       `Compensatory Class Scheduled — ${slot.day} ${slot.period_name}`,
       `Your compensatory class for ${req.original_class_name} has been scheduled on ${slot.day} ${slot.period_name}.`,
@@ -1381,7 +1404,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
     await supabase.from('compensatory_requests').update({
       status: 'rejected',
       reviewed_by: userProfile?.id || null,
-    }).eq('id', req.id);
+    }).eq('id', req.id).eq('university_id', universityId);
     setCompReqs(prev => prev.filter(r => r.id !== req.id));
   }, [userProfile]);
 
@@ -1398,6 +1421,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         .eq('class_name', req.original_class_name)
         .eq('day', resolveDay)
         .eq('period_name', resolvePeriod)
+        .eq('university_id', universityId)
         .maybeSingle();
 
       if (!targetSlot) {
@@ -1425,6 +1449,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         .eq('faculty_name', req.teacher_name)
         .eq('day', resolveDay)
         .eq('period_name', resolvePeriod)
+        .eq('university_id', universityId)
         .limit(1);
 
       if (teacherConflict && teacherConflict.length > 0) {
@@ -1450,7 +1475,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         faculty_name: req.teacher_name,
         course_name: courseVal,
         updated_at: new Date().toISOString(),
-      }).eq('id', targetSlot.id);
+      }).eq('id', targetSlot.id).eq('university_id', universityId);
 
       setSlots(prev => prev.map(s =>
         s.id === targetSlot.id
@@ -1478,7 +1503,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         proposed_period_name: resolvePeriod,
         proposed_course_name: courseVal,
         reviewed_by: userProfile?.id || null,
-      }).eq('id', req.id);
+      }).eq('id', req.id).eq('university_id', universityId);
 
       setCompReqs(prev => prev.filter(r => r.id !== req.id));
       setResolveManualModal(null);
@@ -1525,11 +1550,10 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       Alert.alert('Cannot Swap', 'One or both slots are managed by an external department and can only be modified by a Super Admin.');
       return;
     }
-    if (
-      (swapSlotA.day === 'TUE' && swapSlotA.period_name === 'P2' && HED_CLASSES.has(swapSlotA.class_name)) ||
-      (swapSlotB.day === 'TUE' && swapSlotB.period_name === 'P2' && HED_CLASSES.has(swapSlotB.class_name))
-    ) {
-      Alert.alert('Cannot Swap', 'TUE P2 is reserved for HED and cannot be swapped.');
+    const constraintA = getSlotConstraint(swapSlotA.day, swapSlotA.period_name, swapSlotA.class_name);
+    const constraintB = getSlotConstraint(swapSlotB.day, swapSlotB.period_name, swapSlotB.class_name);
+    if (constraintA || constraintB) {
+      Alert.alert('Cannot Swap', 'One or both slots are restricted/reserved and cannot be swapped.');
       return;
     }
     setSwapLoading(true);
@@ -1540,12 +1564,14 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       if (!idA) {
         const { data } = await supabase.from('timetable_slots').select('id')
           .eq('class_name', swapSlotA.class_name).eq('day', swapSlotA.day).eq('period_name', swapSlotA.period_name)
+          .eq('university_id', universityId)
           .maybeSingle();
         idA = data?.id;
       }
       if (!idB) {
         const { data } = await supabase.from('timetable_slots').select('id')
           .eq('class_name', swapSlotB.class_name).eq('day', swapSlotB.day).eq('period_name', swapSlotB.period_name)
+          .eq('university_id', universityId)
           .maybeSingle();
         idB = data?.id;
       }
@@ -1566,8 +1592,8 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       const now = new Date().toISOString();
 
       await Promise.all([
-        supabase.from('timetable_slots').update({ ...bContent, updated_at: now }).eq('id', idA),
-        supabase.from('timetable_slots').update({ ...aContent, updated_at: now }).eq('id', idB),
+        supabase.from('timetable_slots').update({ ...bContent, updated_at: now }).eq('id', idA).eq('university_id', universityId),
+        supabase.from('timetable_slots').update({ ...aContent, updated_at: now }).eq('id', idB).eq('university_id', universityId),
       ]);
 
       await supabase.from('timetable_change_log').insert([
@@ -1677,7 +1703,13 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
     setChatInput('');
     try {
       const { data, error } = await supabase.functions.invoke('parse-timetable', {
-        body: { mode: chatMode, messages: nextMessages, file_base64: fileBase64 || null, file_name: fileName || null },
+        body: { 
+          mode: chatMode, 
+          messages: nextMessages, 
+          file_base64: fileBase64 || null, 
+          file_name: fileName || null,
+          class_name: selectedClass || null
+        },
       });
       if (error) throw error;
       if (data.state === 'ready' && data.session_id) {
@@ -1706,15 +1738,78 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
       });
       if (result.canceled || !result.assets?.[0]) return;
       const file = result.assets[0];
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Analyzing your timetable file. Please wait...' }]);
+      
+      setChatMessages(prev => [...prev, { role: 'user', content: `Uploaded: ${file.name}. Starting analysis of all sheets...` }]);
       setChatLoading(true);
-      const response = await fetch(file.uri);
-      const blob = await response.blob();
-      const base64 = await blobToBase64(blob);
-      await handleChatSend(`Uploaded: ${file.name}`, base64, file.name);
-    } catch {
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }]);
+      
+      let fileB64 = '';
+      if (Platform.OS === 'web') {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        fileB64 = await blobToBase64(blob);
+      } else {
+        fileB64 = await FileSystem.readAsStringAsync(file.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
+
+      const workbook = XLSX.read(fileB64, { type: 'base64' });
+      const sheetNames = workbook.SheetNames;
+      
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Found ${sheetNames.length} sheet(s): ${sheetNames.join(', ')}. Processing each sheet...` 
+      }]);
+
+      for (const sheetName of sheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const csv = XLSX.utils.sheet_to_csv(sheet);
+        if (!csv.trim()) {
+          setChatMessages(prev => [...prev, { 
+            role: 'assistant', 
+            content: `[${sheetName}] Skipped because sheet is empty.` 
+          }]);
+          continue;
+        }
+
+        // Call the Edge Function for this specific class/sheet
+        try {
+          const { data, error } = await supabase.functions.invoke('parse-timetable', {
+            body: {
+              mode: 'upload',
+              messages: [{ role: 'user', content: `Parse timetable for class: ${sheetName}` }],
+              class_name: sheetName,
+              sheet_csv: csv,
+              file_name: file.name,
+            },
+          });
+
+          if (error) throw error;
+
+          let questionText = '';
+          const questions = data.questions || data.ambiguities || [];
+          if (questions.length > 0) {
+            questionText = '\n\n⚠️ Ambiguities / Violations:\n' + questions.map(q => `- ${typeof q === 'object' ? JSON.stringify(q) : q}`).join('\n');
+          }
+
+          const slotCount = data.slots ? data.slots.length : (data.slot_count || 0);
+
+          setChatMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `[${sheetName}] State: ${data.state}\nSlots identified: ${slotCount}\n\n${data.message}${questionText}`
+          }]);
+        } catch (err) {
+          setChatMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `[${sheetName}] Failed to parse: ${err.message || err}`
+          }]);
+        }
+      }
+    } catch (e) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `Error reading file: ${e.message || e}` }]);
+    } finally {
       setChatLoading(false);
+      setTimeout(() => chatScrollRef.current?.scrollToEnd?.({ animated: true }), 120);
     }
   }
 
@@ -1734,11 +1829,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
         course_name: s.course_name || null, faculty_name: s.faculty_name || null,
         approval_status: 'approved',
       }));
-      const { error: upsertErr } = await supabase.from('timetable_slots').upsert(rows, { onConflict: 'class_name,day,period_name' });
+      const { error: upsertErr } = await supabase.from('timetable_slots').upsert(rows, { onConflict: 'university_id,class_name,day,period_name' });
       if (upsertErr) throw upsertErr;
       // Delete the session now that it's been applied.
       await supabase.from('timetable_assistant_sessions').delete().eq('session_id', pendingSession.session_id);
-      const { data: newSlots } = await supabase.from('timetable_slots').select('*');
+      const { data: newSlots } = await supabase.from('timetable_slots').select('*').eq('university_id', universityId);
       if (newSlots) setSlots(newSlots);
       setChatMessages(prev => [...prev, { role: 'assistant', content: `Done. ${rows.length} slot${rows.length !== 1 ? 's' : ''} applied to the timetable.` }]);
       setPendingSession(null);
@@ -1872,14 +1967,11 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
             )}
             {isTimetableTeam && (
               <TouchableOpacity
-                style={styles.assistantComingSoonBtn}
-                onPress={() => {
-                  if (Platform.OS === 'web') window.alert('Timetable AI is coming soon.');
-                  else Alert.alert('Coming Soon', 'Timetable AI is coming soon.');
-                }}
-                activeOpacity={1}
+                style={[styles.assistantComingSoonBtn, assistantOpen && styles.assistantToggleBtnActive, { opacity: 1 }]}
+                onPress={() => setAssistantOpen(v => !v)}
+                activeOpacity={0.7}
               >
-                <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Cpu size={14} color={colors.textTertiary} /><Text style={styles.assistantComingSoonText}>Timetable AI — Coming Soon</Text></View>
+                <View style={{flexDirection:'row',alignItems:'center',gap:8}}><Cpu size={14} color={assistantOpen ? colors.primary : colors.textSecondary} /><Text style={[styles.assistantComingSoonText, assistantOpen && { color: colors.primary }]}>AI Assistant</Text></View>
               </TouchableOpacity>
             )}
           </View>
@@ -2081,15 +2173,19 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
                                 </View>
                               )}
                             </TouchableOpacity>
-                          ) : day === 'TUE' && period.name === 'P2' ? (
-                            <TouchableOpacity
-                              style={[styles.hedCell, isSwapSelected && styles.slotSwapSelected]}
-                              onPress={isGridTeam ? () => openEdit(day, period) : undefined}
-                              activeOpacity={isGridTeam ? 0.7 : 1}
-                            >
-                              <Text style={styles.hedLabel}>HED</Text>
-                            </TouchableOpacity>
-                          ) : (
+                          ) : getSlotConstraint(day, period.name, selectedClass) ? (() => {
+                            const constr = getSlotConstraint(day, period.name, selectedClass);
+                            const label = constr.reason && constr.reason.toLowerCase().includes('hed') ? 'HED' : 'Reserved';
+                            return (
+                              <TouchableOpacity
+                                style={[styles.hedCell, isSwapSelected && styles.slotSwapSelected]}
+                                onPress={isGridTeam ? () => openEdit(day, period) : undefined}
+                                activeOpacity={isGridTeam ? 0.7 : 1}
+                              >
+                                <Text style={styles.hedLabel}>{label}</Text>
+                              </TouchableOpacity>
+                            );
+                          })() : (
                             <TouchableOpacity
                               style={[styles.emptyCell, isSwapSelected && styles.slotSwapSelected]}
                               onPress={isGridTeam
@@ -3052,7 +3148,7 @@ export default function TimetablePlannerScreen({ onClose, embedded = false }) {
 
               <Text style={styles.fieldLabel}>SELECT PERIOD</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.md }}>
-                {['M1', 'M2', 'P1', 'P2', 'P3', 'P4'].map(p => (
+                {[...new Set(periods.map(p => p.name))].map(p => (
                   <TouchableOpacity
                     key={p}
                     style={[styles.resolvePickerPill, resolvePeriod === p && styles.resolvePickerPillActive]}

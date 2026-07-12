@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { colors, spacing, radius, font } from '../theme';
 import { Lock, ClipboardList } from 'lucide-react-native';
+import { APP_CONFIG } from '../config/appConfig';
 
 const PRIVACY_POLICY = [
   {
@@ -99,7 +100,7 @@ export default function LegalScreen({ route }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:4}}>{titleIcon}<Text style={styles.title}>{titleText}</Text></View>
-      <Text style={styles.subtitle}>UniConnect · Christ University</Text>
+      <Text style={styles.subtitle}>UniConnect · {APP_CONFIG.universityName || 'your university'}</Text>
 
       {sections.map((section, i) => (
         <View key={i} style={styles.section}>

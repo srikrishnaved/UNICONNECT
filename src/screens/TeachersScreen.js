@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
+import { APP_CONFIG } from '../config/appConfig';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 import { GraduationCap, Search, Landmark, MessageCircle, UserCheck } from 'lucide-react-native';
@@ -38,7 +39,7 @@ export default function TeachersScreen() {
     <View style={styles.container}>
       <View style={styles.banner}>
         <Text style={styles.bannerTitle}>Department of Professional Studies</Text>
-        <Text style={styles.bannerSub}>Yeshwanthpur Campus · {teachers.length} Faculty Member{teachers.length !== 1 ? 's' : ''}</Text>
+        <Text style={styles.bannerSub}>{APP_CONFIG.campusName || 'your campus'} Campus · {teachers.length} Faculty Member{teachers.length !== 1 ? 's' : ''}</Text>
       </View>
 
       <View style={styles.searchBar}>

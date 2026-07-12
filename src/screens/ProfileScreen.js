@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, TextInput,
 import { students, hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
+import { APP_CONFIG } from '../config/appConfig';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { Users, Sparkles, MessageCircle, Unlock, Ban, Flag, CircleCheck, Check, X } from 'lucide-react-native';
 
@@ -44,7 +45,7 @@ function getStudentSocialLinks(student) {
 function getProfileExtras(student) {
   const seed = student.id * 7;
   return {
-    bio: `${student.year} ${student.course} student at Christ University, ${student.campus} campus. Passionate about ${student.interest.toLowerCase()}, always open to study sprints and chai chats.`,
+    bio: `${student.year} ${student.course} student at ${APP_CONFIG.universityName || 'your university'}, ${student.campus || APP_CONFIG.campusName || 'your campus'} campus. Passionate about ${student.interest.toLowerCase()}, always open to study sprints and chai chats.`,
     interests: [student.interest, 'Music', 'Movies', 'Sports', 'Reading'].slice(0, 4),
     stats: {
       connections: 20 + ((seed * 3) % 60),
@@ -134,7 +135,7 @@ export default function ProfileScreen({ route, navigation }) {
   const isRealProfile = !!studentData;
   const extras = isRealProfile ? null : getProfileExtras(student);
   const bio = isRealProfile
-    ? (student.bio || `${student.class || student.year || ''} student at Christ University${student.campus ? ', ' + student.campus + ' campus' : ''}.`.trim())
+    ? (student.bio || `${student.class || student.year || ''} student at ${APP_CONFIG.universityName || 'your university'}${student.campus ? ', ' + student.campus + ' campus' : ''}.`.trim())
     : extras.bio;
   const interests = isRealProfile ? ['Studies', 'Music', 'Movies', 'Sports'] : extras.interests;
   const profileSocialLinks = isRealProfile ? (student.social_links || []) : getStudentSocialLinks(student);

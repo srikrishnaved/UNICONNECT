@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, Modal, ActivityIndicator, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
-import { ShieldCheck, Check, X, Pin, Trash2, Info, Landmark, Gift, ClipboardList } from 'lucide-react-native';
+import { ShieldCheck, Check, X, Pin, Trash2, Info, Landmark, Gift, ClipboardList, School } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import { hubClubs } from '../data';
 
@@ -15,8 +15,15 @@ export default function AppAdminScreen() {
   const [resolvingCR, setResolvingCR] = useState(null);
   const [clubCreationRequests, setClubCreationRequests] = useState([]);
   const [resolvingClub, setResolvingClub] = useState(null);
+  const [uniRequests, setUniRequests] = useState([]);
+  const [resolvingUni, setResolvingUni] = useState(null);
 
   const { resolveClubCreationRequest } = useApp();
+
+  const loadUniRequests = async () => {
+    const { data } = await supabase.from('university_setup_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+    if (data) setUniRequests(data);
+  };
 
   const loadClubCreationRequests = async () => {
     const { data } = await supabase.from('club_creation_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
@@ -73,6 +80,66 @@ export default function AppAdminScreen() {
     setCrRequests(prev => prev.filter(r => r.id !== req.id));
     setResolvingCR(null);
   };
+
+  const handleResolveUniRequest = async (req, action) => {
+    setResolvingUni(req.id);
+    try {
+      if (action === 'approved') {
+        const { error: profileErr } = await supabase
+          .from('profiles')
+          .update({
+            is_super_admin: true,
+            status: 'active',
+            university_id: req.user_id,
+          })
+          .eq('id', req.user_id);
+        if (profileErr) throw profileErr;
+
+        const { error: progressErr } = await supabase
+          .from('university_setup_progress')
+          .insert({
+            university_id: req.user_id,
+            university_name: req.university_name,
+            university_website: req.university_website,
+            is_setup_complete: false,
+          });
+        if (progressErr && progressErr.code !== '23505') throw progressErr;
+
+        await supabase.from('notifications').insert({
+          user_id: req.user_id,
+          type: 'info',
+          title: 'Workspace Request Approved!',
+          body: `Your request for "${req.university_name}" has been approved. Log in and navigate to the Super Admin dashboard to start setting up your workspace.`,
+          read: false,
+        });
+      } else {
+        await supabase
+          .from('profiles')
+          .update({ status: 'rejected' })
+          .eq('id', req.user_id);
+
+        await supabase.from('notifications').insert({
+          user_id: req.user_id,
+          type: 'info',
+          title: 'Workspace Request Update',
+          body: `Your request for "${req.university_name}" was reviewed and could not be approved at this time.`,
+          read: false,
+        });
+      }
+
+      await supabase
+        .from('university_setup_requests')
+        .update({ status: action })
+        .eq('id', req.id);
+
+      setUniRequests(prev => prev.filter(r => r.id !== req.id));
+      alert(`Request ${action} successfully!`);
+    } catch (e) {
+      alert('Error: ' + (e.message || 'Could not process request.'));
+    } finally {
+      setResolvingUni(null);
+    }
+  };
   const [permRooms, setPermRooms] = useState([]);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [roomName, setRoomName] = useState('');
@@ -91,7 +158,12 @@ export default function AppAdminScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadClubAdminRequests();
+    await Promise.all([
+      loadClubAdminRequests(),
+      loadUniRequests(),
+      loadCrRequests(),
+      loadClubCreationRequests(),
+    ]);
     setRefreshing(false);
   };
 
@@ -100,6 +172,7 @@ export default function AppAdminScreen() {
     loadClubAdminRequests();
     loadCrRequests();
     loadClubCreationRequests();
+    loadUniRequests();
   }, []);
 
   const handleResolve = async (req, action) => {
@@ -188,6 +261,72 @@ export default function AppAdminScreen() {
         <Text style={styles.bannerSub}>
           Review club admin and CR applications, and manage permanent study rooms.
         </Text>
+      </View>
+
+      {/* University Setup Requests */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <School size={13} color={colors.textTertiary} />
+            <Text style={styles.sectionLabel}>UNIVERSITY SETUP REQUESTS ({uniRequests.length})</Text>
+          </View>
+        </View>
+
+        {uniRequests.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <School size={36} color={colors.textTertiary} />
+            <Text style={styles.emptyTitle}>No pending setup requests</Text>
+            <Text style={styles.emptyDesc}>All university workspace requests have been reviewed.</Text>
+          </View>
+        ) : (
+          uniRequests.map(req => (
+            <View key={req.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={styles.cardTitle}>{req.university_name}</Text>
+                    <View style={[styles.typePill, { backgroundColor: colors.greenLight }]}>
+                      <Text style={[styles.typePillText, { color: colors.green }]}>SETUP REQUEST</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.cardApplicant}>
+                    Requested by <Text style={styles.cardApplicantBold}>{req.admin_name}</Text> ({req.admin_email})
+                  </Text>
+                  <Text style={styles.cardMeta}>Website: {req.university_website} · {new Date(req.created_at).toLocaleDateString()}</Text>
+                </View>
+              </View>
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  onPress={() => handleResolveUniRequest(req, 'approved')}
+                  style={[styles.actionBtn, styles.approveBtn]}
+                  disabled={resolvingUni === req.id}
+                  activeOpacity={0.85}
+                >
+                  {resolvingUni === req.id ? (
+                    <ActivityIndicator size="small" color={colors.textPrimary} />
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Check size={13} color={colors.success} />
+                      <Text style={styles.approveBtnText}>Approve</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleResolveUniRequest(req, 'rejected')}
+                  style={[styles.actionBtn, styles.rejectBtn]}
+                  disabled={resolvingUni === req.id}
+                  activeOpacity={0.85}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <X size={13} color={colors.error} />
+                    <Text style={styles.rejectBtnText}>Reject</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
       </View>
 
       {/* Club Admin Requests */}

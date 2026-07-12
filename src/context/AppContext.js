@@ -5,6 +5,31 @@ import { supabase } from '../lib/supabase';
 import { hubEvents as seedEvents, teachers, studyGroups as seedGroups } from '../data';
 import { computeClass } from '../lib/classUtils';
 
+const getSignUpUniversityId = async () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const uniParam = searchParams.get('uni');
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    let subdomain = uniParam;
+    if (!subdomain && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'dist-psi-ten-59') {
+      subdomain = parts[0];
+    }
+    if (subdomain) {
+      const { data: rows } = await supabase
+        .from('university_setup_progress')
+        .select('university_id')
+        .eq('is_setup_complete', true)
+        .ilike('university_website', `%${subdomain}%`)
+        .limit(1);
+      if (rows && rows.length > 0) {
+        return rows[0].university_id;
+      }
+    }
+  }
+  return '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
+};
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
@@ -218,6 +243,7 @@ export function AppProvider({ children }) {
                       coordinatorClubIds: (fcRows || []).map(r => /^\d+$/.test(String(r.club_id)) ? Number(r.club_id) : r.club_id),
                       isSupabaseTeacher: true,
                       isHOD: false,
+                      university_id: profile.university_id,
                     });
                     if (recovery.active) return;
                     setMode('teacher');
@@ -321,6 +347,7 @@ export function AppProvider({ children }) {
     const userId = data.user?.id;
     if (!userId) throw new Error('Account creation failed. Please try again.');
 
+    const uniId = await getSignUpUniversityId();
     const profile = {
       id: userId,
       name: name.trim(),
@@ -334,6 +361,7 @@ export function AppProvider({ children }) {
       role: 'student',
       status: 'active',
       section: section || null,
+      university_id: uniId,
     };
 
     const { error: profileError } = await supabase.from('profiles').insert(profile);
@@ -363,6 +391,7 @@ export function AppProvider({ children }) {
     const userId = data.user?.id;
     if (!userId) throw new Error('Verification failed. Please try again.');
 
+    const uniId = await getSignUpUniversityId();
     const profile = {
       id: userId,
       name: name.trim(),
@@ -375,6 +404,7 @@ export function AppProvider({ children }) {
       interests,
       role: 'student',
       status: 'active',
+      university_id: uniId,
     };
 
     const { error: profileError } = await supabase.from('profiles').insert(profile);
@@ -441,6 +471,7 @@ export function AppProvider({ children }) {
           coordinatorClubIds: (fcRows || []).map(r => /^\d+$/.test(String(r.club_id)) ? Number(r.club_id) : r.club_id),
           isSupabaseTeacher: true,
           isHOD: false,
+          university_id: profile.university_id,
         });
         setMode('teacher');
         return;
@@ -552,6 +583,7 @@ export function AppProvider({ children }) {
         coordinatorClubIds: (fcRows || []).map(r => /^\d+$/.test(String(r.club_id)) ? Number(r.club_id) : r.club_id),
         isSupabaseTeacher: true,
         isHOD: false,
+        university_id: profile.university_id,
       });
       setMode('teacher');
     }
@@ -571,6 +603,7 @@ export function AppProvider({ children }) {
 
     const subjectsArray = subjects ? subjects.split(',').map(s => s.trim()).filter(Boolean) : [];
 
+    const uniId = await getSignUpUniversityId();
     const profile = {
       id: userId,
       name: name.trim(),
@@ -582,6 +615,7 @@ export function AppProvider({ children }) {
       campus: 'Yeshwanthpur',
       bio: '',
       interests: [],
+      university_id: uniId,
     };
 
     const { error: profileError } = await supabase.from('profiles').insert(profile);

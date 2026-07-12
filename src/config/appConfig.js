@@ -3,9 +3,25 @@ import { colors as tColors } from '../theme/tokens';
 export const APP_CONFIG = {
   // Brand Configuration
   appName: 'UniConnect',
-  universityName: 'UniConnect Platform',
-  campusName: 'Main Campus',
+  universityName: 'Christ University',
+  campusName: 'Yeshwanthpur',
   legalName: 'UniConnect',
+
+  // Timetable AI Assistant — per-university config
+  // workingDays: read from university config at runtime; this is the fallback default.
+  workingDays: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
+
+  // Scheduling constraints for the AI assistant.
+  // Shape: { day, periodName, appliesTo: [classNames], reason }
+  // These are seeded per-university. No hardcoded institution-specific rules in code.
+  constraints: [
+    {
+      day: 'TUE',
+      periodName: 'P2',
+      appliesTo: ['1BcomIBA', '1BcomF&A', '1BcomIAF', '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF'],
+      reason: 'Reserved for HED (Higher Education Department)',
+    }
+  ],
   
   // Registration Configuration
   allowedEmailDomains: ['christuniversity.in'],
@@ -56,6 +72,18 @@ export const APP_CONFIG = {
     '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF',
   ],
 
+  // CHRIST-specific constraint seed data.
+  // For CHRIST, TUE P2 is reserved for HED for 1st/3rd semester classes.
+  // This is stored as a constraint entry rather than hardcoded logic.
+  christConstraints: [
+    {
+      day: 'TUE',
+      periodName: 'P2',
+      appliesTo: ['1BcomIBA', '1BcomF&A', '1BcomIAF', '3BcomIBA', '3BcomF&A(A)', '3BcomF&A(B)', '3BcomIAF'],
+      reason: 'Reserved for HED (Higher Education Department)',
+    },
+  ],
+
   // Register number bases for CR rolls (CRDashboardScreen)
   classRegBases: {
     '1BcomF&A':   2614600,
@@ -100,5 +128,8 @@ export const APP_CONFIG = {
 export const isEmailDomainValid = (email) => {
   if (!email) return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
+  if (!emailRegex.test(email.trim())) return false;
+  const domain = email.trim().toLowerCase().split('@')[1];
+  return (APP_CONFIG.allowedEmailDomains || []).includes(domain) || 
+         (APP_CONFIG.testEmailDomains || []).includes(domain);
 };
