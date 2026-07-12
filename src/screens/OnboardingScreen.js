@@ -36,6 +36,8 @@ export default function OnboardingScreen() {
   const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
   const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
 
+  const [step, setStep] = useState('signin');
+  const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('student');
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
@@ -160,8 +162,6 @@ export default function OnboardingScreen() {
   }, [activeAccentColor, step]);
 
   // 'roleSelect' | 'signup' | 'signin' | 'picker' | 'interests' | 'allset' | 'teacherSignup' | 'teacherIdentity' | 'teacherSubjects'
-  const [step, setStep] = useState('signin');
-  const [loading, setLoading] = useState(false);
 
   // Sign up fields
   const [name, setName] = useState('');
