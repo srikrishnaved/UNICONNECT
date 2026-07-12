@@ -885,8 +885,38 @@ export default function OnboardingScreen() {
       ? tColors.faculty.primary
       : tColors.student.primary;
 
+    const styleTag = `
+      @keyframes float-blob-1 {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(50px, -70px) scale(1.2); }
+        66% { transform: translate(-30px, 50px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+      }
+      @keyframes float-blob-2 {
+        0% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(-70px, 60px) scale(1.15); }
+        100% { transform: translate(0px, 0px) scale(1); }
+      }
+      .floating-blob-1 {
+        animation: float-blob-1 18s infinite ease-in-out;
+      }
+      .floating-blob-2 {
+        animation: float-blob-2 22s infinite ease-in-out;
+      }
+    `;
+
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: tColors.bg }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#06050b' }}>
+        {Platform.OS === 'web' && (
+          <>
+            <style dangerouslySetInnerHTML={{ __html: styleTag }} />
+            <View style={siStyles.bgWrapper}>
+              <View style={[siStyles.bgBlob, siStyles.bgBlob1, { backgroundColor: accentColor }]} className="floating-blob-1" />
+              <View style={[siStyles.bgBlob, siStyles.bgBlob2, { backgroundColor: '#6366f1' }]} className="floating-blob-2" />
+              <View style={[siStyles.bgBlob, siStyles.bgBlob3, { backgroundColor: '#d97706' }]} className="floating-blob-1" />
+            </View>
+          </>
+        )}
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView
             contentContainerStyle={siStyles.container}
@@ -907,30 +937,30 @@ export default function OnboardingScreen() {
               <TouchableOpacity
                 style={[
                   siStyles.roleCard,
-                  selectedRole === 'student' && { backgroundColor: tColors.bg, borderColor: tColors.border, ...shadows.card }
+                  selectedRole === 'student' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
                 ]}
                 onPress={() => setSelectedRole('student')}
                 activeOpacity={0.8}
               >
-                <GraduationCap size={16} color={selectedRole === 'student' ? accentColor : tColors.textSecondary} />
+                <GraduationCap size={16} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
                 <Text style={[
                   siStyles.roleName,
-                  selectedRole === 'student' ? { color: tColors.textPrimary, fontWeight: '600' } : { color: tColors.textSecondary }
+                  selectedRole === 'student' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
                 ]}>Student Portal</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   siStyles.roleCard,
-                  selectedRole === 'faculty' && { backgroundColor: tColors.bg, borderColor: tColors.border, ...shadows.card }
+                  selectedRole === 'faculty' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
                 ]}
                 onPress={() => setSelectedRole('faculty')}
                 activeOpacity={0.8}
               >
-                <School size={16} color={selectedRole === 'faculty' ? accentColor : tColors.textSecondary} />
+                <School size={16} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
                 <Text style={[
                   siStyles.roleName,
-                  selectedRole === 'faculty' ? { color: tColors.textPrimary, fontWeight: '600' } : { color: tColors.textSecondary }
+                  selectedRole === 'faculty' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
                 ]}>Faculty Portal</Text>
               </TouchableOpacity>
             </View>
@@ -940,14 +970,14 @@ export default function OnboardingScreen() {
               {/* Email input */}
               <View style={[
                 siStyles.inputRow,
-                focusedField === 'email' && { borderColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.1, shadowRadius: 3 }
+                focusedField === 'email' && { borderColor: accentColor }
               ]}>
-                <Mail size={16} color={focusedField === 'email' ? accentColor : tColors.textTertiary} />
+                <Mail size={16} color={focusedField === 'email' ? accentColor : 'rgba(255, 255, 255, 0.4)'} />
                 <TextInput
                   value={signInEmail}
                   onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
                   placeholder="yourname@email.com"
-                  placeholderTextColor={tColors.textTertiary}
+                  placeholderTextColor="rgba(255, 255, 255, 0.35)"
                   style={siStyles.input}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -961,15 +991,15 @@ export default function OnboardingScreen() {
               <View style={[
                 siStyles.inputRow,
                 { marginBottom: 0 },
-                focusedField === 'password' && { borderColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.1, shadowRadius: 3 }
+                focusedField === 'password' && { borderColor: accentColor }
               ]}>
-                <Lock size={16} color={focusedField === 'password' ? accentColor : tColors.textTertiary} />
+                <Lock size={16} color={focusedField === 'password' ? accentColor : 'rgba(255, 255, 255, 0.4)'} />
                 <TextInput
                   key={showSignInPassword ? 'si-visible' : 'si-hidden'}
                   value={signInPassword}
                   onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
                   placeholder="Your password"
-                  placeholderTextColor={tColors.textTertiary}
+                  placeholderTextColor="rgba(255, 255, 255, 0.35)"
                   style={[siStyles.input, { flex: 1 }]}
                   secureTextEntry={!showSignInPassword}
                   autoCapitalize="none"
@@ -981,7 +1011,7 @@ export default function OnboardingScreen() {
                   activeOpacity={0.7}
                   style={{ paddingHorizontal: tSpacing.xs }}
                 >
-                  {showSignInPassword ? <EyeOff size={16} color={tColors.textTertiary} /> : <Eye size={16} color={tColors.textTertiary} />}
+                  {showSignInPassword ? <EyeOff size={16} color="rgba(255, 255, 255, 0.4)" /> : <Eye size={16} color="rgba(255, 255, 255, 0.4)" />}
                 </TouchableOpacity>
               </View>
 
@@ -1006,7 +1036,7 @@ export default function OnboardingScreen() {
                         value={forgotEmail}
                         onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
                         placeholder="yourname@email.com"
-                        placeholderTextColor={tColors.textTertiary}
+                        placeholderTextColor="rgba(255, 255, 255, 0.3)"
                         style={siStyles.standaloneInput}
                         keyboardType="email-address"
                         autoCapitalize="none"
@@ -1054,7 +1084,7 @@ export default function OnboardingScreen() {
 
             {/* Switch Account options */}
             <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>
-              <Text style={styles.switchLink}>Create an account</Text>
+              <Text style={[styles.switchLink, { color: 'rgba(255, 255, 255, 0.6)' }]}>Create an account</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -1716,50 +1746,52 @@ const siStyles = StyleSheet.create({
     marginBottom: 32,
   },
   logoMark: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 54,
+    height: 54,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: tSpacing.md,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   logoMarkText: {
     color: '#fff',
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
   },
   title: {
     fontFamily: typography.fontHeading,
-    fontSize: 32,
-    color: tColors.textPrimary,
+    fontSize: 36,
+    color: '#ffffff',
+    fontWeight: '750',
     marginBottom: 4,
     textAlign: 'center',
+    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
   },
   subtitle: {
     fontSize: typography.sm,
-    color: tColors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.55)',
     textAlign: 'center',
   },
   roleRow: {
     flexDirection: 'row',
-    backgroundColor: tColors.card,
-    borderRadius: tRadius.md, // sharp 4px
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 8,
     padding: 4,
     borderWidth: 1,
-    borderColor: tColors.border,
-    marginBottom: tSpacing.lg,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 20,
   },
   roleCard: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 3, // sharp 3px
+    borderRadius: 6,
     flexDirection: 'row',
     gap: 8,
     backgroundColor: 'transparent',
@@ -1768,56 +1800,71 @@ const siStyles = StyleSheet.create({
   },
   roleName: {
     fontSize: typography.sm,
-    color: tColors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   formCard: {
-    backgroundColor: tColors.bg,
-    marginBottom: tSpacing.sm,
+    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 255, 255, 0.04)' : '#121118',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: tSpacing.lg,
+    marginBottom: tSpacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+      }
+    })
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: tColors.card,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
-    borderColor: tColors.border,
-    borderRadius: tRadius.md, // sharp 4px
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 8,
     paddingHorizontal: tSpacing.md,
     marginBottom: tSpacing.md,
   },
   input: {
     flex: 1,
-    color: tColors.textPrimary,
+    color: '#ffffff',
     fontSize: typography.base,
     paddingVertical: 14,
     paddingLeft: 10,
   },
   standaloneInput: {
-    backgroundColor: tColors.card,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
-    borderColor: tColors.border,
-    borderRadius: tRadius.md,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 8,
     paddingHorizontal: tSpacing.md,
     paddingVertical: 14,
-    color: tColors.textPrimary,
+    color: '#ffffff',
     fontSize: typography.base,
     marginBottom: tSpacing.md,
   },
   forgotLink: {
     fontSize: typography.sm,
-    color: tColors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.45)',
     textDecorationLine: 'underline',
   },
   forgotBox: {
-    backgroundColor: tColors.card,
-    borderRadius: tRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 8,
     padding: tSpacing.md,
     marginTop: tSpacing.sm,
     borderWidth: 1,
-    borderColor: tColors.border,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   forgotLabel: {
     fontSize: typography.sm,
-    color: tColors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.55)',
     marginBottom: tSpacing.sm,
     lineHeight: 18,
   },
@@ -1834,17 +1881,17 @@ const siStyles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryBtn: {
-    borderRadius: tRadius.md,
+    borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: tSpacing.sm,
     width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   primaryBtnText: {
     color: '#fff',
@@ -1859,11 +1906,11 @@ const siStyles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: tColors.border,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   dividerText: {
     fontSize: typography.xs,
-    color: tColors.textTertiary,
+    color: 'rgba(255, 255, 255, 0.35)',
     paddingHorizontal: 12,
   },
   footerRow: {
@@ -1876,10 +1923,37 @@ const siStyles = StyleSheet.create({
   },
   footerLink: {
     fontSize: typography.xs,
-    color: tColors.textTertiary,
+    color: 'rgba(255, 255, 255, 0.45)',
   },
   footerSep: {
     fontSize: typography.xs,
-    color: tColors.textTertiary,
+    color: 'rgba(255, 255, 255, 0.45)',
+  },
+  // Liquid background shapes
+  bgWrapper: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    overflow: 'hidden',
+    zIndex: -1,
+  },
+  bgBlob: {
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    opacity: 0.22,
+    filter: 'blur(90px)',
+  },
+  bgBlob1: {
+    top: '10%',
+    left: '5%',
+  },
+  bgBlob2: {
+    bottom: '15%',
+    right: '10%',
+  },
+  bgBlob3: {
+    top: '40%',
+    left: '40%',
   },
 });
