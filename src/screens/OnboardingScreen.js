@@ -111,22 +111,36 @@ export default function OnboardingScreen() {
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
 
+      // 1. Draw a soft glowing spotlight following the user's cursor
+      if (mx > -500 && my > -500) {
+        const mouseGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 220);
+        mouseGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+        mouseGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
+        mouseGrad.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.arc(mx, my, 220, 0, Math.PI * 2);
+        ctx.fillStyle = mouseGrad;
+        ctx.fill();
+      }
+
+      // 2. Draw and push the metaballs
       blobs.forEach(blob => {
-        // Mouse repulsion force
+        // Mouse repulsion force (expanded radius and amplified push force)
         if (mx > -500 && my > -500) {
           const dx = blob.x - mx;
           const dy = blob.y - my;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 320) {
-            const force = (320 - dist) / 320 * 0.55;
+          if (dist < 400) {
+            const force = (400 - dist) / 400 * 1.35;
             blob.vx += (dx / dist) * force;
             blob.vy += (dy / dist) * force;
           }
         }
 
         // Damping and constant movement
-        blob.vx *= 0.95;
-        blob.vy *= 0.95;
+        blob.vx *= 0.94;
+        blob.vy *= 0.94;
         blob.x += blob.vx + blob.baseVx;
         blob.y += blob.vy + blob.baseVy;
 
@@ -1031,8 +1045,8 @@ export default function OnboardingScreen() {
               bottom: 0,
               width: '100%',
               height: '100%',
-              filter: 'blur(85px)',
-              opacity: 0.35,
+              filter: 'blur(75px)',
+              opacity: 0.48,
               pointerEvents: 'none',
             }}
           />
