@@ -258,7 +258,7 @@ export function AppProvider({ children }) {
                   setIsAppAdmin(true);
                   loadClubAdminRequests();
                 }
-                setRequiresBio(!profile.bio || profile.bio.trim().length < 20);
+                setRequiresBio(!profile.is_super_admin && (!profile.bio || profile.bio.trim().length < 20));
                 setMode('app');
               } else {
                 setMode('onboarding');
