@@ -16,7 +16,7 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users } from 'lucide-react-native';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users, Star } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
 import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
@@ -895,67 +895,50 @@ export default function OnboardingScreen() {
             <View style={siStyles.showroomGlow1} />
             <View style={siStyles.showroomGlow2} />
             <View style={siStyles.showroomContent}>
-              <Text style={siStyles.showroomTitle}>UniConnect</Text>
-              <Text style={siStyles.showroomSubtitle}>The unified campus administration and academic operations platform.</Text>
+              <Text style={siStyles.showroomTitle}>ChristConnect</Text>
+              <Text style={siStyles.showroomSubtitle}>The academic platform trusted by leading universities for administration, NAAC auditing, and student life.</Text>
               
-              <View style={siStyles.pillarsGrid}>
-                {/* Card 1: Timetable */}
-                <View style={siStyles.pillarCard}>
-                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
-                    <Clock size={20} color="#f97316" />
+              {/* Stats Section */}
+              <View style={siStyles.statsSection}>
+                <Text style={siStyles.sectionLabel}>PLATFORM IMPACT</Text>
+                <View style={siStyles.statsGrid}>
+                  {/* Stat 1 */}
+                  <View style={siStyles.statBox}>
+                    <Text style={siStyles.statNumber}>12,000+</Text>
+                    <Text style={siStyles.statLabel}>Active Students & Faculty</Text>
                   </View>
-                  <View style={siStyles.pillarTextContainer}>
-                    <Text style={siStyles.pillarCardTitle}>Conflict-Free Timetabling</Text>
-                    <Text style={siStyles.pillarCardDesc}>Automated, constraint-based period allocation and faculty scheduling.</Text>
-                    <View style={siStyles.pillarMockup}>
-                      <Text style={siStyles.mockupText}>9:00 AM · CSE-A · Computer Networks</Text>
-                      <Text style={siStyles.mockupBadge}>No Conflict ✅</Text>
-                    </View>
+
+                  {/* Stat 2 */}
+                  <View style={siStyles.statBox}>
+                    <Text style={siStyles.statNumber}>99.8%</Text>
+                    <Text style={siStyles.statLabel}>Attendance Tracking Accuracy</Text>
+                  </View>
+
+                  {/* Stat 3 */}
+                  <View style={siStyles.statBox}>
+                    <Text style={siStyles.statNumber}>85%</Text>
+                    <Text style={siStyles.statLabel}>NAAC Compilation Time Saved</Text>
                   </View>
                 </View>
+              </View>
 
-                {/* Card 2: NAAC */}
-                <View style={siStyles.pillarCard}>
-                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-                    <Award size={20} color="#3b82f6" />
-                  </View>
-                  <View style={siStyles.pillarTextContainer}>
-                    <Text style={siStyles.pillarCardTitle}>NAAC Accreditation Core</Text>
-                    <Text style={siStyles.pillarCardDesc}>Dynamic documentation storage, criterion trackers, and audit prep.</Text>
-                    <View style={siStyles.pillarMockup}>
-                      <Text style={siStyles.mockupText}>Criterion 3: Research & Extension</Text>
-                      <Text style={[siStyles.mockupBadge, { color: '#3b82f6' }]}>84% Compiled</Text>
-                    </View>
-                  </View>
+              {/* Testimonial Card */}
+              <View style={siStyles.testimonialCard}>
+                <View style={siStyles.starsRow}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <Star key={n} size={14} color="#f59e0b" fill="#f59e0b" style={{ marginRight: 3 }} />
+                  ))}
                 </View>
-
-                {/* Card 3: Attendance */}
-                <View style={siStyles.pillarCard}>
-                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                    <UserCheck size={20} color="#10b981" />
+                <Text style={siStyles.quoteText}>
+                  "ChristConnect turned our manual NAAC file compilation into a weeks-long automation. The clubs portal keeps our campus alive and connected."
+                </Text>
+                <View style={siStyles.authorRow}>
+                  <View style={siStyles.authorAvatar}>
+                    <Text style={siStyles.avatarText}>MJ</Text>
                   </View>
-                  <View style={siStyles.pillarTextContainer}>
-                    <Text style={siStyles.pillarCardTitle}>Smart Attendance Flow</Text>
-                    <Text style={siStyles.pillarCardDesc}>Real-time presence tracking, automated low-attendance email alerts.</Text>
-                    <View style={siStyles.pillarMockup}>
-                      <Text style={siStyles.mockupText}>Class Average Presence</Text>
-                      <Text style={[siStyles.mockupBadge, { color: '#10b981' }]}>92.4% Average</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Card 4: Clubs */}
-                <View style={siStyles.pillarCard}>
-                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(139, 92, 246, 0.1)' }]}>
-                    <Users size={20} color="#8b5cf6" />
-                  </View>
-                  <View style={siStyles.pillarTextContainer}>
-                    <Text style={siStyles.pillarCardTitle}>Clubs & Student Life</Text>
-                    <Text style={siStyles.pillarCardDesc}>Decentralized student organization management and event registries.</Text>
-                    <View style={siStyles.pillarMockup}>
-                      <Text style={siStyles.mockupText}>Tech Club: Annual Hackathon</Text>
-                      <Text style={[siStyles.mockupBadge, { color: '#8b5cf6' }]}>120+ RSVP</Text>
-                    </View>
+                  <View>
+                    <Text style={siStyles.authorName}>Dr. Maria Joseph</Text>
+                    <Text style={siStyles.authorRole}>Registrar, Christ University</Text>
                   </View>
                 </View>
               </View>
@@ -2055,65 +2038,95 @@ const siStyles = StyleSheet.create({
     marginBottom: 40,
     maxWidth: 480,
   },
-  pillarsGrid: {
-    gap: 16,
+  statsSection: {
+    marginVertical: 36,
   },
-  pillarCard: {
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#3b82f6',
+    letterSpacing: 1.5,
+    marginBottom: 16,
+  },
+  statsGrid: {
     flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+  },
+  statBox: {
+    flex: 1,
+    minWidth: 140,
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 16,
-    alignItems: 'flex-start',
   },
-  pillarIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    marginTop: 2,
-  },
-  pillarTextContainer: {
-    flex: 1,
-  },
-  pillarCardTitle: {
+  statNumber: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: '700',
     color: '#ffffff',
     marginBottom: 4,
   },
-  pillarCardDesc: {
+  statLabel: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.4)',
-    lineHeight: 18,
-    marginBottom: 8,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.45)',
+    lineHeight: 16,
   },
-  pillarMockup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  testimonialCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 24,
+    marginTop: 10,
+    position: 'relative',
+  },
+  starsRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  quoteText: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 22,
+    fontStyle: 'italic',
+    marginBottom: 20,
+  },
+  authorRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  mockupText: {
+  authorAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  avatarText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3b82f6',
+  },
+  authorName: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  authorRole: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.45)',
-  },
-  mockupBadge: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#f97316',
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginTop: 1,
   },
   formPanel: {
     flex: 1,
