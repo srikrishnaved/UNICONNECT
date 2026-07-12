@@ -342,3 +342,35 @@ export const myMentorSessions = [
     notes: 'Reviewed mid-term grades and discussed balancing AA exam prep with TechTeam lead responsibilities. Adopted time-blocking; mentor suggested delegating design tasks to wing leads.',
   },
 ];
+
+// Backups of original CHRIST mock data
+const ORIGINAL_STUDENTS = [...students];
+const ORIGINAL_STUDY_GROUPS = [...studyGroups];
+const ORIGINAL_HUB_CLUBS = [...hubClubs];
+const ORIGINAL_TEACHERS = [...teachers];
+const ORIGINAL_TUTORS = [...tutors];
+const ORIGINAL_MENTOR_ASSIGNMENTS = [...mentorAssignments];
+const ORIGINAL_MY_MENTOR_SESSIONS = [...myMentorSessions];
+
+export function initializeWorkspaceData(universityId) {
+  const CHRIST_ID = '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
+  if (universityId === CHRIST_ID) {
+    // Restore CHRIST data
+    students.splice(0, students.length, ...ORIGINAL_STUDENTS);
+    studyGroups.splice(0, studyGroups.length, ...ORIGINAL_STUDY_GROUPS);
+    hubClubs.splice(0, hubClubs.length, ...ORIGINAL_HUB_CLUBS);
+    teachers.splice(0, teachers.length, ...ORIGINAL_TEACHERS);
+    tutors.splice(0, tutors.length, ...ORIGINAL_TUTORS);
+    mentorAssignments.splice(0, mentorAssignments.length, ...ORIGINAL_MENTOR_ASSIGNMENTS);
+    myMentorSessions.splice(0, myMentorSessions.length, ...ORIGINAL_MY_MENTOR_SESSIONS);
+  } else {
+    // Clear data for new universities
+    students.splice(0, students.length);
+    studyGroups.splice(0, studyGroups.length);
+    hubClubs.splice(0, hubClubs.length);
+    teachers.splice(0, teachers.length);
+    tutors.splice(0, tutors.length);
+    mentorAssignments.splice(0, mentorAssignments.length);
+    myMentorSessions.splice(0, myMentorSessions.length);
+  }
+}

@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
-import { hubEvents as seedEvents, teachers, studyGroups as seedGroups } from '../data';
+import { hubEvents as seedEvents, teachers, studyGroups as seedGroups, initializeWorkspaceData } from '../data';
 import { computeClass } from '../lib/classUtils';
 
 const getSignUpUniversityId = async () => {
@@ -212,6 +212,7 @@ export function AppProvider({ children }) {
               if (recovery.active) return;
 
               if (profile) {
+                initializeWorkspaceData(profile.university_id);
                 if (profile.role === 'teacher') {
                   if (profile.status === 'pending') {
                     setUserProfile(profile);
@@ -285,6 +286,7 @@ export function AppProvider({ children }) {
 
         if (event === 'SIGNED_OUT') {
           recovery.active = false;
+          initializeWorkspaceData(null);
           setUserProfile(null);
           setTeacherProfile(null);
           setIsAppAdmin(false);
@@ -478,6 +480,7 @@ export function AppProvider({ children }) {
       }
     }
 
+    initializeWorkspaceData(profile.university_id);
     setUserProfile(profile);
     await loadUserData(data.user.id);
     if (profile.is_super_admin) {
