@@ -1019,7 +1019,7 @@ export default function OnboardingScreen() {
       : tColors.student.primary;
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#06050b' }}>
+      <View style={{ flex: 1, backgroundColor: '#06050b', position: 'relative' }}>
         {Platform.OS === 'web' && (
           <canvas
             ref={canvasRef}
@@ -1034,11 +1034,11 @@ export default function OnboardingScreen() {
               filter: 'blur(85px)',
               opacity: 0.35,
               pointerEvents: 'none',
-              zIndex: -1,
             }}
           />
         )}
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView
             contentContainerStyle={siStyles.container}
             keyboardShouldPersistTaps="handled"
@@ -1246,6 +1246,7 @@ export default function OnboardingScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+    </View>
     );
   }
 
