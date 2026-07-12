@@ -17,6 +17,7 @@ import TeachersScreen from '../screens/TeachersScreen';
 import StudyPlannerScreen from '../screens/StudyPlannerScreen';
 import { colors, font, initials, avatarColor } from '../theme';
 import { useApp } from '../context/AppContext';
+import { useUniversityConfig } from '../hooks/useUniversityConfig';
 import { myProfile } from '../data';
 
 const Tab = createBottomTabNavigator();
@@ -173,11 +174,29 @@ function HeaderRight() {
   );
 }
 export default function AppNavigator() {
+  const { enabledFeatures } = useUniversityConfig();
+
+  const activeTabs = tabs.filter(tab => {
+    if (tab.name === 'Discover' || tab.name === 'Mentors') {
+      return enabledFeatures.includes('networking');
+    }
+    if (tab.name === 'Planner') {
+      return enabledFeatures.includes('timetable');
+    }
+    if (tab.name === 'Hub') {
+      return enabledFeatures.includes('clubs');
+    }
+    if (tab.name === 'Teachers') {
+      return enabledFeatures.includes('attendance') || enabledFeatures.includes('timetable');
+    }
+    return true;
+  });
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => {
-          const tab = tabs.find(t => t.name === route.name);
+          const tab = activeTabs.find(t => t.name === route.name);
           const TabIcon = tab?.Icon;
           if (!TabIcon) return null;
           return (
@@ -235,7 +254,7 @@ export default function AppNavigator() {
         headerRight: () => <HeaderRight />,
       })}
     >
-      {tabs.map(tab => (
+      {activeTabs.map(tab => (
         <Tab.Screen key={tab.name} name={tab.name} component={tab.component} />
       ))}
     </Tab.Navigator>

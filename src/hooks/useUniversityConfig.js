@@ -28,6 +28,7 @@ export function useUniversityConfig() {
   const [classes, setClasses] = useState(ALL_CLASSES);
   const [periods, setPeriods] = useState(FALLBACK_PERIODS);
   const [subjects, setSubjects] = useState([]);
+  const [enabledFeatures, setEnabledFeatures] = useState(['timetable', 'attendance', 'naac', 'clubs', 'networking']);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export function useUniversityConfig() {
         if (subdomain) {
           const { data: rows, error } = await supabase
             .from('university_setup_progress')
-            .select('enabled_classes, university_id')
+            .select('enabled_classes, enabled_features, university_id')
             .eq('is_setup_complete', true)
             .ilike('university_website', `%${subdomain}%`)
             .limit(1);
@@ -77,20 +78,20 @@ export function useUniversityConfig() {
           if (isSuperAdmin) {
             ({ data: progress, error: progressError } = await supabase
               .from('university_setup_progress')
-              .select('enabled_classes, university_id')
+              .select('enabled_classes, enabled_features, university_id')
               .eq('university_id', user.id)
               .maybeSingle());
           } else if (userUniId) {
             ({ data: progress, error: progressError } = await supabase
               .from('university_setup_progress')
-              .select('enabled_classes, university_id')
+              .select('enabled_classes, enabled_features, university_id')
               .eq('university_id', userUniId)
               .maybeSingle());
           } else {
             // Default/anonymous fallback or CHRIST transition fallback
             ({ data: progress, error: progressError } = await supabase
               .from('university_setup_progress')
-              .select('enabled_classes, university_id')
+              .select('enabled_classes, enabled_features, university_id')
               .eq('university_id', '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd')
               .maybeSingle());
           }
@@ -102,6 +103,10 @@ export function useUniversityConfig() {
           setClasses(progress.enabled_classes);
         }
         // else keep ALL_CLASSES fallback so existing users aren't broken
+
+        if (progress?.enabled_features) {
+          setEnabledFeatures(progress.enabled_features);
+        }
 
         if (progress?.university_id) {
           const [{ data: periodsData }, { data: subjectsData }] = await Promise.all([
@@ -139,5 +144,5 @@ export function useUniversityConfig() {
     })();
   }, []);
 
-  return { classes, periods, subjects, isLoading };
+  return { classes, periods, subjects, enabledFeatures, isLoading };
 }

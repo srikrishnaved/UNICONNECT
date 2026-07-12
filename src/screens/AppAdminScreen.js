@@ -126,6 +126,7 @@ export default function AppAdminScreen() {
             university_name: req.university_name,
             university_website: req.university_website,
             enabled_classes: classesArray,
+            enabled_features: req.enabled_features || ['timetable', 'attendance', 'naac', 'clubs', 'networking'],
             step_details_done: true,
             step_classes_done: true,
             is_setup_complete: true,
