@@ -1021,15 +1021,7 @@ export default function OnboardingScreen() {
 
             <TouchableOpacity 
               onPress={() => {
-                const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
-                const url = isDev ? 'http://localhost:5173' : 'https://uni-registration.vercel.app';
-                if (Platform.OS === 'web') {
-                  window.open(url, '_blank');
-                } else {
-                  Linking.openURL(url).catch(() => {
-                    Alert.alert('Workspace Onboarding', `Visit the university registration portal at ${url} on your desktop browser.`);
-                  });
-                }
+                setStep('uniRequest');
               }} 
               activeOpacity={0.7} 
               style={[styles.switchRow, { marginTop: 10 }]}
