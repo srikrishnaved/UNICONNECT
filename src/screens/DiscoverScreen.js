@@ -21,6 +21,7 @@ export default function DiscoverScreen() {
   const [year, setYear] = useState('All');
   const [realUsers, setRealUsers] = useState([]);
   const [loadingReal, setLoadingReal] = useState(true);
+  const [courses, setCourses] = useState(['All', 'BCom IAF', 'BCom F&A', 'BCom IBA']);
   const [dbClubs, setDbClubs] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
 
@@ -56,6 +57,17 @@ export default function DiscoverScreen() {
       .then(({ data }) => {
         setRealUsers(data || []);
         setLoadingReal(false);
+      });
+
+    supabase
+      .from('university_setup_progress')
+      .select('enabled_classes')
+      .eq('university_id', universityId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!error && data && data.enabled_classes && data.enabled_classes.length > 0) {
+          setCourses(['All', ...data.enabled_classes]);
+        }
       });
   }, [universityId]);
 
@@ -301,7 +313,7 @@ export default function DiscoverScreen() {
         />
       </View>
 
-      <FilterPills options={COURSES} selected={course} onSelect={setCourse} />
+      <FilterPills options={courses} selected={course} onSelect={setCourse} />
       <FilterPills options={YEARS} selected={year} onSelect={setYear} />
 
       <FlatList
