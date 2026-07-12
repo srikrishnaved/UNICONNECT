@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
-  ActivityIndicator, Modal, Linking,
+  ActivityIndicator, Modal, Linking, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font } from '../theme';
@@ -16,7 +16,7 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen } from 'lucide-react-native';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users } from 'lucide-react-native';
 import { teachers as SEED_TEACHERS } from '../data/index';
 import LegalScreen from './LegalScreen';
 import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
@@ -36,156 +36,12 @@ export default function OnboardingScreen() {
   const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
   const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
 
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && windowWidth > 960;
+
   const [step, setStep] = useState('signin');
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('student');
-  const canvasRef = useRef(null);
-  const mouseRef = useRef({ x: -1000, y: -1000 });
-
-  const activeAccentColor = selectedRole === 'faculty'
-    ? tColors.faculty.primary
-    : tColors.student.primary;
-
-  useEffect(() => {
-    if (Platform.OS !== 'web' || step !== 'signin') return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-
-    // Resize handler
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Mouse tracking
-    const handleMouseMove = (e) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-
-    // Helper to resolve CSS variables like var(--color, fallback) for Canvas compatibility
-    const parseCanvasColor = (col) => {
-      if (typeof col !== 'string') return '#c9622e';
-      if (col.startsWith('var(')) {
-        const parts = col.split(',');
-        if (parts.length > 1) {
-          return parts[1].replace(')', '').trim();
-        }
-      }
-      return col;
-    };
-
-    // Create blobs
-    const colorsList = [
-      parseCanvasColor(activeAccentColor),
-      '#6366f1', // Indigo
-      '#d97706', // Amber
-      '#06b6d4', // Cyan
-      '#8b5cf6', // Purple
-    ];
-
-    const blobs = Array.from({ length: 6 }).map((_, i) => {
-      const radius = 130 + Math.random() * 120;
-      return {
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        vx: 0,
-        vy: 0,
-        baseVx: (Math.random() - 0.5) * 0.7,
-        baseVy: (Math.random() - 0.5) * 0.7,
-        radius,
-        color: colorsList[i % colorsList.length],
-      };
-    });
-
-    // Animation Loop
-    const tick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
-
-      // 1. Draw a soft glowing spotlight following the user's cursor
-      if (mx > -500 && my > -500) {
-        const mouseGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 220);
-        mouseGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-        mouseGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
-        mouseGrad.addColorStop(1, 'transparent');
-
-        ctx.beginPath();
-        ctx.arc(mx, my, 220, 0, Math.PI * 2);
-        ctx.fillStyle = mouseGrad;
-        ctx.fill();
-      }
-
-      // 2. Draw and push the metaballs
-      blobs.forEach(blob => {
-        // Mouse repulsion force (expanded radius and amplified push force)
-        if (mx > -500 && my > -500) {
-          const dx = blob.x - mx;
-          const dy = blob.y - my;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 400) {
-            const force = (400 - dist) / 400 * 1.35;
-            blob.vx += (dx / dist) * force;
-            blob.vy += (dy / dist) * force;
-          }
-        }
-
-        // Damping and constant movement
-        blob.vx *= 0.94;
-        blob.vy *= 0.94;
-        blob.x += blob.vx + blob.baseVx;
-        blob.y += blob.vy + blob.baseVy;
-
-        // Boundary collision (bounce)
-        if (blob.x - blob.radius < 0) {
-          blob.x = blob.radius;
-          blob.baseVx *= -1;
-        } else if (blob.x + blob.radius > canvas.width) {
-          blob.x = canvas.width - blob.radius;
-          blob.baseVx *= -1;
-        }
-
-        if (blob.y - blob.radius < 0) {
-          blob.y = blob.radius;
-          blob.baseVy *= -1;
-        } else if (blob.y + blob.radius > canvas.height) {
-          blob.y = canvas.height - blob.radius;
-          blob.baseVy *= -1;
-        }
-
-        // Draw radial gradient for liquid look
-        const grad = ctx.createRadialGradient(
-          blob.x, blob.y, 0,
-          blob.x, blob.y, blob.radius
-        );
-        grad.addColorStop(0, blob.color);
-        grad.addColorStop(1, 'transparent');
-
-        ctx.beginPath();
-        ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(tick);
-    };
-
-    tick();
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [activeAccentColor, step]);
 
   // 'roleSelect' | 'signup' | 'signin' | 'picker' | 'interests' | 'allset' | 'teacherSignup' | 'teacherIdentity' | 'teacherSubjects'
 
@@ -993,7 +849,6 @@ export default function OnboardingScreen() {
                 );
               })
             )}
-
             <Text style={[styles.hint, { marginTop: spacing.md }]}>
               {teacherSelectedSubjectIds.length > 0
                 ? `${teacherSelectedSubjectIds.length} selected`
@@ -1033,217 +888,277 @@ export default function OnboardingScreen() {
       : tColors.student.primary;
 
     return (
-      <View style={{ flex: 1, backgroundColor: '#06050b', position: 'relative' }}>
-        {Platform.OS === 'web' && (
-          <canvas
-            ref={canvasRef}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              height: '100%',
-              filter: 'blur(75px)',
-              opacity: 0.48,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-        <SafeAreaView style={{ flex: 1 }}>
-          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={siStyles.container}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Logo and Title */}
-            <View style={siStyles.headerContainer}>
-              <View style={[siStyles.logoMark, { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.08)', borderWidth: 1 }]}>
-                <Layers size={22} color={accentColor} />
-              </View>
-              <Text style={siStyles.title}>UniConnect</Text>
-              <Text style={siStyles.subtitle}>Sign in to your university workspace</Text>
-            </View>
-
-            {/* Role selector Segment Control */}
-            <View style={siStyles.roleRow}>
-              <TouchableOpacity
-                style={[
-                  siStyles.roleCard,
-                  selectedRole === 'student' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
-                ]}
-                onPress={() => setSelectedRole('student')}
-                activeOpacity={0.8}
-              >
-                <User size={14} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
-                <Text style={[
-                  siStyles.roleName,
-                  selectedRole === 'student' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
-                ]}>Student Portal</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  siStyles.roleCard,
-                  selectedRole === 'faculty' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
-                ]}
-                onPress={() => setSelectedRole('faculty')}
-                activeOpacity={0.8}
-              >
-                <BookOpen size={14} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
-                <Text style={[
-                  siStyles.roleName,
-                  selectedRole === 'faculty' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
-                ]}>Faculty Portal</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Form container */}
-            <View style={siStyles.formCard}>
-              {/* Email input */}
-              <View style={[
-                siStyles.inputRow,
-                focusedField === 'email' && { borderColor: accentColor }
-              ]}>
-                <Mail size={16} color={focusedField === 'email' ? accentColor : 'rgba(255, 255, 255, 0.4)'} />
-                <TextInput
-                  value={signInEmail}
-                  onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
-                  placeholder="yourname@email.com"
-                  placeholderTextColor="rgba(255, 255, 255, 0.35)"
-                  style={siStyles.input}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField(null)}
-                />
-              </View>
-
-              {/* Password input */}
-              <View style={[
-                siStyles.inputRow,
-                { marginBottom: 0 },
-                focusedField === 'password' && { borderColor: accentColor }
-              ]}>
-                <Lock size={16} color={focusedField === 'password' ? accentColor : 'rgba(255, 255, 255, 0.4)'} />
-                <TextInput
-                  key={showSignInPassword ? 'si-visible' : 'si-hidden'}
-                  value={signInPassword}
-                  onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
-                  placeholder="Your password"
-                  placeholderTextColor="rgba(255, 255, 255, 0.35)"
-                  style={[siStyles.input, { flex: 1 }]}
-                  secureTextEntry={!showSignInPassword}
-                  autoCapitalize="none"
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowSignInPassword(v => !v)}
-                  activeOpacity={0.7}
-                  style={{ paddingHorizontal: tSpacing.xs }}
-                >
-                  {showSignInPassword ? <EyeOff size={16} color="rgba(255, 255, 255, 0.4)" /> : <Eye size={16} color="rgba(255, 255, 255, 0.4)" />}
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => { setShowForgot(v => !v); setForgotSent(false); setForgotError(''); setForgotEmail(''); }}
-                activeOpacity={0.7}
-                style={{ alignSelf: 'flex-end', marginTop: tSpacing.sm }}
-              >
-                <Text style={siStyles.forgotLink}>Forgot password?</Text>
-              </TouchableOpacity>
-
-              {showForgot && (
-                <View style={siStyles.forgotBox}>
-                  {forgotSent ? (
-                    <Text style={siStyles.forgotSuccess}>
-                      Reset link sent — check your inbox and click the link to set a new password.
-                    </Text>
-                  ) : (
-                    <>
-                      <Text style={siStyles.forgotLabel}>Enter your email address and we'll send a reset link.</Text>
-                      <TextInput
-                        value={forgotEmail}
-                        onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
-                        placeholder="yourname@email.com"
-                        placeholderTextColor="rgba(255, 255, 255, 0.3)"
-                        style={siStyles.standaloneInput}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                      {forgotError ? <Text style={siStyles.errorText}>{forgotError}</Text> : null}
-                      <TouchableOpacity
-                        style={[siStyles.primaryBtn, { backgroundColor: accentColor }, forgotLoading && { opacity: 0.6 }]}
-                        onPress={handleForgotPassword}
-                        disabled={forgotLoading}
-                        activeOpacity={0.85}
-                      >
-                        {forgotLoading
-                          ? <ActivityIndicator color="#fff" />
-                          : <Text style={siStyles.primaryBtnText}>Send Reset Link</Text>
-                        }
-                      </TouchableOpacity>
-                    </>
-                  )}
+      <View style={{ flex: 1, backgroundColor: '#06050b', flexDirection: isDesktop ? 'row' : 'column' }}>
+        {/* LEFT PANEL: Showroom (Desktop Only) */}
+        {isDesktop && (
+          <View style={siStyles.showroomPanel}>
+            <View style={siStyles.showroomGlow1} />
+            <View style={siStyles.showroomGlow2} />
+            <View style={siStyles.showroomContent}>
+              <Text style={siStyles.showroomTitle}>UniConnect</Text>
+              <Text style={siStyles.showroomSubtitle}>The unified campus administration and academic operations platform.</Text>
+              
+              <View style={siStyles.pillarsGrid}>
+                {/* Card 1: Timetable */}
+                <View style={siStyles.pillarCard}>
+                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
+                    <Clock size={20} color="#f97316" />
+                  </View>
+                  <View style={siStyles.pillarTextContainer}>
+                    <Text style={siStyles.pillarCardTitle}>Conflict-Free Timetabling</Text>
+                    <Text style={siStyles.pillarCardDesc}>Automated, constraint-based period allocation and faculty scheduling.</Text>
+                    <View style={siStyles.pillarMockup}>
+                      <Text style={siStyles.mockupText}>9:00 AM · CSE-A · Computer Networks</Text>
+                      <Text style={siStyles.mockupBadge}>No Conflict ✅</Text>
+                    </View>
+                  </View>
                 </View>
-              )}
+
+                {/* Card 2: NAAC */}
+                <View style={siStyles.pillarCard}>
+                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                    <Award size={20} color="#3b82f6" />
+                  </View>
+                  <View style={siStyles.pillarTextContainer}>
+                    <Text style={siStyles.pillarCardTitle}>NAAC Accreditation Core</Text>
+                    <Text style={siStyles.pillarCardDesc}>Dynamic documentation storage, criterion trackers, and audit prep.</Text>
+                    <View style={siStyles.pillarMockup}>
+                      <Text style={siStyles.mockupText}>Criterion 3: Research & Extension</Text>
+                      <Text style={[siStyles.mockupBadge, { color: '#3b82f6' }]}>84% Compiled</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Card 3: Attendance */}
+                <View style={siStyles.pillarCard}>
+                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                    <UserCheck size={20} color="#10b981" />
+                  </View>
+                  <View style={siStyles.pillarTextContainer}>
+                    <Text style={siStyles.pillarCardTitle}>Smart Attendance Flow</Text>
+                    <Text style={siStyles.pillarCardDesc}>Real-time presence tracking, automated low-attendance email alerts.</Text>
+                    <View style={siStyles.pillarMockup}>
+                      <Text style={siStyles.mockupText}>Class Average Presence</Text>
+                      <Text style={[siStyles.mockupBadge, { color: '#10b981' }]}>92.4% Average</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Card 4: Clubs */}
+                <View style={siStyles.pillarCard}>
+                  <View style={[siStyles.pillarIconBox, { backgroundColor: 'rgba(139, 92, 246, 0.1)' }]}>
+                    <Users size={20} color="#8b5cf6" />
+                  </View>
+                  <View style={siStyles.pillarTextContainer}>
+                    <Text style={siStyles.pillarCardTitle}>Clubs & Student Life</Text>
+                    <Text style={siStyles.pillarCardDesc}>Decentralized student organization management and event registries.</Text>
+                    <View style={siStyles.pillarMockup}>
+                      <Text style={siStyles.mockupText}>Tech Club: Annual Hackathon</Text>
+                      <Text style={[siStyles.mockupBadge, { color: '#8b5cf6' }]}>120+ RSVP</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
+          </View>
+        )}
 
-            {signInError ? <Text style={siStyles.errorText}>{signInError}</Text> : null}
+        {/* RIGHT PANEL: Form Card */}
+        <View style={isDesktop ? siStyles.formPanel : { flex: 1 }}>
+          {isDesktop && <View style={[siStyles.formGlow, { backgroundColor: accentColor }]} />}
+          <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'web' ? undefined : (Platform.OS === 'ios' ? 'padding' : undefined)}>
+              <ScrollView
+                contentContainerStyle={siStyles.container}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Logo and Title */}
+                <View style={siStyles.headerContainer}>
+                  <View style={[siStyles.logoMark, { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.08)', borderWidth: 1 }]}>
+                    <Layers size={22} color={accentColor} />
+                  </View>
+                  <Text style={siStyles.title}>UniConnect</Text>
+                  <Text style={siStyles.subtitle}>Sign in to your university workspace</Text>
+                </View>
 
-            {/* Primary CTA */}
-            <TouchableOpacity
-              style={[siStyles.primaryBtn, { backgroundColor: accentColor }, loading && { opacity: 0.6 }]}
-              onPress={handleSignIn}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={siStyles.primaryBtnText}>Verify & Sign In →</Text>
-              }
-            </TouchableOpacity>
+                {/* Role selector Segment Control */}
+                <View style={siStyles.roleRow}>
+                  <TouchableOpacity
+                    style={[
+                      siStyles.roleCard,
+                      selectedRole === 'student' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
+                    ]}
+                    onPress={() => setSelectedRole('student')}
+                    activeOpacity={0.8}
+                  >
+                    <User size={14} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
+                    <Text style={[
+                      siStyles.roleName,
+                      selectedRole === 'student' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
+                    ]}>Student Portal</Text>
+                  </TouchableOpacity>
 
-            {/* Subtle Divider */}
-            <View style={siStyles.dividerRow}>
-              <View style={siStyles.dividerLine} />
-              <Text style={siStyles.dividerText}>or</Text>
-              <View style={siStyles.dividerLine} />
-            </View>
+                  <TouchableOpacity
+                    style={[
+                      siStyles.roleCard,
+                      selectedRole === 'faculty' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
+                    ]}
+                    onPress={() => setSelectedRole('faculty')}
+                    activeOpacity={0.8}
+                  >
+                    <BookOpen size={14} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
+                    <Text style={[
+                      siStyles.roleName,
+                      selectedRole === 'faculty' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
+                    ]}>Faculty Portal</Text>
+                  </TouchableOpacity>
+                </View>
 
-            {/* Switch Account options */}
-            <TouchableOpacity onPress={() => setStep('roleSelect')} activeOpacity={0.7} style={styles.switchRow}>
-              <Text style={[styles.switchLink, { color: 'rgba(255, 255, 255, 0.6)' }]}>Create an account</Text>
-            </TouchableOpacity>
+                {/* Form container */}
+                <View style={siStyles.formCard}>
+                  {/* Email input */}
+                  <View style={[
+                    siStyles.inputWrapper,
+                    focusedField === 'email' && { borderColor: accentColor, backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                  ]}>
+                    <Mail size={16} color={focusedField === 'email' ? accentColor : 'rgba(255, 255, 255, 0.4)'} style={{ marginRight: 12 }} />
+                    <TextInput
+                      value={signInEmail}
+                      onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
+                      placeholder="username@university.edu"
+                      placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                      style={siStyles.input}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </View>
 
-            <TouchableOpacity 
-              onPress={handleRegisterUniversityPress} 
-              activeOpacity={0.7} 
-              style={[styles.switchRow, { marginTop: 10, marginBottom: tSpacing.xl }]}
-            >
-              <Text style={[styles.switchLink, { color: accentColor }]}>Register a New University Workspace</Text>
-            </TouchableOpacity>
+                  {/* Password input */}
+                  <View style={[
+                    siStyles.inputWrapper,
+                    { marginTop: 14 },
+                    focusedField === 'password' && { borderColor: accentColor, backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                  ]}>
+                    <Lock size={16} color={focusedField === 'password' ? accentColor : 'rgba(255, 255, 255, 0.4)'} style={{ marginRight: 12 }} />
+                    <TextInput
+                      value={signInPassword}
+                      onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
+                      placeholder="Your password"
+                      placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                      style={[siStyles.input, { flex: 1 }]}
+                      secureTextEntry={!showSignInPassword}
+                      autoCapitalize="none"
+                      onFocus={() => setFocusedField('password')}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowSignInPassword(v => !v)}
+                      activeOpacity={0.7}
+                      style={{ paddingHorizontal: tSpacing.xs }}
+                    >
+                      {showSignInPassword ? <EyeOff size={16} color="rgba(255, 255, 255, 0.4)" /> : <Eye size={16} color="rgba(255, 255, 255, 0.4)" />}
+                    </TouchableOpacity>
+                  </View>
 
-            {/* Footer links */}
-            <View style={siStyles.footerRow}>
-              <TouchableOpacity onPress={() => setLegalModal('privacy')} activeOpacity={0.7}>
-                <Text style={siStyles.footerLink}>Privacy Policy</Text>
-              </TouchableOpacity>
-              <Text style={siStyles.footerSep}>·</Text>
-              <TouchableOpacity onPress={() => setLegalModal('security')} activeOpacity={0.7}>
-                <Text style={siStyles.footerLink}>Security</Text>
-              </TouchableOpacity>
-              <Text style={siStyles.footerSep}>·</Text>
-              <TouchableOpacity onPress={() => setLegalModal('support')} activeOpacity={0.7}>
-                <Text style={siStyles.footerLink}>Support</Text>
-              </TouchableOpacity>
-            </View>
+                  <TouchableOpacity
+                    onPress={() => { setShowForgot(v => !v); setForgotSent(false); setForgotError(''); setForgotEmail(''); }}
+                    activeOpacity={0.7}
+                    style={{ alignSelf: 'flex-end', marginTop: tSpacing.sm }}
+                  >
+                    <Text style={siStyles.forgotLink}>Forgot password?</Text>
+                  </TouchableOpacity>
+
+                  {showForgot && (
+                    <View style={siStyles.forgotBox}>
+                      {forgotSent ? (
+                        <Text style={siStyles.forgotSuccess}>
+                          Verification email sent! Please check your inbox.
+                        </Text>
+                      ) : (
+                        <>
+                          <Text style={siStyles.forgotTitle}>Reset Password</Text>
+                          <Text style={siStyles.forgotSubtitle}>Enter your registered email to receive a password reset link.</Text>
+                          <TextInput
+                            value={forgotEmail}
+                            onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
+                            placeholder="username@university.edu"
+                            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                            style={siStyles.forgotInput}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                          />
+                          {!!forgotError && <Text style={siStyles.forgotError}>{forgotError}</Text>}
+                          <TouchableOpacity
+                            style={[siStyles.forgotBtn, { backgroundColor: accentColor }]}
+                            onPress={handleForgotPasswordSubmit}
+                            disabled={forgotLoading}
+                            activeOpacity={0.8}
+                          >
+                            {forgotLoading ? (
+                              <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                              <Text style={siStyles.forgotBtnText}>Send Reset Link</Text>
+                            )}
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
+                  )}
+
+                  {!!signInError && (
+                    <Text style={siStyles.errorText}>{signInError}</Text>
+                  )}
+
+                  <TouchableOpacity
+                    style={[
+                      siStyles.submitBtn,
+                      { backgroundColor: accentColor, shadowColor: accentColor }
+                    ]}
+                    onPress={handleSignInSubmit}
+                    disabled={loading}
+                    activeOpacity={0.85}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={siStyles.submitBtnText}>Verify & Sign In →</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Switch to Signup */}
+                <View style={siStyles.dividerRow}>
+                  <View style={siStyles.dividerLine} />
+                  <Text style={siStyles.dividerText}>or</Text>
+                  <View style={siStyles.dividerLine} />
+                </View>
+
+                <TouchableOpacity 
+                  onPress={handleRegisterUniversityPress} 
+                  activeOpacity={0.7} 
+                  style={[styles.switchRow, { marginTop: 10, marginBottom: tSpacing.xl }]}
+                >
+                  <Text style={[styles.switchLink, { color: accentColor }]}>Register a New University Workspace</Text>
+                </TouchableOpacity>
+
+                {/* Footer links */}
+                <View style={siStyles.footerRow}>
+                  <TouchableOpacity onPress={() => setLegalModal('privacy')} activeOpacity={0.7}>
+                    <Text style={siStyles.footerLink}>Privacy Policy</Text>
+                  </TouchableOpacity>
+                  <Text style={siStyles.footerSep}>·</Text>
+                  <TouchableOpacity onPress={() => setLegalModal('security')} activeOpacity={0.7}>
+                    <Text style={siStyles.footerLink}>Security</Text>
+                  </TouchableOpacity>
+                  <Text style={siStyles.footerSep}>·</Text>
+                  <TouchableOpacity onPress={() => setLegalModal('support')} activeOpacity={0.7}>
+                    <Text style={siStyles.footerLink}>Support</Text>
+                  </TouchableOpacity>
+                </View>
+
 
             {/* Legal content viewer */}
             <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
@@ -1261,6 +1176,7 @@ export default function OnboardingScreen() {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
+  </View>
     );
   }
 
@@ -2088,5 +2004,196 @@ const siStyles = StyleSheet.create({
   bgBlob3: {
     top: '40%',
     left: '40%',
+  },
+  // Showroom Layout Styles
+  showroomPanel: {
+    flex: 1.2,
+    backgroundColor: '#08070d',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    paddingHorizontal: 48,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  showroomContent: {
+    zIndex: 1,
+  },
+  showroomGlow1: {
+    position: 'absolute',
+    top: -150,
+    left: -150,
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: 'rgba(59, 130, 246, 0.07)',
+    filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
+  },
+  showroomGlow2: {
+    position: 'absolute',
+    bottom: -150,
+    right: -100,
+    width: 450,
+    height: 450,
+    borderRadius: 225,
+    backgroundColor: 'rgba(249, 115, 22, 0.05)',
+    filter: Platform.OS === 'web' ? 'blur(120px)' : undefined,
+  },
+  showroomTitle: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 38,
+    fontWeight: '700',
+    color: '#ffffff',
+    letterSpacing: -1,
+    marginBottom: 8,
+  },
+  showroomSubtitle: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: -0.2,
+    marginBottom: 40,
+    maxWidth: 480,
+  },
+  pillarsGrid: {
+    gap: 16,
+  },
+  pillarCard: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'flex-start',
+  },
+  pillarIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    marginTop: 2,
+  },
+  pillarTextContainer: {
+    flex: 1,
+  },
+  pillarCardTitle: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  pillarCardDesc: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.4)',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  pillarMockup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  mockupText: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.45)',
+  },
+  mockupBadge: {
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#f97316',
+  },
+  formPanel: {
+    flex: 1,
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  formGlow: {
+    position: 'absolute',
+    top: '30%',
+    right: '-20%',
+    width: 350,
+    height: 350,
+    borderRadius: 175,
+    opacity: 0.12,
+    filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 8,
+    paddingHorizontal: tSpacing.md,
+  },
+  forgotTitle: {
+    fontSize: 15,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  forgotSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.45)',
+    marginBottom: 12,
+    lineHeight: 16,
+  },
+  forgotInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 8,
+    paddingHorizontal: tSpacing.md,
+    paddingVertical: 10,
+    color: '#ffffff',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  forgotBtn: {
+    borderRadius: 6,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  forgotBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  forgotError: {
+    fontSize: 12,
+    color: tColors.error,
+    marginBottom: 8,
+  },
+  submitBtn: {
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 14,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  submitBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
