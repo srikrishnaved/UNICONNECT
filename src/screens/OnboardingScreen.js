@@ -1045,6 +1045,18 @@ export default function OnboardingScreen() {
               <Text style={[styles.switchLink, { color: colors.primary }]}>Register a New University Workspace</Text>
             </TouchableOpacity>
 
+            {/* Legal content viewer */}
+            <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
+              <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
+                  <TouchableOpacity onPress={() => setLegalModal(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <X size={22} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+                <LegalScreen route={{ params: { type: legalModal } }} />
+              </SafeAreaView>
+            </Modal>
+
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
