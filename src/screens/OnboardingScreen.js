@@ -36,6 +36,7 @@ export default function OnboardingScreen() {
   const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
   const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
 
+  const [selectedRole, setSelectedRole] = useState('student');
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
 
@@ -208,9 +209,7 @@ export default function OnboardingScreen() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedAge, setAgreedAge] = useState(false);
   const [legalModal, setLegalModal] = useState(null); // null | 'privacy' | 'terms'
-
   // Role selector (visual only — affects button accent colour on signin step)
-  const [selectedRole, setSelectedRole] = useState('student');
 
   // Forgot password
   const [showForgot, setShowForgot] = useState(false);
