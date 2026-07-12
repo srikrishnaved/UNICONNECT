@@ -257,12 +257,6 @@ export function AppProvider({ children }) {
                 if (profile.is_super_admin) {
                   setIsAppAdmin(true);
                   loadClubAdminRequests();
-                  // Non-CHRIST Super Admins go straight to their admin dashboard
-                  const CHRIST_ID = '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
-                  if (profile.university_id && profile.university_id !== CHRIST_ID) {
-                    setMode('superAdmin');
-                    return;
-                  }
                 }
                 setRequiresBio(!profile.bio || profile.bio.trim().length < 20);
                 setMode('app');
@@ -489,12 +483,6 @@ export function AppProvider({ children }) {
     if (profile.is_super_admin) {
       setIsAppAdmin(true);
       loadClubAdminRequests();
-      // Non-CHRIST Super Admins go straight to their admin dashboard
-      const CHRIST_ID = '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
-      if (profile.university_id && profile.university_id !== CHRIST_ID) {
-        setMode('superAdmin');
-        return;
-      }
     }
     setMode('app');
   };

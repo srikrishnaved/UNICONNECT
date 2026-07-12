@@ -217,9 +217,6 @@ function AppShell() {
       {mode === 'teacher' && (
         <TeacherDashboardScreen onSignOut={teacherSignOut} />
       )}
-      {mode === 'superAdmin' && (
-        <SuperAdminScreen onSignOut={teacherSignOut} />
-      )}
       {mode === 'app' && (
         <NavigationContainer theme={navTheme} linking={linking} initialState={initialNavState} onStateChange={handleNavStateChange}>
           <Stack.Navigator
