@@ -1093,7 +1093,7 @@ export default function OnboardingScreen() {
                           {!!forgotError && <Text style={siStyles.forgotError}>{forgotError}</Text>}
                           <TouchableOpacity
                             style={[siStyles.forgotBtn, { backgroundColor: accentColor }]}
-                            onPress={handleForgotPasswordSubmit}
+                            onPress={handleForgotPassword}
                             disabled={forgotLoading}
                             activeOpacity={0.8}
                           >
@@ -1117,7 +1117,7 @@ export default function OnboardingScreen() {
                       siStyles.submitBtn,
                       { backgroundColor: accentColor, shadowColor: accentColor }
                     ]}
-                    onPress={handleSignInSubmit}
+                    onPress={handleSignIn}
                     disabled={loading}
                     activeOpacity={0.85}
                   >
