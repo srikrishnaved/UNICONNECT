@@ -48,3 +48,8 @@ supabase/.env
 db_backup/
 backup_db.js
 restore_db.js
+
+# Claude Code skill tooling — vendored packages, not app source
+.agents/
+.claude/skills/
+skills-lock.json
