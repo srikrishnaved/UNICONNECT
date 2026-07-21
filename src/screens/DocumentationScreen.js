@@ -3,8 +3,8 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Modal, TextInput, Alert, ActivityIndicator, Platform,
 } from 'react-native';
-import { hubClubs } from '../data';
 import { supabase } from '../lib/supabase';
+import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
 import {
   colors as tColors,
@@ -105,6 +105,7 @@ function StatusBadge({ label, color }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function DocumentationScreen({ effectiveProfile, effectiveSapsCore, userProfile, createNotification, nfaPrefill, onPrefillConsumed }) {
+  const { clubs } = useApp();
   const coordinatedClubIds = (effectiveProfile?.coordinatorClubIds || []).map(String);
   const isCoordinator = coordinatedClubIds.length > 0;
   const isSAPS = !!effectiveSapsCore;
@@ -225,7 +226,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
     [...myClubAdminIds, ...coordinatedClubIds].forEach(id => {
       if (!seen.has(id)) {
         seen.add(id);
-        const club = hubClubs.find(c => String(c.id) === id);
+        const club = clubs.find(c => String(c.id) === id);
         if (club) clubs.push(club);
       }
     });
@@ -963,7 +964,7 @@ export default function DocumentationScreen({ effectiveProfile, effectiveSapsCor
               {/* Club whose event is being documented */}
               <FieldLabel text="ORGANISING CLUB / TEAM" />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.md }}>
-                {hubClubs.map(club => (
+                {clubs.map(club => (
                   <TouchableOpacity
                     key={club.id}
                     style={[s.clubPill, arForm.club_id === String(club.id) && s.clubPillActive]}

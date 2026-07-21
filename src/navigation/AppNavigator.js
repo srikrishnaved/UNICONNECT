@@ -7,18 +7,16 @@ const splitAppName = (appName) => {
   return match ? [match[1], match[2]] : [appName, ''];
 };
 import { Text, View, TouchableOpacity, Modal } from 'react-native';
-import { Compass, CalendarDays, Landmark, Users, GraduationCap, BookOpen, Search, Bell, User, Zap, ClipboardList, Calendar } from 'lucide-react-native';
+import { Compass, CalendarDays, Landmark, Users, BookOpen, Search, Bell, User, Zap, ClipboardList, Calendar } from 'lucide-react-native';
 import NotificationsPanel from '../screens/NotificationsPanel';
 import { useNavigation } from '@react-navigation/native';
 import DiscoverScreen from '../screens/DiscoverScreen';
 import HubScreen from '../screens/HubScreen';
-import MentorsScreen from '../screens/MentorsScreen';
 import TeachersScreen from '../screens/TeachersScreen';
 import StudyPlannerScreen from '../screens/StudyPlannerScreen';
 import { colors, font, initials, avatarColor } from '../theme';
 import { useApp } from '../context/AppContext';
 import { useUniversityConfig } from '../hooks/useUniversityConfig';
-import { myProfile } from '../data';
 
 const Tab = createBottomTabNavigator();
 
@@ -26,7 +24,6 @@ const tabs = [
   { name: 'Discover',   component: DiscoverScreen,    Icon: Compass },
   { name: 'Planner',    component: StudyPlannerScreen,  Icon: CalendarDays },
   { name: 'Hub',        component: HubScreen,          Icon: Landmark },
-  { name: 'Mentors',    component: MentorsScreen,      Icon: GraduationCap },
   { name: 'Teachers',   component: TeachersScreen,     Icon: BookOpen },
 ];
 
@@ -37,7 +34,7 @@ function HeaderRight() {
   const { userProfile, unreadCount, isAppAdmin } = useApp();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const name = userProfile?.name || myProfile.name;
+  const name = userProfile?.name || '';
   const isTimetableTeam = !isAppAdmin && (
     name.toLowerCase().includes('hridhya') ||
     TIMETABLE_TEAM.some(n => name.toLowerCase().includes(n.toLowerCase()))
@@ -113,7 +110,7 @@ function HeaderRight() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>{name}</Text>
-                <Text style={{ fontSize: 11, color: colors.textTertiary }} numberOfLines={1}>{userProfile?.course || myProfile.course}</Text>
+                <Text style={{ fontSize: 11, color: colors.textTertiary }} numberOfLines={1}>{userProfile?.course || ''}</Text>
               </View>
             </View>
 
@@ -177,7 +174,7 @@ export default function AppNavigator() {
   const { enabledFeatures } = useUniversityConfig();
 
   const activeTabs = tabs.filter(tab => {
-    if (tab.name === 'Discover' || tab.name === 'Mentors') {
+    if (tab.name === 'Discover') {
       return enabledFeatures.includes('networking');
     }
     if (tab.name === 'Planner') {

@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, FlatList, Modal, Alert } from 'react-native';
-import { tutors as seedTutors } from '../data';
+import { supabase } from '../lib/supabase';
+import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 import { BookMarked, Search, Pin, Sparkles, X, CheckCircle2, CreditCard, Clock, Star, Check } from 'lucide-react-native';
@@ -9,15 +10,17 @@ const TYPES = ['All', 'Free', 'Paid'];
 const COURSES = ['All', 'BCom IAF', 'BCom F&A', 'BCom IBA'];
 
 export default function TutorsScreen() {
-  const [tutors, setTutors] = useState(seedTutors);
+  const { userProfile } = useApp();
+  const userId = userProfile?.id;
+  const [tutors, setTutors] = useState([]);
   const [type, setType] = useState('All');
   const [course, setCourse] = useState('All');
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [editingTutor, setEditingTutor] = useState(null); // null = create, object = edit
   const [bookingTutor, setBookingTutor] = useState(null);
-  const [bookingState, setBookingState] = useState('idle'); // idle | processing | success
+  const [bookingState, setBookingState] = useState('idle');
 
-  // Form state for create posting
   const [form, setForm] = useState({
     course: '',
     type: 'free',
@@ -27,18 +30,72 @@ export default function TutorsScreen() {
     bio: '',
   });
 
+  const loadTutors = async () => {
+    const { data } = await supabase.from('tutors').select('*').order('created_at', { ascending: false });
+    if (data) setTutors(data);
+  };
+
+  useEffect(() => { loadTutors(); }, []);
+
   const filtered = useMemo(() => tutors.filter(t => {
     const q = search.toLowerCase();
-    const mq = !q || t.name.toLowerCase().includes(q) || t.topics.some(tp => tp.toLowerCase().includes(q));
+    const mq = !q || t.name.toLowerCase().includes(q) || (t.topics || []).some(tp => tp.toLowerCase().includes(q));
     const mt = type === 'All' || (type === 'Free' ? t.type === 'free' : t.type === 'paid');
     const mc = course === 'All' || t.course === course;
     return mq && mt && mc;
   }), [tutors, search, type, course]);
 
-  const myPostings = filtered.filter(t => t.isMine);
-  const otherPostings = filtered.filter(t => !t.isMine);
+  const myPostings = filtered.filter(t => t.posted_by === userId);
+  const otherPostings = filtered.filter(t => t.posted_by !== userId);
 
-  const handleCreate = () => {
+  const openCreate = () => {
+    setEditingTutor(null);
+    setForm({ course: '', type: 'free', price: '', topics: '', slots: '', bio: '' });
+    setShowCreate(true);
+  };
+
+  const openEdit = (tutor) => {
+    setEditingTutor(tutor);
+    setForm({
+      course: tutor.course || '',
+      type: tutor.type || 'free',
+      price: tutor.price ? String(tutor.price) : '',
+      topics: (tutor.topics || []).join(', '),
+      slots: tutor.slots || '',
+      bio: tutor.bio || '',
+    });
+    setShowCreate(true);
+  };
+
+  const handleManage = (tutor) => {
+    Alert.alert('Manage Posting', 'What would you like to do?', [
+      { text: 'Edit', onPress: () => openEdit(tutor) },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: () => handleDelete(tutor),
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const handleDelete = (tutor) => {
+    Alert.alert('Delete Posting', 'Remove this tuition posting permanently?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase.from('tutors').delete().eq('id', tutor.id);
+          if (error) {
+            Alert.alert('Error', 'Could not delete. Please try again.');
+          } else {
+            setTutors(prev => prev.filter(t => t.id !== tutor.id));
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleCreate = async () => {
     if (!form.course || !form.topics.trim() || !form.slots.trim()) {
       Alert.alert('Missing info', 'Please fill in course, topics, and availability.');
       return;
@@ -47,25 +104,34 @@ export default function TutorsScreen() {
       Alert.alert('Missing info', 'Please enter a price for paid tuition.');
       return;
     }
-    const newPosting = {
-      id: Date.now(),
-      name: 'Srikrishna',
+    const payload = {
       course: form.course,
-      year: '3rd Year',
-      rating: 0,
-      reviews: 0,
       type: form.type,
       price: form.type === 'paid' ? parseInt(form.price) : 0,
       topics: form.topics.split(',').map(t => t.trim()).filter(Boolean),
       slots: form.slots,
-      verified: false,
       bio: form.bio || `${form.type === 'paid' ? 'Paid' : 'Free'} tuition for ${form.topics}.`,
-      isMine: true,
     };
-    setTutors([newPosting, ...tutors]);
+
+    if (editingTutor) {
+      const { error } = await supabase.from('tutors').update(payload).eq('id', editingTutor.id);
+      if (error) { Alert.alert('Error', 'Failed to update. Please try again.'); return; }
+      setTutors(prev => prev.map(t => t.id === editingTutor.id ? { ...t, ...payload } : t));
+    } else {
+      const { error } = await supabase.from('tutors').insert({
+        ...payload,
+        name: userProfile?.name || 'Student',
+        year: userProfile?.year || '',
+        posted_by: userId || null,
+      });
+      if (error) { Alert.alert('Error', 'Failed to post tuition. Please try again.'); return; }
+      await loadTutors();
+    }
+
     setShowCreate(false);
+    setEditingTutor(null);
     setForm({ course: '', type: 'free', price: '', topics: '', slots: '', bio: '' });
-    Alert.alert('Posted!', 'Your tuition posting is now live.');
+    Alert.alert(editingTutor ? 'Updated!' : 'Posted!', editingTutor ? 'Your posting has been updated.' : 'Your tuition posting is now live.');
   };
 
   const handleBook = (tutor) => {
@@ -102,7 +168,7 @@ export default function TutorsScreen() {
         </View>
         <TouchableOpacity
           style={styles.createBtn}
-          onPress={() => setShowCreate(true)}
+          onPress={openCreate}
           activeOpacity={0.85}
         >
           <Text style={styles.createBtnText}>+ Post</Text>
@@ -159,7 +225,7 @@ export default function TutorsScreen() {
                   <TutorCard
                     key={t.id}
                     tutor={t}
-                    onAction={() => Alert.alert('Manage posting', 'Edit or delete coming soon.')}
+                    onAction={() => handleManage(t)}
                     isMine
                   />
                 ))}
@@ -187,8 +253,8 @@ export default function TutorsScreen() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }}>
             <View style={styles.modalHeader}>
-              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>Post Tuition</Text></View>
-              <TouchableOpacity onPress={() => setShowCreate(false)}>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Sparkles size={16} color={colors.textPrimary} /><Text style={styles.modalTitle}>{editingTutor ? 'Edit Posting' : 'Post Tuition'}</Text></View>
+              <TouchableOpacity onPress={() => { setShowCreate(false); setEditingTutor(null); }}>
                 <X size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -271,7 +337,7 @@ export default function TutorsScreen() {
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={handleCreate} activeOpacity={0.85}>
-              <Text style={styles.submitBtnText}>Post Tuition</Text>
+              <Text style={styles.submitBtnText}>{editingTutor ? 'Save Changes' : 'Post Tuition'}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

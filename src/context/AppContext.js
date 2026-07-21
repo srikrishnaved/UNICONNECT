@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
-import { hubEvents as seedEvents, teachers, studyGroups as seedGroups, initializeWorkspaceData } from '../data';
 import { computeClass } from '../lib/classUtils';
 import { colors as tokensColors } from '../theme/tokens';
 import { colors as themeColors } from '../theme';
@@ -105,8 +104,10 @@ export function AppProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [teacherProfile, setTeacherProfile] = useState(null);
   const [teacherGroups, setTeacherGroups] = useState([]);
-  const [studentGroups, setStudentGroups] = useState(seedGroups);
-  const [events, setEvents] = useState(seedEvents);
+  const [studentGroups, setStudentGroups] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [teachersList, setTeachersList] = useState([]);
   const [clubAdminRequests, setClubAdminRequests] = useState([]);
   const [approvedClubAdmins, setApprovedClubAdmins] = useState(new Set());
   const [clubMemberships, setClubMemberships] = useState(new Set());
@@ -158,6 +159,16 @@ export function AppProvider({ children }) {
         return [...dbEvents, ...seedOnly];
       });
     }
+  };
+
+  const loadClubs = async () => {
+    const { data } = await supabase.from('clubs').select('*').order('id');
+    if (data && data.length > 0) setClubs(data.map(c => ({ ...c, fullName: c.full_name })));
+  };
+
+  const loadTeachersList = async () => {
+    const { data } = await supabase.from('teacher_login_codes').select('id, name, initials, position, specialisation, subjects');
+    if (data) setTeachersList(data);
   };
 
   // ── Persistent user data ────────────────────────────────────────────────────
@@ -236,6 +247,12 @@ export function AppProvider({ children }) {
     }
   };
 
+  // Load clubs and teachers list once on mount (no auth required)
+  useEffect(() => {
+    loadClubs();
+    loadTeachersList();
+  }, []);
+
   useEffect(() => {
     const recovery = { active: false };
 
@@ -278,7 +295,6 @@ export function AppProvider({ children }) {
               if (recovery.active) return;
 
               if (profile) {
-                initializeWorkspaceData(profile.university_id);
                 if (profile.role === 'teacher') {
                   if (profile.status === 'pending') {
                     setUserProfile(profile);
@@ -342,7 +358,7 @@ export function AppProvider({ children }) {
               .then(([admin, teacher]) => {
                 if (recovery.active) return;
                 if (admin) { setIsAppAdmin(true); loadClubAdminRequests(); setMode('app'); }
-                else if (teacher) { const stored = JSON.parse(teacher); const fresh = teachers.find(t => t.id === stored.id) || stored; setTeacherProfile(fresh); setMode('teacher'); }
+                else if (teacher) { const stored = JSON.parse(teacher); setTeacherProfile(stored); setMode('teacher'); }
                 else { setMode('onboarding'); }
               })
               .catch(() => setMode('onboarding'));
@@ -352,7 +368,6 @@ export function AppProvider({ children }) {
 
         if (event === 'SIGNED_OUT') {
           recovery.active = false;
-          initializeWorkspaceData(null);
           setUserProfile(null);
           setTeacherProfile(null);
           setIsAppAdmin(false);
@@ -365,7 +380,7 @@ export function AppProvider({ children }) {
           setApprovedClubAdmins(new Set());
           setClubAdminRequests([]);
           setClubMemberships(new Set());
-          setStudentGroups(seedGroups);
+          setStudentGroups([]);
           setUnreadCount(0);
           setPendingOutgoing(new Set());
           setCrStatus(null);
@@ -484,7 +499,7 @@ export function AppProvider({ children }) {
     setFollowingClubIds(new Set());
     setConnections(new Set());
     setCreatedGroupIds(new Set());
-    setStudentGroups(seedGroups);
+    setStudentGroups([]);
 
     setRequiresBio(bio.trim().length < 20);
     setUserProfile(profile);
@@ -521,7 +536,7 @@ export function AppProvider({ children }) {
     setFollowingClubIds(new Set());
     setConnections(new Set());
     setCreatedGroupIds(new Set());
-    setStudentGroups(seedGroups);
+    setStudentGroups([]);
 
     setUserProfile(profile);
     setMode('app');
@@ -584,7 +599,6 @@ export function AppProvider({ children }) {
       }
     }
 
-    initializeWorkspaceData(profile.university_id);
     setUserProfile(profile);
     await loadUserData(data.user.id);
     if (profile.is_super_admin) {
@@ -609,7 +623,7 @@ export function AppProvider({ children }) {
     setClubAdminRequests([]);
     setClubMemberships(new Set());
     setPendingOutgoing(new Set());
-    setStudentGroups(seedGroups);
+    setStudentGroups([]);
     setMode('onboarding');
   };
 
@@ -648,9 +662,25 @@ export function AppProvider({ children }) {
 
   // ── Teacher auth ────────────────────────────────────────────────────────────
 
-  const teacherLogin = (code, rememberMe) => {
-    const teacher = teachers.find(t => t.code === code.trim());
-    if (!teacher) return false;
+  const teacherLogin = async (code, rememberMe) => {
+    const { data: row, error } = await supabase
+      .from('teacher_login_codes')
+      .select('*')
+      .eq('login_code', code.trim())
+      .maybeSingle();
+    if (error || !row) return false;
+
+    const { data: fcRows } = await supabase
+      .from('faculty_coordinators')
+      .select('club_id')
+      .eq('teacher_name', row.name);
+
+    const teacher = {
+      ...row,
+      id: `teacher-${row.id}`,
+      coordinatorClubIds: (fcRows || []).map(r => /^\d+$/.test(String(r.club_id)) ? Number(r.club_id) : r.club_id),
+    };
+
     setTeacherProfile(teacher);
     if (rememberMe) {
       AsyncStorage.setItem('teacherProfile', JSON.stringify(teacher)).catch(() => {});
@@ -1345,13 +1375,15 @@ export function AppProvider({ children }) {
         createNotification('teacher-1', 'info', 'New Club Creation Request', `${creatorName} requested to create "${name}".`);
         return data;
       },
+      clubs, loadClubs,
+      teachersList, loadTeachersList,
       isSapsCore: !!sapsRole,
       sapsRole,
       adminTestAsName,
       setAdminTestAsName,
       // The seed teacher object being impersonated (null when not testing)
       adminTestTeacher: (isAppAdmin && adminTestAsName)
-        ? teachers.find(t => t.name === adminTestAsName) || null
+        ? teachersList.find(t => t.name === adminTestAsName) || null
         : null,
       requiresBio,
       saveBio: async (bioText) => {

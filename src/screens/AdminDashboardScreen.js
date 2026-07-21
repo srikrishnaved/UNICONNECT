@@ -3,25 +3,23 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, TextInput, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { students, studyGroups, hubClubs, tutors, teachers, pendingClubs as seedPending } from '../data';
 import { colors, spacing, radius, font } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 import { Users, BookOpen, Landmark, Zap, GraduationCap, BarChart2, Clock, Check, X, ShieldCheck, UserCheck, AlertCircle, Pin, Trash2, Sparkles } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
-const STATS = [
-  { label: 'Students',     value: students.length,                              Icon: Users },
-  { label: 'Study Groups', value: studyGroups.length,                           Icon: BookOpen },
-  { label: 'Clubs',        value: hubClubs.filter(c => c.type === 'Club').length, Icon: Landmark },
-  { label: 'Teams',        value: hubClubs.filter(c => c.type === 'Team').length, Icon: Zap },
-  { label: 'Tutors',       value: tutors.length,                                Icon: GraduationCap },
-  { label: 'Teachers',     value: teachers.length,                              Icon: BookOpen },
-];
-
 export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
-  const { clubAdminRequests, resolveClubAdminRequest, userProfile } = useApp();
-  const [pending, setPending] = useState(seedPending);
+  const { clubAdminRequests, resolveClubAdminRequest, userProfile, clubs } = useApp();
+  const [stats, setStats] = useState([
+    { label: 'Students',     value: 0, Icon: Users },
+    { label: 'Study Groups', value: 0, Icon: BookOpen },
+    { label: 'Clubs',        value: 0, Icon: Landmark },
+    { label: 'Teams',        value: 0, Icon: Zap },
+    { label: 'Tutors',       value: 0, Icon: GraduationCap },
+    { label: 'Teachers',     value: 0, Icon: BookOpen },
+  ]);
+  const [pending, setPending] = useState([]);
   const [approved, setApproved] = useState(0);
   const [rejected, setRejected] = useState(0);
   const [rememberMe, setRememberMe] = useState(true);
@@ -68,6 +66,25 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
       .then(({ data }) => setFacultyRequests(data || []));
     loadPermRooms();
     loadReports();
+
+    // Load real stats from Supabase
+    Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
+      supabase.from('student_groups').select('id', { count: 'exact', head: true }),
+      supabase.from('clubs').select('id', { count: 'exact', head: true }).eq('type', 'Club'),
+      supabase.from('clubs').select('id', { count: 'exact', head: true }).eq('type', 'Team'),
+      supabase.from('tutors').select('id', { count: 'exact', head: true }),
+      supabase.from('teacher_login_codes').select('id', { count: 'exact', head: true }),
+    ]).then(([students, groups, clubCount, teamCount, tutorCount, teacherCount]) => {
+      setStats([
+        { label: 'Students',     value: students.count  ?? 0, Icon: Users },
+        { label: 'Study Groups', value: groups.count    ?? 0, Icon: BookOpen },
+        { label: 'Clubs',        value: clubCount.count ?? 0, Icon: Landmark },
+        { label: 'Teams',        value: teamCount.count ?? 0, Icon: Zap },
+        { label: 'Tutors',       value: tutorCount.count ?? 0, Icon: GraduationCap },
+        { label: 'Teachers',     value: teacherCount.count ?? 0, Icon: BookOpen },
+      ]);
+    });
   }, []);
 
   const resolveFacultyRequest = async (req, action) => {
@@ -151,7 +168,7 @@ export default function AdminDashboardScreen({ onEnterApp, onSignOut }) {
         {/* Stats */}
         <View style={{flexDirection:'row',alignItems:'center',gap:6}}><BarChart2 size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>OVERVIEW</Text></View>
         <View style={styles.statsGrid}>
-          {STATS.map(s => (
+          {stats.map(s => (
             <View key={s.label} style={styles.statCard}>
               <s.Icon size={22} color={colors.textSecondary} />
               <Text style={styles.statValue}>{s.value}</Text>

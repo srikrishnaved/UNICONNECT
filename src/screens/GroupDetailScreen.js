@@ -5,18 +5,17 @@ import MediaMessage from '../components/MediaMessage';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { hubClubs, teachers } from '../data';
 import { Users, UserPlus, MessageCircle, Paperclip, Check, X } from 'lucide-react-native';
 // Flip to true after creating the group_teacher_requests table in Supabase
 const GROUP_TEACHER_TABLE_EXISTS = false;
 
 export default function GroupDetailScreen({ route, navigation }) {
   const { groupId } = route.params;
-  const { userProfile, studentGroups, teacherGroups, createNotification } = useApp();
+  const { userProfile, studentGroups, teacherGroups, createNotification, clubs, teachersList } = useApp();
 
   const isClubGroup = String(groupId).startsWith('club_');
   const clubId = isClubGroup ? parseInt(String(groupId).replace('club_', ''), 10) : null;
-  const clubData = isClubGroup ? hubClubs.find(c => c.id === clubId) : null;
+  const clubData = isClubGroup ? clubs.find(c => c.id === clubId) : null;
 
   const group = isClubGroup
     ? (clubData ? {
@@ -307,7 +306,7 @@ export default function GroupDetailScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-              {teachers.map(t => {
+              {teachersList.map(t => {
                 const sent = sentTeacherIds.has(t.id);
                 const isSending = sendingTeacher === t.id;
                 return (

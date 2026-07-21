@@ -9,11 +9,10 @@ import { EmptyState } from '../components/EmptyState';
 import { Search, Compass, Users, Star, Landmark } from 'lucide-react-native';
 import { ClubLucideIcon } from './HubScreen';
 import { supabase } from '../lib/supabase';
-import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 
 export default function SearchScreen({ navigation }) {
-  const { studentGroups } = useApp();
+  const { studentGroups, clubs } = useApp();
   const [query, setQuery] = useState('');
   const [students, setStudents] = useState([]);
   const [dbClubs, setDbClubs] = useState([]);
@@ -30,7 +29,7 @@ export default function SearchScreen({ navigation }) {
     : [];
 
   const staticClubs = q.length >= 2
-    ? hubClubs.filter(c =>
+    ? clubs.filter(c =>
         c.name.toLowerCase().includes(q) ||
         c.fullName.toLowerCase().includes(q) ||
         (c.description || '').toLowerCase().includes(q)

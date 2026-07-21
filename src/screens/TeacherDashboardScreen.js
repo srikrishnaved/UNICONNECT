@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { pickAndUploadMedia } from '../lib/uploadMedia';
 import MediaMessage from '../components/MediaMessage';
-import { students, myProfile, mentorAssignments, hubClubs } from '../data';
 import ClubDashboardScreen from './ClubDashboardScreen';
 import TimetablePlannerScreen from './TimetablePlannerScreen';
 import DocumentationScreen from './DocumentationScreen';
@@ -43,7 +42,7 @@ function getSlotConstraint(day, periodName, className) {
 }
 
 export default function TeacherDashboardScreen({ onSignOut, onClose }) {
-  const { teacherProfile, setTeacherProfile, teacherGroups, addTeacherGroup, submitFacultyClubRequest, createNotification, deleteClub, isAppAdmin, userProfile, isSapsCore, adminTestTeacher } = useApp();
+  const { teacherProfile, setTeacherProfile, teacherGroups, addTeacherGroup, submitFacultyClubRequest, createNotification, deleteClub, isAppAdmin, userProfile, isSapsCore, adminTestTeacher, clubs } = useApp();
   const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
   const { classes: uniClasses } = useUniversityConfig();
 
@@ -90,11 +89,8 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
 
   const av = avatarColor(effectiveProfile.name);
 
-  const assignment = mentorAssignments.find(a => a.teacherId === effectiveProfile.id);
-  const menteeIds = assignment?.studentIds ?? [];
-  const mentees = menteeIds.map(id =>
-    id === 0 ? { ...myProfile, id: 0 } : students.find(s => s.id === id)
-  ).filter(Boolean);
+  const menteeIds = [];
+  const mentees = [];
 
   const myGroups = teacherGroups.filter(g => g.teacherId === effectiveProfile.id);
 
@@ -269,7 +265,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   };
 
   // ── All students ──────────────────────────────────────────────────────────────
-  const mockStudents = [{ ...myProfile, id: 0 }, ...students];
+  const mockStudents = [];
   const [realProfiles, setRealProfiles] = useState([]); // from Supabase
   const [profileUUIDMap, setProfileUUIDMap] = useState({}); // name key → uuid
   const [studentSearch, setStudentSearch] = useState('');
@@ -531,9 +527,9 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   }, [canApproveClubs]);
 
   const coordinatedClubs = canApproveClubs
-    ? [...hubClubs, ...allUserClubs]
+    ? [...clubs, ...allUserClubs]
     : (effectiveProfile.coordinatorClubIds || [])
-        .map(id => hubClubs.find(c => c.id === id))
+        .map(id => clubs.find(c => c.id === id))
         .filter(Boolean);
 
   const [joinRequests, setJoinRequests] = useState({}); // clubId → requests[]
@@ -757,7 +753,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
   };
 
   // ── Tabs ─────────────────────────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState('mentoring');
+  const [activeTab, setActiveTab] = useState('clubs');
   const [showRosterModal, setShowRosterModal] = useState(false);
   const [showNAAC, setShowNAAC] = useState(false);
   const [rosterClass, setRosterClass] = useState('');
@@ -1479,7 +1475,6 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
       {/* ── Tab Bar ─────────────────────────────────────────────────────────── */}
       <View style={styles.tabBar}>
         {[
-          { key: 'mentoring',  label: 'Mentoring',  Icon: GraduationCap },
           { key: 'clubs',      label: 'Clubs',      Icon: Landmark },
           { key: 'attendance', label: 'Attendance', Icon: CircleCheck },
           { key: 'timetable',  label: 'Timetable',  Icon: Calendar },
@@ -1617,8 +1612,8 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             )}
           </View>
 
-          {/* ══ MENTORING TAB ═══════════════════════════════════════════════════ */}
-          {activeTab === 'mentoring' && (
+          {/* ══ MENTORING TAB — hidden ══════════════════════════════════════════ */}
+          {false && activeTab === 'mentoring' && (
             <>
               {/* Group Invites */}
               {(groupInvitesLoading || groupInvites.length > 0) && (
@@ -2694,7 +2689,7 @@ export default function TeacherDashboardScreen({ onSignOut, onClose }) {
             </View>
             <Text style={styles.modalLabel}>SELECT CLUB / TEAM</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }} contentContainerStyle={{ gap: 8 }}>
-              {hubClubs.map(c => (
+              {clubs.map(c => (
                 <TouchableOpacity
                   key={c.id}
                   style={[styles.clubChip, selectedClub?.id === c.id && styles.clubChipActive]}

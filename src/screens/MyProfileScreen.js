@@ -4,7 +4,6 @@ import {
   Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { myProfile, students, hubClubs } from '../data';
 import { INTERESTS } from './OnboardingScreen';
 import { useApp } from '../context/AppContext';
 import { THEMES, activeThemeKey, setTheme } from '../theme';
@@ -22,7 +21,7 @@ import {
 } from '../theme/tokens';
 import CRDashboardScreen from './CRDashboardScreen';
 import AttendanceReportScreen from '../components/AttendanceReportScreen';
-import { Pencil, Ban, ClipboardList, Clock, Award, Star, Trash2, CircleCheck, Check, X } from 'lucide-react-native';
+import { Pencil, Ban, ClipboardList, Clock, Award, Star, Trash2, CircleCheck, Check, X, BookOpen, ChevronRight } from 'lucide-react-native';
 
 const COURSES = ['BCom IAF', 'BCom IBA', 'BCom F&A'];
 const YEARS   = ['1st Year', '2nd Year', '3rd Year'];
@@ -48,13 +47,13 @@ function providerUrl(providerName, handle) {
 export default function MyProfileScreen() {
   const navigation = useNavigation();
   const { enabledFeatures } = useUniversityConfig();
-  const { userProfile, setUserProfile, updateProfile, signOut, deleteAccount, connections, joinedGroupIds, blockedIds, unblockUser, clubMemberships, crStatus, submitCrRequest } = useApp();
+  const { userProfile, setUserProfile, updateProfile, signOut, deleteAccount, connections, joinedGroupIds, blockedIds, unblockUser, clubMemberships, crStatus, submitCrRequest, clubs } = useApp();
 
-  const myClubs = hubClubs.filter(c => clubMemberships && clubMemberships.has(c.id));
+  const myClubs = clubs.filter(c => clubMemberships && clubMemberships.has(c.id));
 
-  const name   = userProfile?.name   || myProfile.name;
-  const course = userProfile?.course || myProfile.course;
-  const year   = userProfile?.year   || myProfile.year;
+  const name   = userProfile?.name   || '';
+  const course = userProfile?.course || '';
+  const year   = userProfile?.year   || '';
   const bio    = userProfile?.bio    || '';
 
   const cc   = courseColor(course);
@@ -177,6 +176,18 @@ export default function MyProfileScreen() {
   const [crReason, setCrReason] = useState('');
   const [crApplying, setCrApplying] = useState(false);
   const [crApplyError, setCrApplyError] = useState('');
+  const [crClassFull, setCrClassFull] = useState(false);
+
+  useEffect(() => {
+    const cls = userProfile?.class;
+    if (!cls) return;
+    supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'cr')
+      .eq('class', cls)
+      .then(({ count }) => { if ((count || 0) >= 2) setCrClassFull(true); });
+  }, [userProfile?.class]);
 
   const handleCRApply = async () => {
     if (!crReason.trim()) { setCrApplyError('Please explain why you want to be CR.'); return; }
@@ -205,15 +216,7 @@ export default function MyProfileScreen() {
     const ids = [...blockedIds];
     if (ids.length === 0) { setBlockedProfiles([]); setShowBlocked(true); return; }
 
-    // Separate seed IDs (numeric) from real UUIDs
-    const seedEntries = ids
-      .filter(id => /^\d+$/.test(id))
-      .map(id => {
-        const s = students.find(st => String(st.id) === id);
-        return s ? { id, name: s.name, course: s.course } : { id, name: 'Unknown user', course: '' };
-      });
-
-    const realIds = ids.filter(id => !/^\d+$/.test(id));
+    const realIds = ids;
     let realEntries = [];
     if (realIds.length > 0) {
       const { data } = await supabase.from('profiles').select('id, name, course').in('id', realIds);
@@ -226,7 +229,7 @@ export default function MyProfileScreen() {
       });
     }
 
-    setBlockedProfiles([...seedEntries, ...realEntries]);
+    setBlockedProfiles([...realEntries]);
     setShowBlocked(true);
   };
 
@@ -422,6 +425,38 @@ export default function MyProfileScreen() {
           )}
         </View>
 
+        {/* Learning */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>LEARNING</Text>
+          <TouchableOpacity
+            style={styles.learningRow}
+            onPress={() => navigation.navigate('CourseRecommendations')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.learningIcon}>
+              <BookOpen size={16} color={tColors.student.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.learningTitle}>Course Recommendations</Text>
+              <Text style={styles.learningSub}>Coursera picks matched to your tags</Text>
+            </View>
+            <ChevronRight size={16} color={tColors.textTertiary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.learningRow, { marginTop: 6 }]}
+            onPress={() => navigation.navigate('CourseTags')}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.learningIcon, { backgroundColor: tColors.card }]}>
+              <BookOpen size={16} color={tColors.textSecondary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.learningTitle}>Edit Learning Tags</Text>
+              <Text style={styles.learningSub}>Choose topics you want to explore</Text>
+            </View>
+            <ChevronRight size={16} color={tColors.textTertiary} />
+          </TouchableOpacity>
+        </View>
 
         {/* Blocked profiles */}
         <TouchableOpacity style={styles.blockedBtn} onPress={openBlocked} activeOpacity={0.8}>
@@ -509,7 +544,7 @@ export default function MyProfileScreen() {
 
             {/* ── Class Representative ─────────────────────────────────────── */}
             {(enabledFeatures || []).includes('timetable') && (
-              crStatus === 'approved' ? (
+              userProfile?.role === 'cr' ? (
                 <TouchableOpacity
                   style={styles.crDashBtn}
                   onPress={() => setShowCRDashboard(true)}
@@ -530,7 +565,7 @@ export default function MyProfileScreen() {
                     <Text style={styles.crPendingSub}>Awaiting admin approval</Text>
                   </View>
                 </View>
-              ) : (
+              ) : crClassFull ? null : (
                 <TouchableOpacity
                   style={styles.crApplyBtn}
                   onPress={() => { setShowCRApply(true); setCrApplyError(''); setCrReason(''); }}
@@ -1165,6 +1200,19 @@ const styles = StyleSheet.create({
     borderRadius: tRadius.full, paddingHorizontal: 12, paddingVertical: 5,
   },
   interestText: { fontSize: typography.xs, color: tColors.textSecondary },
+
+  learningRow: {
+    flexDirection: 'row', alignItems: 'center', gap: tSpacing.md,
+    backgroundColor: tColors.card, borderWidth: 1, borderColor: tColors.border,
+    borderRadius: tRadius.md, padding: tSpacing.md,
+  },
+  learningIcon: {
+    width: 36, height: 36, borderRadius: tRadius.md,
+    backgroundColor: tColors.student.primaryDim,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  learningTitle: { fontSize: 14, fontWeight: typography.semibold, color: tColors.textPrimary },
+  learningSub:   { fontSize: 12, color: tColors.textSecondary, marginTop: 1 },
 
   interestEditGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingBottom: tSpacing.md },
   interestEditChip: {

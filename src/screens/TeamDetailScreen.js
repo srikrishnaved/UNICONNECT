@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Alert, Modal, TextInput, ActivityIndicator,
 } from 'react-native';
-import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
@@ -11,14 +10,15 @@ import { Users, Clock, BarChart2, ShieldCheck, Calendar, MapPin, UserCheck, User
 
 export default function TeamDetailScreen({ route, navigation }) {
   const teamId = Number(route.params.clubId);
-  const team = hubClubs.find(c => c.id === teamId);
 
   const {
     clubAdminRequests, approvedClubAdmins, submitClubAdminRequest, checkClubAdminRequest,
     createNotification, userProfile, isAppAdmin,
     clubMemberships, submitClubJoinRequest, loadClubJoinRequests, resolveClubJoinRequest,
-    checkClubJoinRequest, leaveClub, resignClubAdmin,
+    checkClubJoinRequest, leaveClub, resignClubAdmin, clubs,
   } = useApp();
+
+  const team = clubs.find(c => c.id === teamId);
 
   const isEffectiveAdmin = approvedClubAdmins.has(teamId) || approvedClubAdmins.has(String(teamId)) || isAppAdmin;
   const isMember = clubMemberships.has(teamId) || clubMemberships.has(String(teamId));
@@ -210,7 +210,7 @@ export default function TeamDetailScreen({ route, navigation }) {
     return <View style={styles.container}><Text style={styles.body}>Team not found.</Text></View>;
   }
 
-  const clubForAssignment = (clubId) => hubClubs.find(c => c.id === clubId);
+  const clubForAssignment = (clubId) => clubs.find(c => c.id === clubId);
 
   return (
     <>

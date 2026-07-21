@@ -4,7 +4,6 @@ import {
   Modal, TextInput, ActivityIndicator, Alert, Platform, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { hubClubs, teachers } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
@@ -151,11 +150,11 @@ export default function ClubDashboardScreen({
     approvedClubAdmins, clubMemberships,
     isAppAdmin, isSapsCore, events: hubEvents, deleteEvent, addEvent,
     loadClubJoinRequests, resolveClubJoinRequest, deleteClub,
-    userCreatedClubs, createNotification, adminTestTeacher,
+    userCreatedClubs, createNotification, adminTestTeacher, clubs, teachersList,
   } = useApp();
   const universityId = userProfile?.university_id || teacherProfile?.university_id || '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd';
 
-  const club = hubClubs.find(c => c.id === clubId)
+  const club = clubs.find(c => c.id === clubId)
     || userCreatedClubs?.find(c => c.id === String(rawId));
 
   const isCoordinator = isCoordinatorProp
@@ -272,7 +271,11 @@ export default function ClubDashboardScreen({
         .upload(path, blob, { contentType, upsert: true });
       if (upErr) { setLogoError('Upload failed: ' + upErr.message); setUploadingLogo(false); return; }
       const { data: { publicUrl } } = supabase.storage.from('club-logos').getPublicUrl(path);
-      await supabase.from('user_clubs').update({ logo_url: publicUrl }).eq('id', String(rawId));
+      if (isNumericId) {
+        await supabase.from('clubs').update({ logo_url: publicUrl }).eq('id', clubId);
+      } else {
+        await supabase.from('user_clubs').update({ logo_url: publicUrl }).eq('id', String(rawId));
+      }
       setLogoUrl(publicUrl);
       setUploadingLogo(false);
     };
@@ -360,10 +363,10 @@ export default function ClubDashboardScreen({
       supabase.from('profiles').select('id').eq('status', 'active').eq('role', 'student').then(({ data: ps }) => {
         (ps || []).forEach(p => { if (p.id !== userProfile?.id) createNotification(p.id, 'event', notifTitle, notifBody); });
       });
-      teachers.forEach(t => createNotification(`teacher-${t.id}`, 'event', notifTitle, notifBody));
+      teachersList.forEach(t => createNotification(`teacher-${t.id}`, 'event', notifTitle, notifBody));
       for (const teamId of hubTeamsNeeded) {
         const { data: teamMembers } = await supabase.from('club_memberships').select('user_id').eq('club_id', teamId);
-        const teamName = hubClubs.find(t => t.id === teamId)?.name || 'Your team';
+        const teamName = clubs.find(t => t.id === teamId)?.name || 'Your team';
         for (const row of (teamMembers || [])) {
           if (row.user_id !== userProfile?.id) {
             createNotification(row.user_id, 'event', `${teamName} needed for "${title.trim()}"`, `${club.name} has selected your team · ${time.trim()}`);
@@ -412,7 +415,7 @@ export default function ClubDashboardScreen({
     supabase.from('profiles').select('id').eq('status', 'active').eq('role', 'student').then(({ data: ps }) => {
       (ps || []).forEach(p => { if (p.id !== userProfile?.id) createNotification(p.id, 'event', rTitle, rBody); });
     });
-    teachers.forEach(t => createNotification(`teacher-${t.id}`, 'event', rTitle, rBody));
+    teachersList.forEach(t => createNotification(`teacher-${t.id}`, 'event', rTitle, rBody));
     setRecruitForm({ role: '', requirements: '', applyBy: '', contact: '' });
     setShowRecruitment(false);
     Alert.alert('Posted!', 'Recruitment notice is live in the Hub feed.');
@@ -795,7 +798,7 @@ export default function ClubDashboardScreen({
       if (error) { console.error('[handleCreateEvent] insert error:', JSON.stringify(error)); throw error; }
       // Notify appropriate next approver (without affected_slots for club_admin)
       if (eventCreatorRole === 'club_admin') {
-        const coordName = (hubClubs.find(c => c.id === clubId))?.coordinator;
+        const coordName = (clubs.find(c => c.id === clubId))?.coordinator;
         if (coordName) {
           const lastName = coordName.split(' ').slice(-1)[0];
           const { data: cp } = await supabase.from('profiles').select('id').ilike('name', `%${lastName}%`).maybeSingle();
@@ -1069,7 +1072,7 @@ export default function ClubDashboardScreen({
           <View style={[styles.roleBadge, { backgroundColor: roleBg, borderColor: roleColor }]}>
             <Text style={[styles.roleText, { color: roleColor }]}>{roleLabel.toUpperCase()}</Text>
           </View>
-          {canWrite && !isNumericId && (
+          {canWrite && (
             <TouchableOpacity
               style={styles.uploadLogoBtn}
               onPress={pickAndUploadLogo}
@@ -2376,7 +2379,7 @@ export default function ClubDashboardScreen({
             <TextInput value={hubEventForm.desc} onChangeText={t => setHubEventForm(f => ({ ...f, desc: t }))} placeholder="What's this event about?" placeholderTextColor={colors.textTertiary} style={[styles.modalInput, { height: 80, textAlignVertical: 'top' }]} multiline />
             <Text style={styles.modalLabel}>TEAMS NEEDED (optional)</Text>
             <View style={styles.teamPickerGrid}>
-              {hubClubs.filter(c => c.type === 'Team').map(t => {
+              {clubs.filter(c => c.type === 'Team').map(t => {
                 const selected = hubTeamsNeeded.includes(t.id);
                 return (
                   <TouchableOpacity

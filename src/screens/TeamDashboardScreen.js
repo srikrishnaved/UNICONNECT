@@ -4,12 +4,11 @@ import {
   Modal, ActivityIndicator, RefreshControl, Alert, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials } from '../theme';
 import DocumentationScreen from './DocumentationScreen';
-import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check, Clock } from 'lucide-react-native';
+import { Target, Zap, FileText, ClipboardList, Mail, Calendar, X, Check, Clock, Mic } from 'lucide-react-native';
 
 const STATUS_COLOR = {
   pending:  { bg: colors.amberLight,   border: colors.amber,       text: colors.amber,       label: 'Pending' },
@@ -20,9 +19,9 @@ const STATUS_COLOR = {
 export default function TeamDashboardScreen({ route, navigation }) {
   const { clubId } = route.params;
   const teamId = Number(clubId);
-  const team = hubClubs.find(c => c.id === teamId);
 
-  const { userProfile, teacherProfile, adminTestTeacher, isAppAdmin, isSapsCore, approvedClubAdmins, clubMemberships, createNotification } = useApp();
+  const { userProfile, teacherProfile, adminTestTeacher, isAppAdmin, isSapsCore, approvedClubAdmins, clubMemberships, createNotification, clubs } = useApp();
+  const team = clubs.find(c => c.id === teamId);
 
   const isEffectiveAdmin = approvedClubAdmins.has(teamId) || approvedClubAdmins.has(String(teamId)) || isAppAdmin || isSapsCore;
   const isMember = clubMemberships.has(teamId) || clubMemberships.has(String(teamId));
@@ -171,7 +170,7 @@ export default function TeamDashboardScreen({ route, navigation }) {
   const getAssignment = (userId, eventId) =>
     assignments.find(a => String(a.event_id) === String(eventId) && String(a.user_id) === String(userId));
 
-  const clubFor = (clubId) => hubClubs.find(c => c.id === clubId);
+  const clubFor = (clubId) => clubs.find(c => c.id === clubId);
 
   // Compute average working hours of loaded team members
   const averageHours = useMemo(() => {
@@ -353,7 +352,9 @@ export default function TeamDashboardScreen({ route, navigation }) {
           <Text style={styles.backBtnText}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerEmoji}>{team.emoji}</Text>
+          {team.id === 10
+            ? <Mic size={32} color="#fff" />
+            : <Text style={styles.headerEmoji}>{team.emoji}</Text>}
           <View>
             <Text style={styles.headerTitle}>{team.name}</Text>
             <Text style={styles.headerSub}>Team Dashboard</Text>

@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, SafeAreaView,
 } from 'react-native';
-import {
-  teachers, students, myProfile,
-  mentorAssignments, mentorVisitCounts, myMentorSessions,
-} from '../data';
+import { supabase } from '../lib/supabase';
+import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font, avatarColor } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 import { Heart, User, ClipboardList, X, Check } from 'lucide-react-native';
 
 const REQUIRED_VISITS = 5;
-const MY_ID = 0; // Srikrishna
 
-function getStudentName(sid) {
-  if (sid === MY_ID) return myProfile.name;
-  return students.find(s => s.id === sid)?.name || '—';
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function VisitDots({ done, total = REQUIRED_VISITS, size = 11 }) {
@@ -41,17 +39,66 @@ function VisitStatusText({ done }) {
 }
 
 export default function MentorsScreen() {
+  const { userProfile, teachersList } = useApp();
+  const currentUserId = userProfile?.id;
+
+  const [assignments, setAssignments] = useState([]);
+  const [visitCounts, setVisitCounts] = useState({});
+  const [mySessions, setMySessions] = useState([]);
+  const [studentNames, setStudentNames] = useState({});
   const [selected, setSelected] = useState(null);
 
-  const enriched = mentorAssignments.map(a => ({
+  useEffect(() => {
+    if (!currentUserId) return;
+    loadData();
+  }, [currentUserId]);
+
+  const loadData = async () => {
+    const [{ data: rawAssignments }, { data: visits }, { data: mySess }] = await Promise.all([
+      supabase.from('mentor_assignments').select('*'),
+      supabase.from('mentor_visits').select('student_id'),
+      supabase.from('mentor_visits').select('*').eq('student_id', currentUserId).order('created_at', { ascending: true }),
+    ]);
+
+    // Group assignments by teacher_id
+    const grouped = {};
+    for (const row of (rawAssignments || [])) {
+      if (!grouped[row.teacher_id]) {
+        grouped[row.teacher_id] = { teacherId: row.teacher_id, studentIds: [], course: row.course || '', group: row.grp || '' };
+      }
+      grouped[row.teacher_id].studentIds.push(row.student_id);
+    }
+
+    // Visit counts per student
+    const counts = {};
+    for (const v of (visits || [])) {
+      counts[v.student_id] = (counts[v.student_id] || 0) + 1;
+    }
+
+    // Fetch student names for all assigned students
+    const allStudentIds = [...new Set((rawAssignments || []).map(r => r.student_id))];
+    let names = {};
+    if (currentUserId && userProfile?.name) names[currentUserId] = userProfile.name;
+    if (allStudentIds.length > 0) {
+      const { data: profiles } = await supabase.from('profiles').select('id, name').in('id', allStudentIds);
+      for (const p of (profiles || [])) names[p.id] = p.name;
+    }
+
+    setAssignments(Object.values(grouped));
+    setVisitCounts(counts);
+    setMySessions(mySess || []);
+    setStudentNames(names);
+  };
+
+  const enriched = assignments.map(a => ({
     ...a,
-    teacher: teachers.find(t => t.id === a.teacherId),
-    isMyMentor: a.studentIds.includes(MY_ID),
+    teacher: teachersList.find(t => `teacher-${t.id}` === a.teacherId || String(t.id) === a.teacherId),
+    isMyMentor: a.studentIds.includes(currentUserId),
   }));
 
   const myMentor = enriched.find(m => m.isMyMentor);
   const otherMentors = enriched.filter(m => !m.isMyMentor);
-  const myVisits = mentorVisitCounts[MY_ID];
+  const myVisits = visitCounts[currentUserId] || 0;
   const myMentorTeacher = myMentor?.teacher;
   const myMentorAv = myMentorTeacher ? avatarColor(myMentorTeacher.name) : { bg: colors.primary, text: '#fff' };
 
@@ -108,14 +155,14 @@ export default function MentorsScreen() {
               </View>
 
               {/* Latest session preview */}
-              {myMentorSessions.length > 0 && (
+              {mySessions.length > 0 && (
                 <View style={styles.lastSession}>
                   <Text style={styles.lastSessionLabel}>Latest session</Text>
                   <Text style={styles.lastSessionTopic}>
-                    {myMentorSessions[myMentorSessions.length - 1].topic}
+                    {mySessions[mySessions.length - 1].note || 'Mentor session'}
                   </Text>
                   <Text style={styles.lastSessionDate}>
-                    {myMentorSessions[myMentorSessions.length - 1].date}
+                    {formatDate(mySessions[mySessions.length - 1].created_at)}
                   </Text>
                 </View>
               )}
@@ -129,9 +176,10 @@ export default function MentorsScreen() {
         <View style={{flexDirection:'row',alignItems:'center',gap:6}}><ClipboardList size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>ALL MENTORS ({enriched.length})</Text></View>
         {otherMentors.map(m => {
           const av = avatarColor(m.teacher?.name || '');
-          // avg visits across their group
-          const groupVisits = m.studentIds.map(sid => mentorVisitCounts[sid] ?? 0);
-          const avgVisit = Math.round(groupVisits.reduce((a, b) => a + b, 0) / groupVisits.length);
+          const groupVisits = m.studentIds.map(sid => visitCounts[sid] ?? 0);
+          const avgVisit = groupVisits.length > 0
+            ? Math.round(groupVisits.reduce((a, b) => a + b, 0) / groupVisits.length)
+            : 0;
           return (
             <TouchableOpacity
               key={m.teacherId}
@@ -166,7 +214,16 @@ export default function MentorsScreen() {
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setSelected(null)} activeOpacity={1} />
           <SafeAreaView style={styles.sheet}>
-            {selected && <DetailSheet mentor={selected} onClose={() => setSelected(null)} />}
+            {selected && (
+              <DetailSheet
+                mentor={selected}
+                onClose={() => setSelected(null)}
+                visitCounts={visitCounts}
+                mySessions={mySessions}
+                studentNames={studentNames}
+                currentUserId={currentUserId}
+              />
+            )}
           </SafeAreaView>
         </View>
       </Modal>
@@ -174,7 +231,7 @@ export default function MentorsScreen() {
   );
 }
 
-function DetailSheet({ mentor, onClose }) {
+function DetailSheet({ mentor, onClose, visitCounts, mySessions, studentNames, currentUserId }) {
   const teacher = mentor.teacher;
   const av = teacher ? avatarColor(teacher.name) : { bg: colors.primary, text: '#fff' };
 
@@ -202,16 +259,27 @@ function DetailSheet({ mentor, onClose }) {
       </View>
 
       {mentor.isMyMentor ? (
-        <MyMentorDetail mentor={mentor} />
+        <MyMentorDetail
+          mentor={mentor}
+          visitCounts={visitCounts}
+          mySessions={mySessions}
+          studentNames={studentNames}
+          currentUserId={currentUserId}
+        />
       ) : (
-        <OtherMentorDetail mentor={mentor} />
+        <OtherMentorDetail
+          mentor={mentor}
+          visitCounts={visitCounts}
+          studentNames={studentNames}
+          currentUserId={currentUserId}
+        />
       )}
     </ScrollView>
   );
 }
 
-function MyMentorDetail({ mentor }) {
-  const myVisits = mentorVisitCounts[MY_ID];
+function MyMentorDetail({ mentor, visitCounts, mySessions, studentNames, currentUserId }) {
+  const myVisits = visitCounts[currentUserId] || 0;
 
   return (
     <>
@@ -234,27 +302,26 @@ function MyMentorDetail({ mentor }) {
       <View style={styles.sheetSection}>
         <Text style={styles.sheetSectionLabel}>SESSION HISTORY</Text>
 
-        {myMentorSessions.map((s, i) => (
+        {mySessions.map((s, i) => (
           <View key={s.id} style={styles.sessionRow}>
             <View style={styles.sessionNumberBox}>
               <Text style={styles.sessionNumber}>{i + 1}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <View style={styles.sessionTopRow}>
-                <Text style={styles.sessionTopic}>{s.topic}</Text>
+                <Text style={styles.sessionTopic}>{s.note || 'Mentor session'}</Text>
               </View>
-              <Text style={styles.sessionDate}>{s.date}</Text>
-              <Text style={styles.sessionNotes}>{s.notes}</Text>
+              <Text style={styles.sessionDate}>{formatDate(s.created_at)}</Text>
             </View>
           </View>
         ))}
 
         {/* Remaining visits */}
-        {Array.from({ length: REQUIRED_VISITS - myMentorSessions.length }).map((_, i) => (
+        {Array.from({ length: Math.max(0, REQUIRED_VISITS - mySessions.length) }).map((_, i) => (
           <View key={`empty-${i}`} style={[styles.sessionRow, styles.sessionRowEmpty]}>
             <View style={[styles.sessionNumberBox, styles.sessionNumberBoxEmpty]}>
               <Text style={[styles.sessionNumber, { color: colors.textTertiary }]}>
-                {myMentorSessions.length + i + 1}
+                {mySessions.length + i + 1}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
@@ -268,9 +335,9 @@ function MyMentorDetail({ mentor }) {
       <View style={styles.sheetSection}>
         <Text style={styles.sheetSectionLabel}>YOUR GROUP ({mentor.studentIds.length} students)</Text>
         {mentor.studentIds.map(sid => {
-          const name = getStudentName(sid);
-          const visits = mentorVisitCounts[sid] ?? 0;
-          const isMe = sid === MY_ID;
+          const name = studentNames[sid] || '—';
+          const visits = visitCounts[sid] ?? 0;
+          const isMe = sid === currentUserId;
           return (
             <View key={sid} style={styles.groupMemberRow}>
               <View style={styles.memberDot} />
@@ -294,15 +361,15 @@ function MyMentorDetail({ mentor }) {
   );
 }
 
-function OtherMentorDetail({ mentor }) {
+function OtherMentorDetail({ mentor, visitCounts, studentNames }) {
   return (
     <View style={styles.sheetSection}>
       <Text style={styles.sheetSectionLabel}>
         MENTEES ({mentor.studentIds.length})
       </Text>
       {mentor.studentIds.map(sid => {
-        const name = getStudentName(sid);
-        const visits = mentorVisitCounts[sid] ?? 0;
+        const name = studentNames[sid] || '—';
+        const visits = visitCounts[sid] ?? 0;
         const done = visits >= REQUIRED_VISITS;
         return (
           <View key={sid} style={styles.menteeRow}>
@@ -338,7 +405,6 @@ const styles = StyleSheet.create({
     ...font.bold, marginBottom: spacing.sm, marginTop: spacing.xs,
   },
 
-  // My mentor card
   myCard: {
     backgroundColor: colors.card,
     borderWidth: 1.5, borderColor: colors.primary,
@@ -385,7 +451,6 @@ const styles = StyleSheet.create({
   lastSessionDate: { fontSize: 10, color: colors.textTertiary, marginTop: 2 },
   tapHint: { fontSize: 11, color: colors.primary, marginTop: spacing.sm, textAlign: 'right', ...font.medium },
 
-  // Other mentor cards
   mentorCard: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.card,
@@ -407,7 +472,6 @@ const styles = StyleSheet.create({
   mentorAvg: { fontSize: 9, color: colors.textTertiary },
   arrow: { fontSize: 20, color: colors.textTertiary, marginLeft: 2 },
 
-  // Modal / sheet
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.bg,
@@ -424,7 +488,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  closeText: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
 
   sheetProfile: { alignItems: 'center', paddingVertical: spacing.md, gap: 6 },
   sheetName: { fontSize: 18, ...font.bold, color: colors.textPrimary, marginTop: 4 },
@@ -443,7 +506,6 @@ const styles = StyleSheet.create({
   sheetProgressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: 6 },
   sheetProgressCount: { fontSize: 20, ...font.bold },
 
-  // Session rows
   sessionRow: {
     flexDirection: 'row', gap: spacing.sm,
     marginBottom: spacing.md, alignItems: 'flex-start',
@@ -463,7 +525,6 @@ const styles = StyleSheet.create({
   sessionNotes: { fontSize: 12, color: colors.textSecondary, lineHeight: 17 },
   sessionEmptyText: { fontSize: 13, color: colors.textTertiary, marginTop: 5 },
 
-  // Group members
   groupMemberRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: 9,
@@ -475,7 +536,6 @@ const styles = StyleSheet.create({
   memberName: { flex: 1, fontSize: 13, ...font.medium, color: colors.textPrimary },
   memberVisits: { fontSize: 11, color: colors.textSecondary, ...font.semibold },
 
-  // Other mentor mentees
   menteeRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: 10,

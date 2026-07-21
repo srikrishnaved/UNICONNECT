@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Alert, Modal, TextInput, Image, Platform, ActivityIndicator,
 } from 'react-native';
-import { hubClubs, teachers } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font } from '../theme';
@@ -72,10 +71,10 @@ export default function ClubDetailScreen({ route, navigation }) {
     createNotification, userProfile, isAppAdmin,
     followingClubIds, toggleClubFollow,
     clubMemberships, submitClubJoinRequest, loadClubJoinRequests, resolveClubJoinRequest, checkClubJoinRequest, leaveClub, resignClubAdmin,
-    userCreatedClubs,
+    userCreatedClubs, clubs, teachersList,
   } = useApp();
 
-  const club = hubClubs.find(c => c.id === clubId)
+  const club = clubs.find(c => c.id === clubId)
     || userCreatedClubs?.find(c => c.id === String(rawId));
 
   const isEffectiveAdmin = approvedClubAdmins.has(clubId) || approvedClubAdmins.has(String(rawId)) || isAppAdmin;
@@ -304,14 +303,14 @@ export default function ClubDetailScreen({ route, navigation }) {
         }
       }
     });
-    for (const t of teachers) {
+    for (const t of teachersList) {
       createNotification(`teacher-${t.id}`, 'event', eventNotifTitle, eventNotifBody);
     }
     // Notify members of each selected team
     for (const teamId of teamsNeeded) {
       const { data: teamMembers } = await supabase
         .from('club_memberships').select('user_id').eq('club_id', teamId);
-      const teamName = hubClubs.find(t => t.id === teamId)?.name || 'Your team';
+      const teamName = clubs.find(t => t.id === teamId)?.name || 'Your team';
       for (const row of (teamMembers || [])) {
         if (row.user_id !== userProfile?.id) {
           createNotification(
@@ -366,7 +365,7 @@ export default function ClubDetailScreen({ route, navigation }) {
         }
       }
     });
-    for (const t of teachers) {
+    for (const t of teachersList) {
       createNotification(`teacher-${t.id}`, 'event', recruitNotifTitle, recruitNotifBody);
     }
     setRecruitForm({ role: '', requirements: '', applyBy: '', contact: '' });
@@ -822,7 +821,7 @@ export default function ClubDetailScreen({ route, navigation }) {
                             const byTeam = {};
                             ta.members.forEach(m => {
                               const key = m.team_id;
-                              if (!byTeam[key]) byTeam[key] = { team: hubClubs.find(c => c.id === key), members: [] };
+                              if (!byTeam[key]) byTeam[key] = { team: clubs.find(c => c.id === key), members: [] };
                               byTeam[key].members.push(m);
                             });
                             return Object.values(byTeam).map(({ team: t, members: mems }) => (
@@ -981,7 +980,7 @@ export default function ClubDetailScreen({ route, navigation }) {
 
             <Text style={styles.modalLabel}>TEAMS NEEDED (optional)</Text>
             <View style={styles.teamPickerGrid}>
-              {hubClubs.filter(c => c.type === 'Team').map(t => {
+              {clubs.filter(c => c.type === 'Team').map(t => {
                 const selected = teamsNeeded.includes(t.id);
                 return (
                   <TouchableOpacity

@@ -5,12 +5,11 @@ import { createClient } from '@supabase/supabase-js';
 import { colors, spacing, radius, font } from '../theme';
 import { ShieldCheck, Check, X, Pin, Trash2, Info, Landmark, Gift, ClipboardList, School } from 'lucide-react-native';
 import { useApp } from '../context/AppContext';
-import { hubClubs } from '../data';
 
 const ROOM_EMOJIS = ['📚', '✏️', '🧮', '📊', '💡', '🔬', '📖', '🎯'];
 
 export default function AppAdminScreen() {
-  const { clubAdminRequests, resolveClubAdminRequest, loadClubAdminRequests, userCreatedClubs, hiddenClubIds, deleteClub } = useApp();
+  const { clubAdminRequests, resolveClubAdminRequest, loadClubAdminRequests, userCreatedClubs, hiddenClubIds, deleteClub, clubs } = useApp();
   const [refreshing, setRefreshing] = useState(false);
   const [crRequests, setCrRequests] = useState([]);
   const [resolvingCR, setResolvingCR] = useState(null);
@@ -670,7 +669,7 @@ export default function AppAdminScreen() {
       {/* Manage Clubs & Teams */}
       <View style={styles.section}>
         <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Landmark size={13} color={colors.textTertiary} /><Text style={styles.sectionLabel}>MANAGE CLUBS & TEAMS</Text></View>
-        {[...hubClubs, ...(userCreatedClubs || [])].map(club => {
+        {[...clubs, ...(userCreatedClubs || [])].map(club => {
           const isHidden = hiddenClubIds?.has(String(club.id));
           return (
             <View key={club.id} style={[styles.card, { flexDirection: 'row', alignItems: 'center', opacity: isHidden ? 0.45 : 1 }]}>

@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, font, courseColor } from '../theme';
 import { colors as tColors } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
-import { hubClubs } from '../data';
 import { EmptyState } from '../components/EmptyState';
 import { BookOpen, Landmark, Check, Search, Sparkles, UserCheck, X } from 'lucide-react-native';
 
@@ -14,7 +13,7 @@ const EMOJI_OPTIONS = ['📚', '⚡', '🧠', '💡', '🎯', '📊', '💼', '�
 
 export default function GroupsScreen() {
   const navigation = useNavigation();
-  const { teacherGroups, studentGroups, addStudentGroup, userProfile, joinedGroupIds, toggleGroupJoin, createdGroupIds, trackCreatedGroup, clubMemberships } = useApp();
+  const { teacherGroups, studentGroups, addStudentGroup, userProfile, joinedGroupIds, toggleGroupJoin, createdGroupIds, trackCreatedGroup, clubMemberships, clubs } = useApp();
   const [search, setSearch] = useState('');
   const [course, setCourse] = useState('All');
   const [showCreate, setShowCreate] = useState(false);
@@ -46,7 +45,7 @@ export default function GroupsScreen() {
   const myGroups = filtered.filter(g => joinedGroupIds.has(String(g.id)));
   const discoverGroups = filtered.filter(g => !joinedGroupIds.has(String(g.id)));
 
-  const myClubGroups = hubClubs.filter(c => clubMemberships && clubMemberships.has(c.id));
+  const myClubGroups = clubs.filter(c => clubMemberships && clubMemberships.has(c.id));
 
   const handleCreate = () => {
     if (!newGroup.name.trim()) return;

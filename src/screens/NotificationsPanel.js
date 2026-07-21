@@ -15,7 +15,6 @@ import {
 } from '../theme/tokens';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
-import { hubClubs, teachers } from '../data';
 import { EmptyState } from '../components/EmptyState';
 import { Bell, MessageCircle, Calendar, GraduationCap, Users, Gift, Target, X, Check } from 'lucide-react-native';
 
@@ -28,7 +27,7 @@ function timeAgo(ts) {
 }
 
 export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
-  const { userProfile, setUnreadCount, clubMemberships, setClubMemberships, acceptConnectionRequest, declineConnectionRequest, createNotification } = useApp();
+  const { userProfile, setUnreadCount, clubMemberships, setClubMemberships, acceptConnectionRequest, declineConnectionRequest, createNotification, clubs, teachersList } = useApp();
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resolving, setResolving] = useState(null); // invite_id being resolved
@@ -234,7 +233,7 @@ export default function NotificationsPanel({ visible, onClose, onOpenDM }) {
                   } else {
                     // Legacy notifications without meta — infer from title
                     const senderName = n.title.replace('New message from ', '').trim();
-                    const teacher = teachers.find(
+                    const teacher = teachersList.find(
                       t => t.name.toLowerCase() === senderName.toLowerCase()
                     );
                     if (teacher) {

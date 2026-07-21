@@ -15,7 +15,6 @@ import {
   presets,
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
-import { teachers as SEED_TEACHERS, hubClubs } from '../data/index';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as XLSX from 'xlsx';
@@ -23,6 +22,7 @@ import RosterUploadModal from '../components/RosterUploadModal';
 import AttendanceReportScreen from '../components/AttendanceReportScreen';
 import UniversitySetupWizard from '../components/UniversitySetupWizard';
 import NAACScreen from '../components/NAACScreen';
+import CRDashboardScreen from './CRDashboardScreen';
 import { useUniversityConfig } from '../hooks/useUniversityConfig';
 import { User, UserCheck, GraduationCap, Landmark, BadgeCheck, Calendar, RefreshCw, ClipboardList, FileText, BarChart2, Gift, Wrench, Settings, X, Check, Trash2 } from 'lucide-react-native';
 
@@ -30,7 +30,7 @@ const TABS = ['Teachers', 'CR', 'Subjects', 'SAPS', 'Stats'];
 const SAPS_ROLES = ['President', 'Vice President', 'Member Secretary', 'Secretary', 'Vice Secretary'];
 
 export default function SuperAdminScreen({ navigation }) {
-  const { isAppAdmin, approveTeacher, rejectTeacher, userProfile } = useApp();
+  const { isAppAdmin, approveTeacher, rejectTeacher, userProfile, clubs, teachersList } = useApp();
   const { classes: uniClasses } = useUniversityConfig();
   const [activeTab, setActiveTab] = useState('Teachers');
   const [pendingTeachers, setPendingTeachers] = useState([]);
@@ -70,6 +70,7 @@ export default function SuperAdminScreen({ navigation }) {
   const [showRosterModal, setShowRosterModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showNAAC, setShowNAAC] = useState(false);
+  const [showCRDashboard, setShowCRDashboard] = useState(false);
 
   // University setup wizard
   const [showWizard, setShowWizard] = useState(false);
@@ -191,7 +192,7 @@ export default function SuperAdminScreen({ navigation }) {
         users:         count(usersRes),
         teachers:      count(teachersRes),
         students:      count(studentsRes),
-        clubs:         hubClubs.length,
+        clubs:         clubs.length,
         memberships:   count(membershipsRes),
         hubEvents:     count(hubEventsRes),
         subRequests:   count(subRes),
@@ -375,7 +376,7 @@ export default function SuperAdminScreen({ navigation }) {
           ).filter(Boolean)
         )];
         const merged = names.map(name => {
-          const seed = SEED_TEACHERS.find(t => t.name.toLowerCase() === name.toLowerCase());
+          const seed = teachersList.find(t => t.name.toLowerCase() === name.toLowerCase());
           return seed
             ? { name: seed.name, subjects: seed.subjects, id: seed.id }
             : { name, subjects: [], id: null };
@@ -1116,6 +1117,15 @@ export default function SuperAdminScreen({ navigation }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Landmark size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>NAAC Documentation</Text></View>
       </TouchableOpacity>
 
+      {/* CR Dashboard shortcut */}
+      <TouchableOpacity
+        style={{ marginHorizontal: tSpacing.md, marginBottom: tSpacing.sm, backgroundColor: tColors.cardAlt, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: tColors.border }}
+        onPress={() => setShowCRDashboard(true)}
+        activeOpacity={0.8}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><GraduationCap size={14} color={tColors.textPrimary} /><Text style={{ color: tColors.textPrimary, fontSize: 14, fontWeight: typography.bold }}>CR Dashboard</Text></View>
+      </TouchableOpacity>
+
       {/* Tab content */}
       {activeTab === 'Teachers' && renderTeachersTab()}
       {activeTab === 'CR' && renderCRTab()}
@@ -1289,6 +1299,11 @@ export default function SuperAdminScreen({ navigation }) {
         onClose={() => setShowNAAC(false)}
         userProfile={userProfile}
       />
+
+      {/* ── CR Dashboard Modal ────────────────────────────────────────────── */}
+      <Modal visible={showCRDashboard} animationType="slide" onRequestClose={() => setShowCRDashboard(false)}>
+        <CRDashboardScreen onClose={() => setShowCRDashboard(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }

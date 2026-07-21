@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator, Animated, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { students, hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor, initials, courseColor } from '../theme';
@@ -13,7 +12,7 @@ const COURSES = ['All', 'BCom IAF', 'BCom F&A', 'BCom IBA'];
 const YEARS = ['All', '1st Year', '2nd Year', '3rd Year'];
 
 export default function DiscoverScreen() {
-  const { isConnected, toggleConnect, isBlocked, userProfile, sendConnectionRequest, hasPendingRequest, cancelConnectionRequest, disconnectUser } = useApp();
+  const { isConnected, toggleConnect, isBlocked, userProfile, sendConnectionRequest, hasPendingRequest, cancelConnectionRequest, disconnectUser, clubs } = useApp();
   const navigation = useNavigation();
   const universityId = userProfile?.university_id;
   const [search, setSearch] = useState('');
@@ -98,15 +97,6 @@ export default function DiscoverScreen() {
       .sort((a, b) => score(b) - score(a));
   }, [realUsers, search, course, year, isBlocked, userProfile]);
 
-  const filteredSeed = useMemo(() => students.filter(s => {
-    if (isBlocked(s.id)) return false;
-    const q = search.toLowerCase();
-    const mq = !q || s.name.toLowerCase().includes(q) || s.interest.toLowerCase().includes(q);
-    const mc = course === 'All' || s.course === course;
-    const my = year === 'All' || s.year === year;
-    return mq && mc && my;
-  }), [search, course, year, isBlocked]);
-
   const handleSearch = useCallback(async (text) => {
     setSearch(text);
     const trimmed = text.trim();
@@ -123,9 +113,9 @@ export default function DiscoverScreen() {
 
   const q = search.trim().toLowerCase();
   const staticClubs = q.length >= 2
-    ? hubClubs.filter(c =>
+    ? clubs.filter(c =>
         c.name.toLowerCase().includes(q) ||
-        c.fullName.toLowerCase().includes(q) ||
+        (c.full_name || c.fullName || '').toLowerCase().includes(q) ||
         (c.description || '').toLowerCase().includes(q)
       )
     : [];
@@ -249,52 +239,7 @@ export default function DiscoverScreen() {
     );
   }
 
-  function SeedCard({ student }) {
-    const connected = isConnected(student.id);
-    const av = avatarColor(student.name);
-    const cc = courseColor(student.course);
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('Profile', { studentId: student.id })}
-      >
-        <View style={styles.cardTop}>
-          <View style={[styles.avatar, { backgroundColor: av.bg }]}>
-            <Text style={[styles.avatarText, { color: av.text }]}>{initials(student.name)}</Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.connectBtn, connected && styles.connectBtnActive]}
-            onPress={() => toggleConnect(student.id)}
-            activeOpacity={0.7}
-          >
-            {connected ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Check size={11} color={colors.success} />
-                <Text style={[styles.connectBtnText, styles.connectBtnTextActive]}>Connected</Text>
-              </View>
-            ) : (
-              <Text style={styles.connectBtnText}>+ Connect</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.name}>{student.name}</Text>
-        <View style={[styles.courseBadge, { backgroundColor: cc.bg }]}>
-          <Text style={[styles.courseText, { color: cc.text }]}>{student.class || student.course}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Landmark size={12} color={colors.textTertiary} />
-          <Text style={styles.meta}>{student.campus}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Sparkles size={12} color={colors.textTertiary} />
-          <Text style={styles.interest}>{student.interest}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
-  const totalCount = filteredReal.length + filteredSeed.length;
+  const totalCount = filteredReal.length;
 
   return (
     <View style={styles.container}>
@@ -342,19 +287,6 @@ export default function DiscoverScreen() {
                 </View>
               </>
             ) : null}
-
-            {/* Seed students */}
-            {filteredSeed.length > 0 && (
-              <>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Users size={13} color={colors.textTertiary} />
-                  <Text style={styles.subLabel}>SAMPLE PROFILES</Text>
-                </View>
-                <View style={styles.grid}>
-                  {filteredSeed.map(s => <SeedCard key={s.id} student={s} />)}
-                </View>
-              </>
-            )}
 
             {totalCount === 0 && !loadingReal && (
               <EmptyState

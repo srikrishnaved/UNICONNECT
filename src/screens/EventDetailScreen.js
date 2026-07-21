@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, font } from '../theme';
 import { Calendar, MapPin, Users, Check } from 'lucide-react-native';
@@ -9,9 +8,9 @@ import { ClubLucideIcon } from './HubScreen';
 
 export default function EventDetailScreen({ route }) {
   const event = route.params.event;
-  const { interestedEventIds, toggleEventInterest, userCreatedClubs } = useApp();
+  const { interestedEventIds, toggleEventInterest, userCreatedClubs, clubs } = useApp();
 
-  const allClubs = [...hubClubs, ...(userCreatedClubs || [])];
+  const allClubs = [...clubs, ...(userCreatedClubs || [])];
   const club = allClubs.find(c => String(c.id) === String(event.clubId)) || {
     name: 'Unknown Club',
     emoji: '🏛️',
