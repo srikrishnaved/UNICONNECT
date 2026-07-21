@@ -1,5 +1,0 @@
-Yes! The `pptx` skill can help you make a slideshow.
-
-- `pptx` — Creates PowerPoint presentations and slideshows
-
-You can invoke it by typing `/pptx` in the Claude Code prompt, or just say something like "create a slideshow for me" and Claude will invoke it automatically.
