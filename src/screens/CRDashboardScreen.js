@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 import { colors, spacing, radius, font, avatarColor } from '../theme';
 import { colors as tColors } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
-import { ClipboardList, LayoutGrid, CircleCheck, Check, X, Trash2 } from 'lucide-react-native';
+import { ClipboardList, LayoutGrid, CircleCheck, Check, X, Trash2, Calendar } from 'lucide-react-native';
 
 // ── Period definitions ─────────────────────────────────────────────────────────
 const PERIODS = [
@@ -621,6 +621,26 @@ export default function CRDashboardScreen({ onClose }) {
 
   useEffect(() => { loadAttLogs(); }, [loadAttLogs]);
 
+  // ── Compensatory requests ──────────────────────────────────────────────────
+  const [compReqs, setCompReqs]     = useState([]);
+  const [compLoading, setCompLoading] = useState(true);
+
+  const loadCompReqs = useCallback(async () => {
+    const classNames = getClassNames(course, year, section || null);
+    if (!classNames || classNames.length === 0) { setCompLoading(false); return; }
+    setCompLoading(true);
+    const { data } = await supabase
+      .from('compensatory_requests')
+      .select('*')
+      .in('original_class_name', classNames)
+      .in('status', ['pending', 'approved'])
+      .order('created_at', { ascending: false });
+    setCompReqs(data || []);
+    setCompLoading(false);
+  }, [course, year, section]);
+
+  useEffect(() => { loadCompReqs(); }, [loadCompReqs]);
+
   const clearAttLogs = () => {
     const doDelete = async () => {
       await supabase.from('cr_attendance_logs').delete().eq('user_id', userProfile.id);
@@ -754,8 +774,9 @@ export default function CRDashboardScreen({ onClose }) {
       {/* Tab bar */}
       <View style={styles.tabBar}>
         {[
-          { key: 'overview',    label: 'Overview',   Icon: LayoutGrid  },
-          { key: 'attendance',  label: 'Attendance', Icon: CircleCheck },
+          { key: 'overview',      label: 'Overview',   Icon: LayoutGrid  },
+          { key: 'attendance',    label: 'Attendance', Icon: CircleCheck },
+          { key: 'compensatory',  label: 'Comp. Classes', Icon: Calendar },
         ].map(tab => {
           const isActive = activeTab === tab.key;
           return (
@@ -1027,7 +1048,7 @@ export default function CRDashboardScreen({ onClose }) {
                 )}
 
                 {/* Subject Code Selector */}
-                <Text style={styles.fieldLabel}>SELECT SUBJECT</Text>
+                <Text style={styles.fieldLabel}>SELECT SUBJECT <Text style={{ fontWeight: '400', color: colors.textTertiary }}>(optional)</Text></Text>
                 {loadingSubjects ? (
                   <ActivityIndicator color={colors.primary} size="small" style={{ alignSelf: 'flex-start', marginVertical: 8 }} />
                 ) : subjects.length > 0 ? (
@@ -1057,6 +1078,19 @@ export default function CRDashboardScreen({ onClose }) {
                   ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
                       <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity
+                          style={{
+                            paddingHorizontal: 12, paddingVertical: 8,
+                            borderRadius: 8, borderWidth: 1,
+                            borderColor: !selSubjectCode ? colors.primary : colors.border,
+                            backgroundColor: !selSubjectCode ? colors.primaryLight : colors.card,
+                            minWidth: 60, alignItems: 'center', justifyContent: 'center',
+                          }}
+                          onPress={() => { setSelSubjectCode(''); setSelSubjectName(''); }}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={{ fontSize: 12, color: !selSubjectCode ? colors.primary : colors.textSecondary }}>None</Text>
+                        </TouchableOpacity>
                         {subjects.map(sub => {
                           const active = selSubjectCode === sub.code;
                           return (
@@ -1233,6 +1267,66 @@ export default function CRDashboardScreen({ onClose }) {
                 ))
               )}
             </View>
+          </>
+        )}
+
+        {/* ══ COMPENSATORY TAB ══════════════════════════════════════════════════ */}
+        {activeTab === 'compensatory' && (
+          <>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>COMPENSATORY CLASSES — {course} · {year}</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: spacing.md }}>
+                Classes your batch needs to make up or has scheduled as compensatory sessions.
+              </Text>
+              {compLoading ? (
+                <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
+              ) : compReqs.length === 0 ? (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyText}>No compensatory classes found for your batch.</Text>
+                </View>
+              ) : (
+                compReqs.map(req => {
+                  const isApproved = req.status === 'approved';
+                  const statusColor = isApproved ? colors.green : colors.amber;
+                  const statusBg = isApproved ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
+                  return (
+                    <View key={req.id} style={styles.compRow}>
+                      <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                          <View style={[styles.compStatusBadge, { backgroundColor: statusBg, borderColor: statusColor }]}>
+                            <Text style={[styles.compStatusText, { color: statusColor }]}>
+                              {isApproved ? 'Scheduled' : 'Pending'}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.compTitle}>
+                          {req.teacher_name}
+                          {req.proposed_course_name ? ` — ${req.proposed_course_name}` : ''}
+                        </Text>
+                        {(req.proposed_day || req.proposed_period_name) && (
+                          <Text style={styles.compMeta}>
+                            {[req.proposed_day, req.proposed_period_name].filter(Boolean).join(' · ')}
+                          </Text>
+                        )}
+                        {(req.original_day || req.original_period_name) && (
+                          <Text style={styles.compOriginal}>
+                            Missed: {[req.original_day, req.original_period_name].filter(Boolean).join(' · ')}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.clearBtn, { alignSelf: 'flex-start' }]}
+              onPress={loadCompReqs}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.clearBtnText}>Refresh</Text>
+            </TouchableOpacity>
           </>
         )}
 
@@ -1544,4 +1638,18 @@ const styles = StyleSheet.create({
   },
   rollDeleteBtn: { padding: 8 },
   rollDeleteText: { fontSize: 16 },
+
+  // Compensatory classes
+  compRow: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border,
+  },
+  compStatusBadge: {
+    borderWidth: 1, borderRadius: radius.full,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  compStatusText: { fontSize: 10, ...font.bold },
+  compTitle: { fontSize: 13, ...font.semibold, color: colors.textPrimary, marginTop: 4 },
+  compMeta:  { fontSize: 12, color: colors.primary, marginTop: 2, ...font.medium },
+  compOriginal: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
 });
