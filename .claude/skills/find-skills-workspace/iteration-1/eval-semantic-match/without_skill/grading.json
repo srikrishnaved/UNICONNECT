@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "identifies_pptx: Response names the `pptx` skill as the answer",
+      "passed": true,
+      "evidence": "'The `pptx` skill is designed for creating PowerPoint presentations, which is a common slideshow format.'"
+    },
+    {
+      "text": "explains_relevance: Response explains that pptx = PowerPoint / presentations / slideshows",
+      "passed": true,
+      "evidence": "'generate a `.pptx` file you can open in PowerPoint, Keynote, or Google Slides'"
+    },
+    {
+      "text": "includes_invocation: Response tells the user how to invoke the skill (/pptx or equivalent)",
+      "passed": false,
+      "evidence": "Response says 'you can ask something like: Create a slideshow about...' but never gives the /pptx slash command syntax explicitly"
+    },
+    {
+      "text": "no_full_dump: Response does NOT dump the entire skills list — stays focused on the match",
+      "passed": true,
+      "evidence": "Response stays focused on pptx only — no other skills listed"
+    }
+  ],
+  "pass_rate": 0.75
+}

@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "mentions_canvas_design: Response includes canvas-design as a relevant skill",
+      "passed": true,
+      "evidence": "'canvas-design - Likely relevant to design work'"
+    },
+    {
+      "text": "mentions_algorithmic_art: Response includes algorithmic-art as a relevant skill",
+      "passed": true,
+      "evidence": "'algorithmic-art - Best match for generating art.'"
+    },
+    {
+      "text": "excludes_unrelated: Response does NOT include unrelated skills like code-review, deploy, or xlsx",
+      "passed": true,
+      "evidence": "Only lists algorithmic-art, canvas-design, theme-factory, frontend-design, brand-guidelines — all design-adjacent"
+    },
+    {
+      "text": "differentiates_skills: Response explains how canvas-design and algorithmic-art differ from each other",
+      "passed": true,
+      "evidence": "'If you want to generate creative/generative art, use algorithmic-art. If you're looking for UI/product design, try canvas-design or frontend-design.'"
+    }
+  ],
+  "pass_rate": 1.0
+}

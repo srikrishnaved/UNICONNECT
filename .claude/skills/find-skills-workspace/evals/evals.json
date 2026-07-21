@@ -1,0 +1,77 @@
+{
+  "skill_name": "find-skills",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "what skills do you have available?",
+      "expected_output": "A categorized list of all available skills with names and descriptions, plus invocation instructions",
+      "files": [],
+      "assertions": [
+        {
+          "name": "lists_many_skills",
+          "description": "Response mentions at least 10 distinct skill names"
+        },
+        {
+          "name": "groups_by_category",
+          "description": "Response organizes skills into at least 2 named groups or categories"
+        },
+        {
+          "name": "includes_invocation_guidance",
+          "description": "Response explains how to invoke a skill (mentions slash commands or /skill-name pattern)"
+        },
+        {
+          "name": "mentions_vercel_family",
+          "description": "Response acknowledges the vercel:* family of skills (doesn't silently omit them)"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "is there anything that can help me make a slideshow?",
+      "expected_output": "Direct yes answer identifying the pptx skill with invocation instructions, without dumping the full skill list",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies_pptx",
+          "description": "Response names the `pptx` skill as the answer"
+        },
+        {
+          "name": "explains_relevance",
+          "description": "Response explains that pptx = PowerPoint / presentations / slideshows"
+        },
+        {
+          "name": "includes_invocation",
+          "description": "Response tells the user how to invoke the skill (/pptx or equivalent)"
+        },
+        {
+          "name": "no_full_dump",
+          "description": "Response does NOT dump the entire skills list — stays focused on the match"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "find me a skill for generating art or designs",
+      "expected_output": "Filtered list of relevant art/design skills (canvas-design, algorithmic-art, optionally frontend-design) with brief explanations of each",
+      "files": [],
+      "assertions": [
+        {
+          "name": "mentions_canvas_design",
+          "description": "Response includes canvas-design as a relevant skill"
+        },
+        {
+          "name": "mentions_algorithmic_art",
+          "description": "Response includes algorithmic-art as a relevant skill"
+        },
+        {
+          "name": "excludes_unrelated",
+          "description": "Response does NOT include unrelated skills like code-review, deploy, or xlsx"
+        },
+        {
+          "name": "differentiates_skills",
+          "description": "Response explains how canvas-design and algorithmic-art differ from each other"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "mentions_canvas_design: Response includes canvas-design as a relevant skill",
+      "passed": true,
+      "evidence": "'`canvas-design` — Creates visual designs, posters, and artwork.'"
+    },
+    {
+      "text": "mentions_algorithmic_art: Response includes algorithmic-art as a relevant skill",
+      "passed": true,
+      "evidence": "'`algorithmic-art` — Creates algorithmic/generative art using p5.js with seeded randomness, flow fields, and particle systems.'"
+    },
+    {
+      "text": "excludes_unrelated: Response does NOT include unrelated skills like code-review, deploy, or xlsx",
+      "passed": true,
+      "evidence": "Only lists canvas-design, algorithmic-art, frontend-design, theme-factory — all design-adjacent. No code-review, deploy, xlsx, etc."
+    },
+    {
+      "text": "differentiates_skills: Response explains how canvas-design and algorithmic-art differ from each other",
+      "passed": true,
+      "evidence": "algorithmic-art: 'closest match if you want code-driven art generation'; canvas-design: 'Great for design outputs (images, layouts, visual compositions)'"
+    }
+  ],
+  "pass_rate": 1.0
+}

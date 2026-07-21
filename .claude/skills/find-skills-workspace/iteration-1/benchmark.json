@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "skill_name": "find-skills",
+    "skill_path": "/Users/srikrishnavedkodakalla/Documents/UNICONNECT/christconnect/.claude/skills/find-skills",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-07-14T04:49:00Z",
+    "evals_run": ["list-all", "semantic-match", "art-search"],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "list-all",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 52.8,
+        "tokens": 17655,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "lists_many_skills: Response mentions at least 10 distinct skill names", "passed": true, "evidence": "Lists 40+ skills across all categories"},
+        {"text": "groups_by_category: Response organizes skills into at least 2 named groups or categories", "passed": true, "evidence": "7 named groups: Document & File, Design & Creative, Code & Development, Browser & Automation, Writing & Communication, Project & Config, Vercel"},
+        {"text": "includes_invocation_guidance: Response explains how to invoke a skill", "passed": true, "evidence": "Dedicated 'How to invoke a skill' section with /skill-name code block and 3 examples"},
+        {"text": "mentions_vercel_family: Response acknowledges the vercel:* family of skills", "passed": true, "evidence": "Full 'Vercel Skills' section listing all 30 vercel:* skills individually with inferred descriptions"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "eval_name": "list-all",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 33.9,
+        "tokens": 16540,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "lists_many_skills: Response mentions at least 10 distinct skill names", "passed": true, "evidence": "Lists 40+ skills across all categories"},
+        {"text": "groups_by_category: Response organizes skills into at least 2 named groups or categories", "passed": true, "evidence": "10 named groups including Development & Code, Design & Frontend, Documents & Files, etc."},
+        {"text": "includes_invocation_guidance: Response explains how to invoke a skill", "passed": false, "evidence": "Lists skills but provides no instructions on how to invoke them — no mention of slash commands or /skill-name syntax"},
+        {"text": "mentions_vercel_family: Response acknowledges the vercel:* family of skills", "passed": true, "evidence": "Has 'Vercel (many sub-skills)' section listing several vercel:* skills"}
+      ],
+      "notes": ["Missing invocation instructions is a meaningful gap for a 'list all skills' response"]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "semantic-match",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 16.9,
+        "tokens": 16198,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "identifies_pptx: Response names the pptx skill as the answer", "passed": true, "evidence": "First sentence: 'Yes! The `pptx` skill can help you make a slideshow.'"},
+        {"text": "explains_relevance: Response explains that pptx = PowerPoint / presentations / slideshows", "passed": true, "evidence": "'Creates PowerPoint presentations and slideshows'"},
+        {"text": "includes_invocation: Response tells the user how to invoke the skill", "passed": true, "evidence": "'You can invoke it by typing `/pptx` in the Claude Code prompt'"},
+        {"text": "no_full_dump: Response does NOT dump the entire skills list", "passed": true, "evidence": "Response is 4 lines, only discusses pptx — no other skills listed"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "semantic-match",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 16.4,
+        "tokens": 15162,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "identifies_pptx: Response names the pptx skill as the answer", "passed": true, "evidence": "'The `pptx` skill is designed for creating PowerPoint presentations'"},
+        {"text": "explains_relevance: Response explains that pptx = PowerPoint / presentations / slideshows", "passed": true, "evidence": "'generate a `.pptx` file you can open in PowerPoint, Keynote, or Google Slides'"},
+        {"text": "includes_invocation: Response tells the user how to invoke the skill", "passed": false, "evidence": "Suggests natural language prompts but never gives the /pptx slash command explicitly"},
+        {"text": "no_full_dump: Response does NOT dump the entire skills list", "passed": true, "evidence": "Stays focused on pptx only"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "art-search",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 24.6,
+        "tokens": 16309,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "mentions_canvas_design: Response includes canvas-design as a relevant skill", "passed": true, "evidence": "'`canvas-design` — Creates visual designs, posters, and artwork.'"},
+        {"text": "mentions_algorithmic_art: Response includes algorithmic-art as a relevant skill", "passed": true, "evidence": "'`algorithmic-art` — Creates algorithmic/generative art using p5.js'"},
+        {"text": "excludes_unrelated: Response does NOT include unrelated skills like code-review, deploy, or xlsx", "passed": true, "evidence": "Only lists canvas-design, algorithmic-art, frontend-design, theme-factory"},
+        {"text": "differentiates_skills: Response explains how canvas-design and algorithmic-art differ", "passed": true, "evidence": "algorithmic-art: 'closest match if you want code-driven art'; canvas-design: 'Great for design outputs (images, layouts, visual compositions)'"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "art-search",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 21.2,
+        "tokens": 15261,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "mentions_canvas_design: Response includes canvas-design as a relevant skill", "passed": true, "evidence": "'canvas-design - Likely relevant to design work'"},
+        {"text": "mentions_algorithmic_art: Response includes algorithmic-art as a relevant skill", "passed": true, "evidence": "'algorithmic-art - Best match for generating art.'"},
+        {"text": "excludes_unrelated: Response does NOT include unrelated skills like code-review, deploy, or xlsx", "passed": true, "evidence": "Only lists design-adjacent skills"},
+        {"text": "differentiates_skills: Response explains how canvas-design and algorithmic-art differ", "passed": true, "evidence": "'If you want generative art, use algorithmic-art. If you're looking for UI/product design, try canvas-design'"}
+      ],
+      "notes": ["art-search assertions pass in both configurations — algorithmic-art has an explicit description in the skills list, making it easy to match without skill guidance"]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 31.4, "stddev": 18.6, "min": 16.9, "max": 52.8},
+      "tokens": {"mean": 16720, "stddev": 742, "min": 16198, "max": 17655}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.83, "stddev": 0.14, "min": 0.75, "max": 1.0},
+      "time_seconds": {"mean": 23.8, "stddev": 8.9, "min": 16.4, "max": 33.9},
+      "tokens": {"mean": 15654, "stddev": 731, "min": 15162, "max": 16540}
+    },
+    "delta": {
+      "pass_rate": "+0.17",
+      "time_seconds": "+7.6",
+      "tokens": "+1066"
+    }
+  },
+  "notes": [
+    "art-search (eval 2) passes 100% in BOTH configs — algorithmic-art has an explicit description in the skills list, so Claude matches it correctly with or without the skill. This is a non-discriminating eval.",
+    "The skill adds clear value in list-all and semantic-match: both baselines missed invocation guidance (the /skill-name slash command syntax).",
+    "Slight overhead (+1066 tokens, +7.6s avg) from reading SKILL.md, but quality improvement justifies it.",
+    "High time variance in with_skill (18.6s stddev) driven by eval-list-all at 52.8s — the grouping/description-inference pass takes longer for full listings."
+  ]
+}

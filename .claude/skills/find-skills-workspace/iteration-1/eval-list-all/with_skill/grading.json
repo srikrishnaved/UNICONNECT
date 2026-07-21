@@ -1,0 +1,27 @@
+{
+  "eval_id": 0,
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "lists_many_skills: Response mentions at least 10 distinct skill names",
+      "passed": true,
+      "evidence": "Lists 40+ skills across all categories (docx, pdf, xlsx, pptx, canvas-design, algorithmic-art, code-review, vercel:deploy, etc.)"
+    },
+    {
+      "text": "groups_by_category: Response organizes skills into at least 2 named groups or categories",
+      "passed": true,
+      "evidence": "7 named groups: Document & File Skills, Design & Creative Skills, Code & Development Skills, Browser & Automation Skills, Writing & Communication Skills, Project & Config Skills, Vercel Skills"
+    },
+    {
+      "text": "includes_invocation_guidance: Response explains how to invoke a skill (mentions slash commands or /skill-name pattern)",
+      "passed": true,
+      "evidence": "Dedicated 'How to invoke a skill' section with /skill-name code block, 3 examples, and note about natural language invocation"
+    },
+    {
+      "text": "mentions_vercel_family: Response acknowledges the vercel:* family of skills (doesn't silently omit them)",
+      "passed": true,
+      "evidence": "Full 'Vercel Skills' section listing all 30 vercel:* skills individually with descriptions"
+    }
+  ],
+  "pass_rate": 1.0
+}

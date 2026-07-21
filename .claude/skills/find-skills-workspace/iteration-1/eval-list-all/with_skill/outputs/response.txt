@@ -1,0 +1,98 @@
+Here are all the skills available to you, grouped by category:
+
+---
+
+**Document & File Skills**
+- `docx` — Creates and edits Word documents
+- `pdf` — Works with PDF files
+- `xlsx` — Creates and edits Excel spreadsheets
+- `pptx` — Creates and edits PowerPoint presentations
+
+**Design & Creative Skills**
+- `canvas-design` — Creates visual designs, posters, and artwork
+- `frontend-design` — Guidance for building distinctive, high-quality UI
+- `theme-factory` — Generates and applies UI color themes and design tokens
+- `algorithmic-art` — Creates generative/algorithmic art using p5.js with seeded randomness and interactive parameters
+- `brand-guidelines` — Applies Anthropic's official brand colors and typography to artifacts
+- `slack-gif-creator` — Creates animated GIFs for Slack
+
+**Code & Development Skills**
+- `claude-api` — Reference for the Claude API / Anthropic SDK (model IDs, pricing, streaming, tool use, caching, etc.)
+- `mcp-builder` — Builds MCP (Model Context Protocol) servers
+- `webapp-testing` — Tests web applications
+- `web-artifacts-builder` — Builds interactive web artifacts and demos
+- `code-review` — Reviews the current git diff for correctness bugs and cleanup opportunities
+- `simplify` — Reviews changed code for reuse, simplification, and efficiency improvements
+- `security-review` — Reviews code for security vulnerabilities
+- `fewer-permission-prompts` — Scans transcripts and adds allowlist entries to reduce permission prompts
+
+**Browser & Automation Skills**
+- `claude-in-chrome` — Automates your Chrome browser (clicking, form filling, screenshots, console logs, navigation)
+- `run` — Launches and drives this project's app to confirm changes work in the real app
+- `verify` — Verifies that a code change actually works by running the app and observing behavior
+
+**Writing & Communication Skills**
+- `doc-coauthoring` — Co-authors long-form documents collaboratively
+- `internal-comms` — Drafts internal communications, memos, and announcements
+
+**Project & Config Skills**
+- `update-config` — Configures the Claude Code harness via settings.json (hooks, permissions, env vars, automated behaviors)
+- `keybindings-help` — Customizes keyboard shortcuts and keybindings in ~/.claude/keybindings.json
+- `init` — Initializes a new CLAUDE.md file with codebase documentation
+- `review` — Reviews a pull request
+- `deploy` — Runs the ChristConnect production deploy sequence
+- `schedule` — Creates, updates, lists, or runs scheduled remote agents on a cron schedule
+- `loop` — Runs a prompt or slash command on a recurring interval
+- `skill-creator` — Creates new skills, modifies and improves existing skills, runs evals to test skill performance
+
+**Vercel Skills**
+- `vercel:deploy` — Deploy to Vercel
+- `vercel:bootstrap` — Bootstrap a new Vercel project
+- `vercel:env` / `vercel:env-vars` — Manage Vercel environment variables
+- `vercel:status` — Check Vercel deployment status
+- `vercel:nextjs` — Next.js best practices and patterns on Vercel
+- `vercel:ai-sdk` — Vercel AI SDK guidance
+- `vercel:ai-gateway` — Vercel AI Gateway setup
+- `vercel:auth` — Authentication patterns on Vercel
+- `vercel:chat-sdk` — Vercel Chat SDK guidance
+- `vercel:deployments-cicd` — CI/CD and deployment pipelines on Vercel
+- `vercel:knowledge-update` — Update Vercel knowledge
+- `vercel:marketplace` — Vercel marketplace integrations
+- `vercel:microfrontends` — Microfrontend architecture on Vercel
+- `vercel:next-cache-components` — Next.js caching and server components
+- `vercel:next-forge` — Next Forge framework guidance
+- `vercel:next-upgrade` — Upgrade Next.js versions
+- `vercel:react-best-practices` — React best practices
+- `vercel:routing-middleware` — Vercel routing and middleware
+- `vercel:runtime-cache` — Vercel runtime caching strategies
+- `vercel:shadcn` — shadcn/ui component library guidance
+- `vercel:turbopack` — Turbopack bundler guidance
+- `vercel:vercel-agent` — Vercel agent patterns
+- `vercel:vercel-cli` — Vercel CLI usage
+- `vercel:vercel-connect` — Vercel Connect integrations
+- `vercel:vercel-firewall` — Vercel Firewall configuration
+- `vercel:vercel-functions` — Vercel Serverless and Edge Functions
+- `vercel:vercel-sandbox` — Vercel sandbox environments
+- `vercel:vercel-storage` — Vercel storage solutions (KV, Blob, Postgres)
+- `vercel:verification` — Vercel domain verification
+- `vercel:workflow` — Vercel workflow automation
+
+---
+
+**How to invoke a skill:**
+
+Type a slash command in the Claude Code prompt:
+```
+/skill-name
+```
+
+Examples:
+- `/xlsx` — launches the Excel/spreadsheet skill
+- `/canvas-design` — launches the visual design skill
+- `/code-review` — reviews your current code changes
+
+Or just describe what you need naturally and Claude will invoke the right skill automatically. For example: "can you create a poster?" will trigger `canvas-design`.
+
+---
+
+If you'd like a skill for something that doesn't exist yet, use `/skill-creator` to build a custom one.

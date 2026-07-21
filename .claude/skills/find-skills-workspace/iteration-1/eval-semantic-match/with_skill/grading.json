@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "identifies_pptx: Response names the `pptx` skill as the answer",
+      "passed": true,
+      "evidence": "First sentence: 'Yes! The `pptx` skill can help you make a slideshow.'"
+    },
+    {
+      "text": "explains_relevance: Response explains that pptx = PowerPoint / presentations / slideshows",
+      "passed": true,
+      "evidence": "'Creates PowerPoint presentations and slideshows'"
+    },
+    {
+      "text": "includes_invocation: Response tells the user how to invoke the skill (/pptx or equivalent)",
+      "passed": true,
+      "evidence": "'You can invoke it by typing `/pptx` in the Claude Code prompt'"
+    },
+    {
+      "text": "no_full_dump: Response does NOT dump the entire skills list — stays focused on the match",
+      "passed": true,
+      "evidence": "Response is 4 lines, only discusses pptx — no other skills listed"
+    }
+  ],
+  "pass_rate": 1.0
+}

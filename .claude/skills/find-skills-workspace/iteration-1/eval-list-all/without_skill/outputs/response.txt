@@ -1,0 +1,54 @@
+Here are the skills available to me:
+
+**Development & Code**
+- `code-review` - Review current diff for correctness bugs and cleanup suggestions
+- `simplify` - Review changed code for reuse, simplification, and efficiency improvements
+- `security-review` - Security-focused code review
+- `verify` - Verify a code change actually works by running the app
+- `run` - Launch and drive the project's app
+
+**Project & Config**
+- `deploy` - Run the ChristConnect production deploy sequence
+- `init` - Initialize a new CLAUDE.md file with codebase documentation
+- `update-config` - Configure the Claude Code harness via settings.json
+- `keybindings-help` - Customize keyboard shortcuts
+- `fewer-permission-prompts` - Scan transcripts and reduce permission prompts
+
+**Browser & Testing**
+- `claude-in-chrome` - Automate Chrome browser interactions (clicking, forms, screenshots, console logs)
+- `webapp-testing` - Web app testing
+
+**Design & Frontend**
+- `frontend-design` - Frontend design assistance
+- `canvas-design` - Canvas-based design
+- `theme-factory` - Theme generation
+- `web-artifacts-builder` - Build web artifacts
+- `algorithmic-art` - Create algorithmic/generative art using p5.js
+
+**Documents & Files**
+- `pdf` - PDF handling
+- `docx` - Word document handling
+- `pptx` - PowerPoint handling
+- `xlsx` - Excel spreadsheet handling
+- `doc-coauthoring` - Document co-authoring
+
+**AI & APIs**
+- `claude-api` - Reference for Claude API / Anthropic SDK (model IDs, pricing, streaming, tool use, etc.)
+- `mcp-builder` - Build MCP (Model Context Protocol) integrations
+
+**Automation & Scheduling**
+- `loop` - Run a prompt or command on a recurring interval
+- `schedule` - Create scheduled remote agents on a cron schedule
+
+**Communication**
+- `slack-gif-creator` - Create GIFs for Slack
+- `internal-comms` - Internal communications
+
+**Vercel (many sub-skills)**
+- `vercel:deploy`, `vercel:env`, `vercel:status`, `vercel:nextjs`, `vercel:auth`, `vercel:ai-sdk`, `vercel:shadcn`, `vercel:turbopack`, `vercel:vercel-cli`, `vercel:vercel-functions`, `vercel:vercel-storage`, and more
+
+**Meta / Skill Management**
+- `skill-creator` - Create, modify, and improve skills
+- `find-skills` - Find relevant skills
+- `brand-guidelines` - Apply Anthropic's brand colors and typography
+- `review` - Review a pull request

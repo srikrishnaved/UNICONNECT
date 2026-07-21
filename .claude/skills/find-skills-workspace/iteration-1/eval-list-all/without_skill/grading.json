@@ -1,0 +1,27 @@
+{
+  "eval_id": 0,
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "lists_many_skills: Response mentions at least 10 distinct skill names",
+      "passed": true,
+      "evidence": "Lists 40+ skills across all categories"
+    },
+    {
+      "text": "groups_by_category: Response organizes skills into at least 2 named groups or categories",
+      "passed": true,
+      "evidence": "10 named groups: Development & Code, Project & Config, Browser & Testing, Design & Frontend, Documents & Files, AI & APIs, Automation & Scheduling, Communication, Vercel, Meta / Skill Management"
+    },
+    {
+      "text": "includes_invocation_guidance: Response explains how to invoke a skill (mentions slash commands or /skill-name pattern)",
+      "passed": false,
+      "evidence": "Response lists skills but provides no instructions on how to actually invoke them — no mention of slash commands or /skill-name syntax"
+    },
+    {
+      "text": "mentions_vercel_family: Response acknowledges the vercel:* family of skills (doesn't silently omit them)",
+      "passed": true,
+      "evidence": "Has 'Vercel (many sub-skills)' section listing several vercel:* skills"
+    }
+  ],
+  "pass_rate": 0.75
+}

@@ -1,0 +1,23 @@
+{
+  "eval_id": 0,
+  "eval_name": "list-all",
+  "prompt": "what skills do you have available?",
+  "assertions": [
+    {
+      "name": "lists_many_skills",
+      "description": "Response mentions at least 10 distinct skill names"
+    },
+    {
+      "name": "groups_by_category",
+      "description": "Response organizes skills into at least 2 named groups or categories"
+    },
+    {
+      "name": "includes_invocation_guidance",
+      "description": "Response explains how to invoke a skill (mentions slash commands or /skill-name pattern)"
+    },
+    {
+      "name": "mentions_vercel_family",
+      "description": "Response acknowledges the vercel:* family of skills (doesn't silently omit them)"
+    }
+  ]
+}
