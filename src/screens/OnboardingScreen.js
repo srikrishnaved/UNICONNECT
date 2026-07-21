@@ -16,10 +16,10 @@ import {
 } from '../theme/tokens';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users, Star, Cpu, Music, Code } from 'lucide-react-native';
-import { teachers as SEED_TEACHERS } from '../data/index';
+import { Sparkles, GraduationCap, UserCheck, CheckSquare, Square, Check, School, Mail, Lock, EyeOff, Eye, X, Layers, User, BookOpen, Clock, Award, Users, Star, Cpu, Music, Code, MapPin } from 'lucide-react-native';
 import LegalScreen from './LegalScreen';
 import { APP_CONFIG, isEmailDomainValid } from '../config/appConfig';
+import gsap from 'gsap';
 
 const COURSES = APP_CONFIG.courses;
 
@@ -33,7 +33,7 @@ const splitAppName = (appName) => {
 };
 
 export default function OnboardingScreen() {
-  const { signUp, signIn, sendPasswordReset, registerTeacher } = useApp();
+  const { signUp, signIn, sendPasswordReset, registerTeacher, teachersList } = useApp();
   const [logoFirst, logoSecond] = splitAppName(APP_CONFIG.appName);
 
   const { width: windowWidth } = useWindowDimensions();
@@ -100,6 +100,83 @@ export default function OnboardingScreen() {
   const [forgotError, setForgotError] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+
+  // ── Sign-in page: dynamic events from DB (keyed by university URL slug) ────
+  const [signinDynEvents, setSigninDynEvents] = useState(null); // null = not yet fetched
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const PALETTE = [
+      { accent: '#6366f1', badgeBg: 'rgba(99,102,241,0.08)', badgeColor: '#6366f1' },
+      { accent: '#ec4899', badgeBg: 'rgba(236,72,153,0.08)', badgeColor: '#ec4899' },
+      { accent: '#10b981', badgeBg: 'rgba(16,185,129,0.08)', badgeColor: '#059669' },
+      { accent: '#f59e0b', badgeBg: 'rgba(245,158,11,0.08)', badgeColor: '#d97706' },
+      { accent: '#0ea5e9', badgeBg: 'rgba(14,165,233,0.08)', badgeColor: '#0284c7' },
+      { accent: '#f97316', badgeBg: 'rgba(249,115,22,0.08)', badgeColor: '#ea580c' },
+    ];
+    const KNOWN_ROUTES = new Set(['my-profile','hub','planner','groups','mentors','teachers','admin','super-admin','dm','search','events','legal','privacy','profile','clubs','teams']);
+    const mapEv = (ev, idx) => ({
+      title: ev.title || 'Campus Event',
+      category: (ev.club_name || 'EVENT').toUpperCase().slice(0, 22),
+      date: ev.when ? new Date(ev.when).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : '',
+      time: ev.time || '',
+      location: ev.venue || '',
+      ...PALETTE[idx % PALETTE.length],
+      rsvp: null,
+    });
+    const loadSigninEvents = async () => {
+      try {
+        const pathSlug = window.location.pathname.replace(/^\//, '').split('/')[0];
+        let universityId = '290a9e2c-c6b3-4397-a3ee-fd95f6e0addd'; // Christ default
+        if (pathSlug && !KNOWN_ROUTES.has(pathSlug)) {
+          const { data: uniRow } = await supabase
+            .from('universities')
+            .select('id')
+            .eq('slug', pathSlug)
+            .eq('is_active', true)
+            .single();
+          if (uniRow?.id) universityId = uniRow.id;
+        }
+        const { data: evRows } = await supabase
+          .from('hub_events')
+          .select('id, title, club_name, time, venue, when')
+          .eq('university_id', universityId)
+          .order('created_at', { ascending: false })
+          .limit(6);
+        if (evRows && evRows.length >= 2) {
+          setSigninDynEvents({
+            left: evRows.slice(0, 3).map(mapEv),
+            right: evRows.slice(3, 6).map(mapEv),
+          });
+        }
+      } catch (_) {
+        // DB not yet set up — fall through to hardcoded placeholder events
+      }
+    };
+    loadSigninEvents();
+  }, []);
+
+  // ── Allset step animation refs ─────────────────────────────────────────────
+  const allsetCircleRef = useRef(null);
+  const allsetContentRef = useRef(null);
+  const allsetCardRef = useRef(null);
+  const allsetConsentRef = useRef(null);
+  const allsetBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || step !== 'allset') return;
+    const timer = setTimeout(() => {
+      const tl = gsap.timeline();
+      if (allsetCircleRef.current) {
+        tl.from(allsetCircleRef.current, { scale: 0, duration: 0.55, ease: 'elastic.out(1, 0.4)' })
+          .from(allsetContentRef.current, { y: 24, opacity: 0, duration: 0.4, ease: 'power3.out' }, '-=0.2')
+          .from(allsetCardRef.current, { y: 18, opacity: 0, duration: 0.35, ease: 'power2.out' }, '-=0.1')
+          .from(allsetConsentRef.current, { y: 14, opacity: 0, duration: 0.3, ease: 'power2.out' }, '-=0.05')
+          .from(allsetBtnRef.current, { y: 10, opacity: 0, duration: 0.3, ease: 'power2.out' }, '-=0.05');
+      }
+    }, 60);
+    return () => { clearTimeout(timer); gsap.killTweensOf('*'); };
+  }, [step]);
 
   const handleRegisterUniversityPress = () => {
     const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
@@ -699,7 +776,7 @@ export default function OnboardingScreen() {
     // Use timetable_slots as the sole source of names.
     // Enrich with seed teacher data (position, subjects, id) only when names match exactly.
     const mergedList = timetableFaculty.map(name => {
-      const seed = SEED_TEACHERS.find(t => t.name.toLowerCase() === name.toLowerCase());
+      const seed = teachersList.find(t => t.name.toLowerCase() === name.toLowerCase());
       return seed
         ? { name: seed.name, subjects: seed.subjects, id: seed.id }
         : { name, subjects: [], id: null };
@@ -883,86 +960,51 @@ export default function OnboardingScreen() {
 
   // ── Step: Sign In ──────────────────────────────────────────────────────────
   if (step === 'signin') {
-    const accentColor = selectedRole === 'faculty'
-      ? tColors.faculty.primary
-      : tColors.student.primary;
+    const PLACEHOLDER_LEFT = [
+      { title: 'Mega Tech Hackathon 2026', category: 'HACKATHON', date: 'Jul 20', time: '9:00 AM', location: 'Central Seminar Hall', accent: '#6366f1', badgeBg: 'rgba(99,102,241,0.08)', badgeColor: '#6366f1', rsvp: '120+ RSVP' },
+      { title: 'Sargam Cultural Fest 2026', category: 'CULTURAL FEST', date: 'Aug 5', time: '10:00 AM', location: 'Main Auditorium', accent: '#ec4899', badgeBg: 'rgba(236,72,153,0.08)', badgeColor: '#ec4899', rsvp: 'Open to All' },
+      { title: 'Academic Guest Lecture — GenAI', category: 'GUEST LECTURE', date: 'Jul 15', time: '2:00 PM', location: 'Room 302', accent: '#10b981', badgeBg: 'rgba(16,185,129,0.08)', badgeColor: '#059669', rsvp: null },
+    ];
+    const PLACEHOLDER_RIGHT = [
+      { title: 'Finance Summit 2026', category: 'SUMMIT', date: 'Aug 12', time: '11:00 AM', location: 'Board Room', accent: '#f59e0b', badgeBg: 'rgba(245,158,11,0.08)', badgeColor: '#d97706', rsvp: '80+ RSVP' },
+      { title: 'Photography Exhibition', category: 'EXHIBITION', date: 'Jul 25', time: '3:00 PM', location: 'Gallery Hall', accent: '#0ea5e9', badgeBg: 'rgba(14,165,233,0.08)', badgeColor: '#0284c7', rsvp: null },
+      { title: 'BCom Annual Sports Day', category: 'SPORTS', date: 'Aug 1', time: '8:00 AM', location: 'Campus Ground', accent: '#f97316', badgeBg: 'rgba(249,115,22,0.08)', badgeColor: '#ea580c', rsvp: null },
+    ];
+    // Use DB events once loaded; fall back to Christ placeholders only on christ slug
+    const leftEvents = signinDynEvents?.left ?? PLACEHOLDER_LEFT;
+    const rightEvents = signinDynEvents?.right ?? PLACEHOLDER_RIGHT;
 
-    return (
-      <View style={{ flex: 1, backgroundColor: '#fafafa', flexDirection: isDesktop ? 'row' : 'column' }}>
-        {/* LEFT PANEL: Showroom (Desktop Only) */}
-        {isDesktop && (
-          <View style={siStyles.showroomPanel}>
-            <View style={siStyles.showroomGlow1} />
-            <View style={siStyles.showroomGlow2} />
-            <View style={siStyles.showroomContent}>
-              <View style={siStyles.eventsHeader}>
-                <View style={siStyles.eventsBadge}>
-                  <Sparkles size={12} color="#f97316" />
-                  <Text style={siStyles.eventsBadgeText}>CAMPUS EVENTS</Text>
+    const renderEventsPanel = (panelTitle, events, isLeft) => (
+      <View style={[siStyles.eventsPanel, isLeft ? siStyles.eventsPanelLeft : siStyles.eventsPanelRight]}>
+        <Text style={siStyles.eventsPanelLabel}>{panelTitle}</Text>
+        {events.map((ev, i) => (
+          <View key={i} style={[siStyles.eventCard, i < events.length - 1 && { marginBottom: 12 }]}>
+            <View style={[siStyles.eventCardStripe, { backgroundColor: ev.accent }]} />
+            <View style={siStyles.eventCardBody}>
+              <View style={siStyles.eventCardTop}>
+                <View style={[siStyles.eventCategoryPill, { backgroundColor: ev.badgeBg }]}>
+                  <Text style={[siStyles.eventCategoryText, { color: ev.badgeColor }]}>{ev.category}</Text>
                 </View>
-                <Text style={siStyles.showroomTitle}>Upcoming Events</Text>
-                <Text style={siStyles.showroomSubtitle}>Explore what's happening at your university workspace this week.</Text>
+                {ev.rsvp ? <Text style={siStyles.eventRsvpText}>{ev.rsvp}</Text> : null}
               </View>
-              
-              <View style={siStyles.eventsList}>
-                {/* Event Card 1: Hackathon */}
-                <View style={siStyles.eventFlyer}>
-                  <View style={[siStyles.flyerPoster, { backgroundColor: '#6366f1' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }]}>
-                    <Code size={22} color="#ffffff" />
-                  </View>
-                  <View style={siStyles.flyerDetails}>
-                    <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>HACKATHON · JUL 20</Text>
-                      <View style={siStyles.flyerStatusBadge}>
-                        <Text style={siStyles.flyerStatusText}>120+ RSVP</Text>
-                      </View>
-                    </View>
-                    <Text style={siStyles.flyerTitle}>Mega Tech Hackathon 2026</Text>
-                    <Text style={siStyles.flyerMeta}>9:00 AM · Central Seminar Hall</Text>
-                  </View>
-                </View>
-
-                {/* Event Card 2: Cultural Fest */}
-                <View style={siStyles.eventFlyer}>
-                  <View style={[siStyles.flyerPoster, { backgroundColor: '#ec4899' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #ec4899, #f43f5e)' }]}>
-                    <Music size={22} color="#ffffff" />
-                  </View>
-                  <View style={siStyles.flyerDetails}>
-                    <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>CULTURAL FEST · AUG 05</Text>
-                      <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(236, 72, 153, 0.15)' }]}>
-                        <Text style={[siStyles.flyerStatusText, { color: '#ec4899' }]}>Open to All</Text>
-                      </View>
-                    </View>
-                    <Text style={siStyles.flyerTitle}>Sargam Cultural Fest 2026</Text>
-                    <Text style={siStyles.flyerMeta}>10:00 AM · Main Auditorium</Text>
-                  </View>
-                </View>
-
-                {/* Event Card 3: GenAI Lecture */}
-                <View style={siStyles.eventFlyer}>
-                  <View style={[siStyles.flyerPoster, { backgroundColor: '#059669' }, Platform.OS === 'web' && { background: 'linear-gradient(135deg, #059669, #10b981)' }]}>
-                    <Cpu size={22} color="#ffffff" />
-                  </View>
-                  <View style={siStyles.flyerDetails}>
-                    <View style={siStyles.flyerHeaderRow}>
-                      <Text style={siStyles.flyerCategory}>GUEST LECTURE · JUL 15</Text>
-                      <View style={[siStyles.flyerStatusBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                        <Text style={[siStyles.flyerStatusText, { color: '#10b981' }]}>GenAI Core</Text>
-                      </View>
-                    </View>
-                    <Text style={siStyles.flyerTitle}>Academic Guest Lecture on GenAI</Text>
-                    <Text style={siStyles.flyerMeta}>2:00 PM · Room 302</Text>
-                  </View>
-                </View>
+              <Text style={siStyles.eventCardTitle}>{ev.title}</Text>
+              <View style={siStyles.eventCardMeta}>
+                <Clock size={11} color="#bbbbbb" />
+                <Text style={siStyles.eventMetaText}>{ev.date} · {ev.time}</Text>
+                <MapPin size={11} color="#bbbbbb" style={{ marginLeft: 8 }} />
+                <Text style={siStyles.eventMetaText}>{ev.location}</Text>
               </View>
             </View>
           </View>
-        )}
+        ))}
+      </View>
+    );
 
-        {/* RIGHT PANEL: Form Card */}
+    return (
+      <View style={{ flex: 1, backgroundColor: '#ffffff', flexDirection: isDesktop ? 'row' : 'column' }}>
+        {isDesktop && renderEventsPanel('UPCOMING EVENTS', leftEvents, true)}
+
         <View style={isDesktop ? siStyles.formPanel : { flex: 1 }}>
-          {isDesktop && <View style={[siStyles.formGlow, { backgroundColor: accentColor }]} />}
           <SafeAreaView style={{ flex: 1 }}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'web' ? undefined : (Platform.OS === 'ios' ? 'padding' : undefined)}>
               <ScrollView
@@ -970,61 +1012,44 @@ export default function OnboardingScreen() {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                {/* Logo and Title */}
                 <View style={siStyles.headerContainer}>
-                  <View style={[siStyles.logoMark, { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(255, 255, 255, 0.08)', borderWidth: 1 }]}>
-                    <Layers size={22} color={accentColor} />
+                  <View style={siStyles.logoMark}>
+                    <Layers size={22} color="#111111" />
                   </View>
                   <Text style={siStyles.title}>UniConnect</Text>
                   <Text style={siStyles.subtitle}>Sign in to your university workspace</Text>
                 </View>
 
-                {/* Role selector Segment Control */}
                 <View style={siStyles.roleRow}>
                   <TouchableOpacity
-                    style={[
-                      siStyles.roleCard,
-                      selectedRole === 'student' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
-                    ]}
+                    style={[siStyles.roleCard, selectedRole === 'student' && siStyles.roleCardActive]}
                     onPress={() => setSelectedRole('student')}
                     activeOpacity={0.8}
                   >
-                    <User size={14} color={selectedRole === 'student' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
-                    <Text style={[
-                      siStyles.roleName,
-                      selectedRole === 'student' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
-                    ]}>Student Portal</Text>
+                    <User size={14} color={selectedRole === 'student' ? '#ffffff' : '#86868b'} />
+                    <Text style={[siStyles.roleName, selectedRole === 'student' && siStyles.roleNameActive]}>Student Portal</Text>
                   </TouchableOpacity>
-
                   <TouchableOpacity
-                    style={[
-                      siStyles.roleCard,
-                      selectedRole === 'faculty' && { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.12)' }
-                    ]}
+                    style={[siStyles.roleCard, selectedRole === 'faculty' && siStyles.roleCardActive]}
                     onPress={() => setSelectedRole('faculty')}
                     activeOpacity={0.8}
                   >
-                    <BookOpen size={14} color={selectedRole === 'faculty' ? accentColor : 'rgba(255, 255, 255, 0.5)'} />
-                    <Text style={[
-                      siStyles.roleName,
-                      selectedRole === 'faculty' ? { color: '#ffffff', fontWeight: '600' } : { color: 'rgba(255, 255, 255, 0.5)' }
-                    ]}>Faculty Portal</Text>
+                    <BookOpen size={14} color={selectedRole === 'faculty' ? '#ffffff' : '#86868b'} />
+                    <Text style={[siStyles.roleName, selectedRole === 'faculty' && siStyles.roleNameActive]}>Faculty Portal</Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Form container */}
                 <View style={siStyles.formCard}>
-                  {/* Email input */}
                   <View style={[
                     siStyles.inputWrapper,
-                    focusedField === 'email' && { borderColor: accentColor, backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                    focusedField === 'email' && { borderColor: '#111111', backgroundColor: '#ffffff' }
                   ]}>
-                    <Mail size={16} color={focusedField === 'email' ? accentColor : 'rgba(255, 255, 255, 0.4)'} style={{ marginRight: 12 }} />
+                    <Mail size={16} color={focusedField === 'email' ? '#111111' : '#aaaaaa'} style={{ marginRight: 12 }} />
                     <TextInput
                       value={signInEmail}
                       onChangeText={v => { setSignInEmail(v); setSignInError(''); }}
                       placeholder="username@university.edu"
-                      placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                      placeholderTextColor="#cccccc"
                       style={siStyles.input}
                       keyboardType="email-address"
                       autoCapitalize="none"
@@ -1033,18 +1058,17 @@ export default function OnboardingScreen() {
                     />
                   </View>
 
-                  {/* Password input */}
                   <View style={[
                     siStyles.inputWrapper,
-                    { marginTop: 14 },
-                    focusedField === 'password' && { borderColor: accentColor, backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                    { marginTop: 12 },
+                    focusedField === 'password' && { borderColor: '#111111', backgroundColor: '#ffffff' }
                   ]}>
-                    <Lock size={16} color={focusedField === 'password' ? accentColor : 'rgba(255, 255, 255, 0.4)'} style={{ marginRight: 12 }} />
+                    <Lock size={16} color={focusedField === 'password' ? '#111111' : '#aaaaaa'} style={{ marginRight: 12 }} />
                     <TextInput
                       value={signInPassword}
                       onChangeText={v => { setSignInPassword(v); setSignInError(''); }}
                       placeholder="Your password"
-                      placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                      placeholderTextColor="#cccccc"
                       style={[siStyles.input, { flex: 1 }]}
                       secureTextEntry={!showSignInPassword}
                       autoCapitalize="none"
@@ -1056,7 +1080,9 @@ export default function OnboardingScreen() {
                       activeOpacity={0.7}
                       style={{ paddingHorizontal: tSpacing.xs }}
                     >
-                      {showSignInPassword ? <EyeOff size={16} color="rgba(255, 255, 255, 0.4)" /> : <Eye size={16} color="rgba(255, 255, 255, 0.4)" />}
+                      {showSignInPassword
+                        ? <EyeOff size={16} color="#aaaaaa" />
+                        : <Eye size={16} color="#aaaaaa" />}
                     </TouchableOpacity>
                   </View>
 
@@ -1082,14 +1108,14 @@ export default function OnboardingScreen() {
                             value={forgotEmail}
                             onChangeText={v => { setForgotEmail(v); setForgotError(''); }}
                             placeholder="username@university.edu"
-                            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+                            placeholderTextColor="#cccccc"
                             style={siStyles.forgotInput}
                             keyboardType="email-address"
                             autoCapitalize="none"
                           />
                           {!!forgotError && <Text style={siStyles.forgotError}>{forgotError}</Text>}
                           <TouchableOpacity
-                            style={[siStyles.forgotBtn, { backgroundColor: accentColor }]}
+                            style={[siStyles.forgotBtn, { backgroundColor: '#111111' }]}
                             onPress={handleForgotPassword}
                             disabled={forgotLoading}
                             activeOpacity={0.8}
@@ -1110,10 +1136,7 @@ export default function OnboardingScreen() {
                   )}
 
                   <TouchableOpacity
-                    style={[
-                      siStyles.submitBtn,
-                      { backgroundColor: accentColor, shadowColor: accentColor }
-                    ]}
+                    style={siStyles.submitBtn}
                     onPress={handleSignIn}
                     disabled={loading}
                     activeOpacity={0.85}
@@ -1126,22 +1149,31 @@ export default function OnboardingScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Switch to Signup */}
+                <TouchableOpacity
+                  onPress={() => setStep('roleSelect')}
+                  activeOpacity={0.7}
+                  style={{ alignItems: 'center', marginTop: 14, marginBottom: 4 }}
+                >
+                  <Text style={{ fontSize: 13, color: '#86868b' }}>
+                    New student?{' '}
+                    <Text style={{ color: '#111111', fontWeight: '600' }}>Create your account →</Text>
+                  </Text>
+                </TouchableOpacity>
+
                 <View style={siStyles.dividerRow}>
                   <View style={siStyles.dividerLine} />
                   <Text style={siStyles.dividerText}>or</Text>
                   <View style={siStyles.dividerLine} />
                 </View>
 
-                <TouchableOpacity 
-                  onPress={handleRegisterUniversityPress} 
-                  activeOpacity={0.7} 
+                <TouchableOpacity
+                  onPress={handleRegisterUniversityPress}
+                  activeOpacity={0.7}
                   style={[styles.switchRow, { marginTop: 10, marginBottom: tSpacing.xl }]}
                 >
-                  <Text style={[styles.switchLink, { color: accentColor }]}>Register a New University Workspace</Text>
+                  <Text style={[styles.switchLink, { color: '#111111' }]}>Register a New University Workspace</Text>
                 </TouchableOpacity>
 
-                {/* Footer links */}
                 <View style={siStyles.footerRow}>
                   <TouchableOpacity onPress={() => setLegalModal('privacy')} activeOpacity={0.7}>
                     <Text style={siStyles.footerLink}>Privacy Policy</Text>
@@ -1156,24 +1188,24 @@ export default function OnboardingScreen() {
                   </TouchableOpacity>
                 </View>
 
+                <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
+                  <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
+                      <TouchableOpacity onPress={() => setLegalModal(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                        <X size={22} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                    <LegalScreen route={{ params: { type: legalModal } }} />
+                  </SafeAreaView>
+                </Modal>
 
-            {/* Legal content viewer */}
-            <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
-              <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
-                  <TouchableOpacity onPress={() => setLegalModal(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <X size={22} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-                <LegalScreen route={{ params: { type: legalModal } }} />
-              </SafeAreaView>
-            </Modal>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </View>
 
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
-  </View>
+        {isDesktop && renderEventsPanel('HAPPENING SOON', rightEvents, false)}
+      </View>
     );
   }
 
@@ -1469,16 +1501,18 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.allsetContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.checkCircle}>
+        <View ref={allsetCircleRef} style={styles.checkCircle}>
           <Check size={16} color={colors.success} />
         </View>
 
-        <Text style={styles.allsetTitle}>You're all set, {name.split(' ')[0]}!</Text>
-        <Text style={styles.allsetSub}>
-          Welcome to {APP_CONFIG.appName} — your space to find classmates, join study groups, discover clubs, and connect with teachers.
-        </Text>
+        <View ref={allsetContentRef} style={{ alignItems: 'center', width: '100%' }}>
+          <Text style={styles.allsetTitle}>You're all set, {name.split(' ')[0]}!</Text>
+          <Text style={styles.allsetSub}>
+            Welcome to {APP_CONFIG.appName} — your space to find classmates, join study groups, discover clubs, and connect with teachers.
+          </Text>
+        </View>
 
-        <View style={styles.detailsCard}>
+        <View ref={allsetCardRef} style={styles.detailsCard}>
           {[
             { label: 'Course', value: course },
             { label: 'Year', value: year },
@@ -1492,7 +1526,7 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Compliance checkboxes */}
-        <View style={styles.consentChecks}>
+        <View ref={allsetConsentRef} style={styles.consentChecks}>
           <View style={styles.consentCheck}>
             <TouchableOpacity onPress={() => setAgreedTerms(v => !v)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               {agreedTerms ? <CheckSquare size={18} color={colors.accent} /> : <Square size={18} color={colors.textSecondary} />}
@@ -1520,6 +1554,7 @@ export default function OnboardingScreen() {
         ) : null}
 
         <TouchableOpacity
+          ref={allsetBtnRef}
           style={[styles.primaryBtn, { width: '100%' }, (loading || !agreedTerms || !agreedAge) && { opacity: 0.45 }]}
           onPress={handleCreateAccount}
           disabled={loading || !agreedTerms || !agreedAge}
@@ -1779,38 +1814,36 @@ const styles = StyleSheet.create({
   },
 });
 
-// ── Sign-in step styles (uses tokens from src/theme/tokens.js) ────────────────
+// ── Sign-in step styles ───────────────────────────────────────────────────────
 const siStyles = StyleSheet.create({
   container: {
     paddingHorizontal: tSpacing.base,
     paddingTop: 60,
     paddingBottom: tSpacing.xxxl,
     flexGrow: 1,
-    maxWidth: 440,
+    maxWidth: 420,
     alignSelf: 'center',
     width: '100%',
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
   },
   logoMark: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoMarkText: {
-    color: '#1d1d1f',
-    fontSize: 26,
-    fontWeight: '700',
+    marginBottom: 14,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
   },
   title: {
     fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
     fontSize: 32,
-    color: '#1d1d1f',
+    color: '#111111',
     fontWeight: '600',
     letterSpacing: -0.8,
     marginBottom: 6,
@@ -1825,351 +1858,82 @@ const siStyles = StyleSheet.create({
   },
   roleRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    backgroundColor: '#f5f5f5',
     borderRadius: 10,
     padding: 4,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: '#eeeeee',
     marginBottom: 20,
+    gap: 4,
   },
   roleCard: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 7,
     flexDirection: 'row',
-    gap: 8,
+    gap: 7,
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'transparent',
+  },
+  roleCardActive: {
+    backgroundColor: '#111111',
   },
   roleName: {
     fontSize: typography.sm,
-    color: 'rgba(0, 0, 0, 0.45)',
+    color: '#86868b',
+    fontWeight: '500',
+  },
+  roleNameActive: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
   formCard: {
-    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 255, 255, 0.75)' : '#ffffff',
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: '#ffffff',
+    borderColor: '#e8e8e8',
     borderWidth: 1,
-    borderRadius: 20,
-    padding: tSpacing.lg,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: tSpacing.md,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 4,
-    ...Platform.select({
-      web: {
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)',
-      }
-    })
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
-    borderRadius: 10,
-    paddingHorizontal: tSpacing.md,
-    marginBottom: tSpacing.md,
-  },
-  input: {
-    flex: 1,
-    color: '#1d1d1f',
-    fontSize: typography.base,
-    paddingVertical: 14,
-    paddingLeft: 10,
-  },
-  standaloneInput: {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
-    borderRadius: 10,
-    paddingHorizontal: tSpacing.md,
-    paddingVertical: 14,
-    color: '#1d1d1f',
-    fontSize: typography.base,
-    marginBottom: tSpacing.md,
-  },
-  forgotLink: {
-    fontSize: typography.sm,
-    color: '#0066cc',
-    textDecorationLine: 'none',
-  },
-  forgotBox: {
-    backgroundColor: 'rgba(0, 0, 0, 0.01)',
-    borderRadius: 10,
-    padding: tSpacing.md,
-    marginTop: tSpacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
-  },
-  forgotLabel: {
-    fontSize: typography.sm,
-    color: 'rgba(0, 0, 0, 0.55)',
-    marginBottom: tSpacing.sm,
-    lineHeight: 18,
-  },
-  forgotSuccess: {
-    fontSize: typography.sm,
-    color: tColors.success,
-    lineHeight: 18,
-  },
-  errorText: {
-    fontSize: typography.sm,
-    color: tColors.error,
-    marginBottom: tSpacing.sm,
-    marginTop: tSpacing.xs,
-    textAlign: 'center',
-  },
-  primaryBtn: {
-    borderRadius: 10,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: tSpacing.sm,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
     elevation: 2,
-  },
-  primaryBtnText: {
-    color: '#fff',
-    fontSize: typography.base,
-    fontWeight: '600',
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-  },
-  dividerText: {
-    fontSize: typography.xs,
-    color: 'rgba(0, 0, 0, 0.35)',
-    paddingHorizontal: 12,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: tSpacing.sm,
-    marginTop: 24,
-    marginBottom: tSpacing.base,
-  },
-  footerLink: {
-    fontSize: typography.xs,
-    color: 'rgba(0, 0, 0, 0.45)',
-  },
-  footerSep: {
-    fontSize: typography.xs,
-    color: 'rgba(0, 0, 0, 0.45)',
-  },
-  // Liquid background shapes
-  bgWrapper: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    overflow: 'hidden',
-    zIndex: -1,
-  },
-  bgBlob: {
-    position: 'absolute',
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    opacity: 0.1,
-    filter: 'blur(90px)',
-  },
-  bgBlob1: {
-    top: '10%',
-    left: '5%',
-  },
-  bgBlob2: {
-    bottom: '15%',
-    right: '10%',
-  },
-  bgBlob3: {
-    top: '40%',
-    left: '40%',
-  },
-  // Showroom Layout Styles
-  showroomPanel: {
-    flex: 1.2,
-    backgroundColor: '#f5f5f7',
-    borderRightWidth: 1,
-    borderRightColor: 'rgba(0, 0, 0, 0.05)',
-    justifyContent: 'center',
-    paddingHorizontal: 48,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  showroomContent: {
-    zIndex: 1,
-  },
-  showroomGlow1: {
-    position: 'absolute',
-    top: -150,
-    left: -150,
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
-  },
-  showroomGlow2: {
-    position: 'absolute',
-    bottom: -150,
-    right: -100,
-    width: 450,
-    height: 450,
-    borderRadius: 225,
-    backgroundColor: 'rgba(236, 72, 153, 0.06)',
-    filter: Platform.OS === 'web' ? 'blur(120px)' : undefined,
-  },
-  showroomTitle: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 38,
-    fontWeight: '700',
-    color: '#1d1d1f',
-    letterSpacing: -1,
-    marginBottom: 8,
-  },
-  showroomSubtitle: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 16,
-    color: '#86868b',
-    letterSpacing: -0.2,
-    marginBottom: 40,
-    maxWidth: 480,
-  },
-  eventsHeader: {
-    marginBottom: 24,
-  },
-  eventsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 99,
-    marginBottom: 12,
-  },
-  eventsBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#f97316',
-    letterSpacing: 1,
-  },
-  eventsList: {
-    gap: 16,
-  },
-  eventFlyer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: 14,
-    padding: 12,
-    alignItems: 'center',
-  },
-  flyerPoster: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  flyerMonth: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(0, 0, 0, 0.5)',
-    letterSpacing: 0.5,
-  },
-  flyerDay: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1d1d1f',
-    marginTop: -2,
-  },
-  flyerDetails: {
-    flex: 1,
-  },
-  flyerHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  flyerCategory: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: 'rgba(0, 0, 0, 0.4)',
-    letterSpacing: 0.5,
-  },
-  flyerStatusBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 99,
-  },
-  flyerStatusText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#6366f1',
-  },
-  flyerTitle: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1d1d1f',
-    marginBottom: 2,
-  },
-  flyerMeta: {
-    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : undefined,
-    fontSize: 12,
-    color: 'rgba(0, 0, 0, 0.45)',
-  },
-  formPanel: {
-    flex: 1,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  formGlow: {
-    position: 'absolute',
-    top: '30%',
-    right: '-20%',
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    opacity: 0.06,
-    filter: Platform.OS === 'web' ? 'blur(100px)' : undefined,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: '#fafafa',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderColor: '#e8e8e8',
     borderRadius: 10,
-    paddingHorizontal: tSpacing.md,
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  input: {
+    flex: 1,
+    color: '#111111',
+    fontSize: typography.base,
+    paddingVertical: 0,
+    paddingLeft: 0,
+    height: 48,
+  },
+  forgotLink: {
+    fontSize: 13,
+    color: '#0066cc',
+  },
+  forgotBox: {
+    backgroundColor: '#fafafa',
+    borderRadius: 10,
+    padding: tSpacing.md,
+    marginTop: tSpacing.sm,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
   },
   forgotTitle: {
     fontSize: 15,
-    color: '#1d1d1f',
+    color: '#111111',
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -2180,13 +1944,13 @@ const siStyles = StyleSheet.create({
     lineHeight: 16,
   },
   forgotInput: {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: '#e8e8e8',
     borderRadius: 10,
-    paddingHorizontal: tSpacing.md,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#1d1d1f',
+    color: '#111111',
     fontSize: 14,
     marginBottom: 10,
   },
@@ -2207,7 +1971,20 @@ const siStyles = StyleSheet.create({
     color: tColors.error,
     marginBottom: 8,
   },
+  forgotSuccess: {
+    fontSize: typography.sm,
+    color: tColors.success,
+    lineHeight: 18,
+  },
+  errorText: {
+    fontSize: typography.sm,
+    color: tColors.error,
+    marginBottom: tSpacing.sm,
+    marginTop: tSpacing.xs,
+    textAlign: 'center',
+  },
   submitBtn: {
+    backgroundColor: '#111111',
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
@@ -2218,5 +1995,125 @@ const siStyles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '600',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#eeeeee',
+  },
+  dividerText: {
+    fontSize: typography.xs,
+    color: '#cccccc',
+    paddingHorizontal: 12,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: tSpacing.sm,
+    marginTop: 20,
+    marginBottom: tSpacing.base,
+  },
+  footerLink: {
+    fontSize: typography.xs,
+    color: '#aaaaaa',
+  },
+  footerSep: {
+    fontSize: typography.xs,
+    color: '#cccccc',
+  },
+  formPanel: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  eventsPanel: {
+    flex: 0.85,
+    backgroundColor: '#f9f9f9',
+    justifyContent: 'center',
+    paddingHorizontal: 36,
+    paddingVertical: 48,
+  },
+  eventsPanelLeft: {
+    borderRightWidth: 1,
+    borderRightColor: '#f0f0f0',
+  },
+  eventsPanelRight: {
+    borderLeftWidth: 1,
+    borderLeftColor: '#f0f0f0',
+  },
+  eventsPanelLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: '#aaaaaa',
+    marginBottom: 20,
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
+  },
+  eventCard: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#eeeeee',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  eventCardStripe: {
+    width: 4,
+  },
+  eventCardBody: {
+    flex: 1,
+    padding: 14,
+  },
+  eventCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  eventCategoryPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 99,
+  },
+  eventCategoryText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  eventRsvpText: {
+    fontSize: 10,
+    color: '#aaaaaa',
+    fontWeight: '500',
+  },
+  eventCardTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111111',
+    marginBottom: 6,
+    letterSpacing: -0.2,
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
+  },
+  eventCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  eventMetaText: {
+    fontSize: 11,
+    color: '#bbbbbb',
   },
 });
