@@ -13,7 +13,6 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { hubClubs } from '../data';
 import { useApp } from '../context/AppContext';
 import {
   colors as tColors,
@@ -24,6 +23,7 @@ import {
 } from '../theme/tokens';
 import { EmptyState } from '../components/EmptyState';
 import BunkmateModal from '../components/BunkmateModal';
+import FootballGridModal from '../components/FootballGridModal';
 import {
   Star,
   ShieldCheck,
@@ -122,6 +122,7 @@ export default function HubScreen() {
     myClubRequests,
     submitClubCreationRequest,
     hiddenClubIds,
+    clubs,
   } = useApp();
 
   const [filter, setFilter] = useState('All Showroom');
@@ -148,6 +149,7 @@ export default function HubScreen() {
   const [submitted, setSubmitted] = useState(false);
   
   const [showBunkmate, setShowBunkmate] = useState(false);
+  const [showFootballGrid, setShowFootballGrid] = useState(false);
 
   const eggHandler = (setter) => (val) => {
     const low = val.toLowerCase();
@@ -155,6 +157,10 @@ export default function HubScreen() {
       setter('');
       setShowCreate(false);
       setShowBunkmate(true);
+    } else if (low.includes('vardrid')) {
+      setter('');
+      setShowCreate(false);
+      setShowFootballGrid(true);
     } else if (low.includes('maximus')) {
       setter('');
       Linking.openURL('https://www.google.com/search?q=snorlax');
@@ -202,7 +208,7 @@ export default function HubScreen() {
   };
 
   const allClubs = useMemo(
-    () => [...hubClubs, ...(userCreatedClubs || [])].filter((c) => !hiddenClubIds?.has(String(c.id))),
+    () => [...clubs, ...(userCreatedClubs || [])].filter((c) => !hiddenClubIds?.has(String(c.id))),
     [userCreatedClubs, hiddenClubIds]
   );
 
@@ -641,6 +647,9 @@ export default function HubScreen() {
 
       {/* Easter Egg Bunkmate Modal */}
       <BunkmateModal visible={showBunkmate} onClose={() => setShowBunkmate(false)} />
+
+      {/* Easter Egg Football Grid (type "VARDRID") */}
+      <FootballGridModal visible={showFootballGrid} onClose={() => setShowFootballGrid(false)} />
 
       {/* Volkswagen Configurator Modal ("Create Club/Team") */}
       <Modal
