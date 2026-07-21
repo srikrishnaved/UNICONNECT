@@ -24,6 +24,8 @@ import LegalScreen from './src/screens/LegalScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
+import CourseTagsScreen from './src/screens/CourseTagsScreen';
+import CourseRecommendationsScreen from './src/screens/CourseRecommendationsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppProvider, useApp } from './src/context/AppContext';
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -268,6 +270,8 @@ function AppShell() {
             }} />
             <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} options={{ title: 'Privacy Policy' }} />
             <Stack.Screen name="Terms" component={TermsOfServiceScreen} options={{ title: 'Terms of Service' }} />
+            <Stack.Screen name="CourseTags" component={CourseTagsScreen} options={{ title: 'Learning Tags' }} />
+            <Stack.Screen name="CourseRecommendations" component={CourseRecommendationsScreen} options={{ title: 'Course Recommendations' }} />
           </Stack.Navigator>
         </NavigationContainer>
       )}
