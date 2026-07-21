@@ -53,3 +53,6 @@ restore_db.js
 .agents/
 .claude/skills/
 skills-lock.json
+
+# business/financial documents — not app source
+UniConnect_Pilot_Budget.xlsx
