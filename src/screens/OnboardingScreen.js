@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
-  ActivityIndicator, Modal, Linking, useWindowDimensions,
+  ActivityIndicator, Modal, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, font } from '../theme';
@@ -179,15 +179,11 @@ export default function OnboardingScreen() {
   }, [step]);
 
   const handleRegisterUniversityPress = () => {
-    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
-    const url = isDev ? 'http://localhost:5173' : 'https://uni-registration.vercel.app';
-    if (Platform.OS === 'web') {
-      window.open(url, '_blank');
-    } else {
-      Linking.openURL(url).catch(() => {
-        Alert.alert('Workspace Onboarding', `Visit the university registration portal at ${url} on your desktop browser.`);
-      });
-    }
+    // The standalone registration portal (uni-registration.vercel.app) is not yet
+    // built out — do not send users to a live, unbranded page. Route them through
+    // the in-app request flow instead until that portal carries its own
+    // ownership disclaimer and is ready for real traffic.
+    setStep('uniRequest');
   };
 
   // University setup request fields
@@ -1188,6 +1184,10 @@ export default function OnboardingScreen() {
                   </TouchableOpacity>
                 </View>
 
+                <Text style={siStyles.ownershipDisclaimer}>
+                  UniConnect is an independent platform built by Srikrishna Ved Kodakalla — not affiliated with or endorsed by Christ University.
+                </Text>
+
                 <Modal visible={!!legalModal} animationType="slide" onRequestClose={() => setLegalModal(null)}>
                   <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
@@ -1283,6 +1283,10 @@ export default function OnboardingScreen() {
                 Already have an account? <Text style={styles.switchLink}>Sign In</Text>
               </Text>
             </TouchableOpacity>
+
+            <Text style={styles.ownershipDisclaimer}>
+              UniConnect is an independent platform built by Srikrishna Ved Kodakalla — not affiliated with or endorsed by Christ University.
+            </Text>
 
           </ScrollView>
         </KeyboardAvoidingView>
@@ -1631,6 +1635,10 @@ const styles = StyleSheet.create({
   consentNote: {
     fontSize: 11, color: colors.textTertiary, lineHeight: 16,
     textAlign: 'center', marginTop: spacing.sm,
+  },
+  ownershipDisclaimer: {
+    fontSize: 11, color: colors.textTertiary, lineHeight: 16,
+    textAlign: 'center', marginTop: spacing.md, marginBottom: spacing.sm,
   },
   errorText: { fontSize: 13, color: tColors.error, marginBottom: spacing.sm, marginTop: -spacing.xs },
   forgotLink: { fontSize: 13, color: colors.primary, ...font.medium },
@@ -2026,6 +2034,14 @@ const siStyles = StyleSheet.create({
   footerSep: {
     fontSize: typography.xs,
     color: '#cccccc',
+  },
+  ownershipDisclaimer: {
+    fontSize: 11,
+    color: '#aaaaaa',
+    textAlign: 'center',
+    lineHeight: 15,
+    paddingHorizontal: tSpacing.lg,
+    marginBottom: tSpacing.base,
   },
   formPanel: {
     flex: 1,

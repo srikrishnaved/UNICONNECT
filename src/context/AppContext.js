@@ -66,7 +66,7 @@ function applyUniversityBranding(accentColor, brandingName) {
   themeColors.primaryLight = hexToRgba(accentColor, 0.08);
 
   // Update App Config
-  APP_CONFIG.universityName = brandingName || 'Christ University';
+  APP_CONFIG.universityName = brandingName || APP_CONFIG.appName;
   APP_CONFIG.legalName = brandingName || 'UniConnect';
 }
 
@@ -417,40 +417,35 @@ export function AppProvider({ children }) {
     return () => clearInterval(id);
   }, [userProfile?.id, pendingOutgoing.size]);
 
-  // Apply dynamic branding based on logged in user's university or subdomain
+  // Apply dynamic branding based on logged in user's university or subdomain.
+  // NOTE: university_setup_progress has no accent_color/branding_name columns —
+  // only university_name is real. Accent color stays a fixed default until a
+  // proper per-university color column exists.
   useEffect(() => {
     const universityId = userProfile?.university_id || teacherProfile?.university_id;
     if (universityId) {
       supabase
         .from('university_setup_progress')
-        .select('accent_color, branding_name')
+        .select('university_name')
         .eq('university_id', universityId)
         .maybeSingle()
         .then(({ data, error }) => {
-          if (!error && data && data.accent_color) {
-            applyUniversityBranding(data.accent_color, data.branding_name);
-          } else {
-            applyUniversityBranding('#c9622e', 'Christ University');
-          }
+          applyUniversityBranding('#c9622e', (!error && data?.university_name) || APP_CONFIG.appName);
         });
     } else {
       const subdomain = getSubdomain();
       if (subdomain) {
         supabase
           .from('university_setup_progress')
-          .select('accent_color, branding_name')
+          .select('university_name')
           .eq('is_setup_complete', true)
           .ilike('university_website', `%${subdomain}%`)
           .limit(1)
           .then(({ data, error }) => {
-            if (!error && data && data.length > 0 && data[0].accent_color) {
-              applyUniversityBranding(data[0].accent_color, data[0].branding_name);
-            } else {
-              applyUniversityBranding('#c9622e', 'Christ University');
-            }
+            applyUniversityBranding('#c9622e', (!error && data?.[0]?.university_name) || APP_CONFIG.appName);
           });
       } else {
-        applyUniversityBranding('#c9622e', 'Christ University');
+        applyUniversityBranding('#c9622e', APP_CONFIG.appName);
       }
     }
   }, [userProfile?.university_id, teacherProfile?.university_id]);
