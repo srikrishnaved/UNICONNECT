@@ -90,14 +90,17 @@ export default function AppAdminScreen() {
           auth: { persistSession: false }
         });
 
-        // Step 2: Create Auth account
+        // Step 2: Create Auth account with a one-time random password (never stored/read
+        // from the DB — the admin sets their real password via the reset email below).
+        const tempPassword = `Tmp-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}!A1`;
         const { data: signUpData, error: signUpErr } = await tempSupabase.auth.signUp({
           email: req.admin_email,
-          password: req.admin_password_hash,
+          password: tempPassword,
         });
         if (signUpErr) throw signUpErr;
         const newUserId = signUpData.user?.id;
         if (!newUserId) throw new Error('Auth account creation failed.');
+        await tempSupabase.auth.resetPasswordForEmail(req.admin_email);
 
         // Step 3: Insert user profile as Active Super Admin
         const { error: profileErr } = await supabase
